@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.1.5" />
+  <link rel="stylesheet" href="css/styles.css?v=0.1.6" />
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.1.5 – Reports</div>
+        <div id="version-label">v0.1.6 – Settings</div>
       </div>
     </aside>
 
@@ -277,11 +277,87 @@
 </section></div></section>
 
       <section id="settings" class="page">
-        <div class="page-intro"><h2>Settings</h2><p>Configure branding, booking links, admin details and future integrations.</p></div>
-        <div class="settings-list">
-          <div><strong>Branding</strong><span>Barely Artificial default theme</span></div>
-          <div><strong>Booking URL</strong><span>Calendly placeholder</span></div>
-          <div><strong>Authentication</strong><span>Not connected yet</span></div>
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Settings</p>
+            <h2>Console settings</h2>
+            <p>Control the basic configuration for the Console and Customer Portal. These settings are placeholders for now and will be connected to Firebase later.</p>
+          </div>
+          <button class="primary-button" id="save-settings-button">Save Settings</button>
+        </div>
+
+        <div class="settings-grid">
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Your account</h3>
+              <span class="badge">Internal</span>
+            </div>
+            <div class="settings-form">
+              <label>Name<input type="text" value="Paul O’Brien" disabled /></label>
+              <label>Email<input type="email" value="pob@thepob.net" disabled /></label>
+              <label>Company<input type="text" value="Barely Artificial" disabled /></label>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Portal branding</h3>
+              <span class="badge">Placeholder</span>
+            </div>
+            <div class="settings-form">
+              <label>Portal name<input type="text" value="Barely Artificial Portal" disabled /></label>
+              <label>Primary colour<input type="text" value="#b7ff3c" disabled /></label>
+              <label>Welcome message<input type="text" value="Everything you need for your project, all in one place." disabled /></label>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Booking</h3>
+              <span class="badge">Calendly</span>
+            </div>
+            <div class="settings-form">
+              <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/new-meeting" disabled /></label>
+              <label>Default session length<input type="text" value="30 minutes" disabled /></label>
+              <label>Time zone<input type="text" value="Europe/London" disabled /></label>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Firebase</h3>
+              <span class="badge status paused">Not connected</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Authentication</strong><span>Planned for next phase</span></div>
+              <div><strong>Firestore</strong><span>Not connected yet</span></div>
+              <div><strong>Storage</strong><span>Not connected yet</span></div>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Notifications</h3>
+              <span class="badge">Future</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Email alerts</strong><span>Off</span></div>
+              <div><strong>Booking confirmations</strong><span>Handled by Calendly</span></div>
+              <div><strong>Customer updates</strong><span>Not connected yet</span></div>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>About</h3>
+              <span class="badge">v0.1.6</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Console version</strong><span>v0.1.6 – Settings</span></div>
+              <div><strong>Customer Portal version</strong><span>v0.2.0 – Customer Access Foundations</span></div>
+              <div><strong>Build type</strong><span>Static front-end foundation</span></div>
+            </div>
+          </section>
         </div>
       </section>
     </main>
@@ -357,6 +433,6 @@
   </dialog>
 
 
-  <script src="js/app.js?v=0.1.5"></script>
+  <script src="js/app.js?v=0.1.6"></script>
 </body>
 </html>

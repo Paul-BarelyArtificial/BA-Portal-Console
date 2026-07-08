@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.5 – Reports";
+const APP_VERSION = "v0.1.6 – Settings";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -746,6 +746,15 @@ function setupBookingControls() {
   });
 }
 
+function setupSettingsControls() {
+  const saveButton = document.getElementById("save-settings-button");
+  if (!saveButton) return;
+
+  saveButton.addEventListener("click", () => {
+    alert("Settings are placeholders in this release. Firebase-backed saving will be added later.");
+  });
+}
+
 function setupDialog(dialogId, openButtonId, closeButtonId, cancelButtonId) {
   const dialog = document.getElementById(dialogId);
   const openButton = document.getElementById(openButtonId);
@@ -776,6 +785,7 @@ function initialiseApp() {
   setupProjectControls();
   setupResourceControls();
   setupBookingControls();
+  setupSettingsControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");

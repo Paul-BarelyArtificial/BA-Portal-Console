@@ -1,5 +1,11 @@
 # Barely Artificial Console – Changelog
 
+## v0.1.6 – Settings
+- Replaced the Settings placeholder with a structured Console settings screen.
+- Added account, branding, booking, Firebase, notifications and about sections.
+- Added placeholder Save Settings action.
+- Updated version to v0.1.6 – Settings.
+
 ## v0.1.4 – Bookings
 - Added Bookings management screen.
 - Added booking search and status filters.
