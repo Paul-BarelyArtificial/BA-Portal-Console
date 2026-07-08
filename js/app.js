@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.2a – Projects Detail Fix";
+const APP_VERSION = "v0.1.3 – Resources";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -128,12 +128,90 @@ const projects = [
   }
 ];
 
+const resources = [
+  {
+    id: "ai-basics-guide",
+    name: "AI Basics Guide",
+    customer: "Curzon Outsourcing",
+    project: "SEO Consultation",
+    type: "Training Guide",
+    status: "Published",
+    visibility: "Customer Portal",
+    owner: "Paul O’Brien",
+    lastUpdated: "Today",
+    description: "Introductory guide explaining AI in simple business terms."
+  },
+  {
+    id: "prompt-writing",
+    name: "Prompt Writing Quick Start",
+    customer: "Hospitality Group",
+    project: "AI Quick Start",
+    type: "Training Guide",
+    status: "Draft",
+    visibility: "Internal Only",
+    owner: "Paul O’Brien",
+    lastUpdated: "Yesterday",
+    description: "Short practical guide for writing better prompts."
+  },
+  {
+    id: "project-proposal",
+    name: "Project Proposal",
+    customer: "Curzon Outsourcing",
+    project: "Customer Resource Portal",
+    type: "Document",
+    status: "Published",
+    visibility: "Customer Portal",
+    owner: "Paul O’Brien",
+    lastUpdated: "This week",
+    description: "Customer-facing proposal and agreed direction."
+  },
+  {
+    id: "statement-of-work",
+    name: "Statement of Work",
+    customer: "Restaurant Demo Co",
+    project: "Restaurant Demo Portal",
+    type: "Document",
+    status: "Archived",
+    visibility: "Internal Only",
+    owner: "Paul O’Brien",
+    lastUpdated: "Last week",
+    description: "Archived sample SOW used for resource status testing."
+  },
+  {
+    id: "chatgpt-link",
+    name: "ChatGPT",
+    customer: "Hospitality Group",
+    project: "AI Quick Start",
+    type: "Useful Link",
+    status: "Published",
+    visibility: "Customer Portal",
+    owner: "Paul O’Brien",
+    lastUpdated: "Today",
+    description: "External link used in customer AI training sessions."
+  },
+  {
+    id: "console-readme",
+    name: "Console README",
+    customer: "Barely Artificial",
+    project: "Barely Artificial Console",
+    type: "Document",
+    status: "Draft",
+    visibility: "Internal Only",
+    owner: "Paul O’Brien",
+    lastUpdated: "Today",
+    description: "Internal notes for the Console application."
+  }
+];
+
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
 let currentProjectFilter = "all";
 let currentProjectSearch = "";
+let currentResourceFilter = "all";
+let currentResourceSearch = "";
 let selectedCustomerId = null;
 let selectedProjectId = null;
+let selectedResourceId = null;
 
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((page) => {
@@ -165,6 +243,15 @@ function getFilteredProjects() {
     const matchesFilter = currentProjectFilter === "all" || project.status === currentProjectFilter;
     const searchTarget = `${project.name} ${project.customer} ${project.status} ${project.type} ${project.owner} ${project.description}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentProjectSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getFilteredResources() {
+  return resources.filter((resource) => {
+    const matchesFilter = currentResourceFilter === "all" || resource.type === currentResourceFilter;
+    const searchTarget = `${resource.name} ${resource.customer} ${resource.project} ${resource.type} ${resource.status} ${resource.visibility} ${resource.owner} ${resource.description}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentResourceSearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 }
@@ -277,6 +364,56 @@ function renderProjectTable() {
   });
 }
 
+function renderResourceTable() {
+  const tableBody = document.getElementById("resources-table");
+  const summary = document.getElementById("resource-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredResources = getFilteredResources();
+  tableBody.innerHTML = "";
+
+  if (filteredResources.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No resources match your search.</td></tr>`;
+  } else {
+    filteredResources.forEach((resource) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${resource.name}</strong><span class="table-subtext">${resource.description}</span></td>
+        <td>${resource.customer}</td>
+        <td>${resource.project}</td>
+        <td>${resource.type}</td>
+        <td><span class="status ${getStatusClass(resource.status)}">${resource.status}</span></td>
+        <td>${resource.lastUpdated}</td>
+        <td><button class="secondary-button compact" data-resource-id="${resource.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedResourceId === resource.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="7">${getResourceDetailMarkup(resource)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredResources.length} of ${resources.length} sample resources`;
+
+  document.querySelectorAll("[data-resource-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedResourceId = selectedResourceId === button.dataset.resourceId ? null : button.dataset.resourceId;
+      renderResourceTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-resource-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedResourceId = null;
+      renderResourceTable();
+    });
+  });
+}
+
 function getCustomerDetailMarkup(customer) {
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
@@ -335,11 +472,42 @@ function getProjectDetailMarkup(project) {
   `;
 }
 
+function getResourceDetailMarkup(resource) {
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Resource record</p>
+          <h3>${resource.name}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(resource.status)}">${resource.status}</span>
+          <button class="icon-button" data-close-resource-detail aria-label="Close resource detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Customer</span><strong>${resource.customer}</strong></div>
+        <div><span>Project</span><strong>${resource.project}</strong></div>
+        <div><span>Type</span><strong>${resource.type}</strong></div>
+        <div><span>Visibility</span><strong>${resource.visibility}</strong></div>
+        <div><span>Owner</span><strong>${resource.owner}</strong></div>
+        <div><span>Last updated</span><strong>${resource.lastUpdated}</strong></div>
+      </div>
+      <p>${resource.description}</p>
+      <div class="detail-actions">
+        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button">Assign later</button>
+      </div>
+    </div>
+  `;
+}
+
 function updateDashboardMetrics() {
   const customerMetric = document.getElementById("metric-customers");
   const customerNote = document.getElementById("metric-customers-note");
   const projectsMetric = document.getElementById("metric-projects");
-  if (!customerMetric || !customerNote || !projectsMetric) return;
+  const resourcesMetric = document.getElementById("metric-resources");
+  if (!customerMetric || !customerNote || !projectsMetric || !resourcesMetric) return;
 
   const activeCount = customers.filter((customer) => customer.status === "Active").length;
   const trialCount = customers.filter((customer) => customer.status === "Trial").length;
@@ -347,6 +515,7 @@ function updateDashboardMetrics() {
   customerMetric.textContent = customers.length;
   customerNote.textContent = `${activeCount} active, ${trialCount} trial`;
   projectsMetric.textContent = projects.length;
+  resourcesMetric.textContent = resources.length;
 }
 
 function setupCustomerControls() {
@@ -387,6 +556,25 @@ function setupProjectControls() {
   });
 }
 
+function setupResourceControls() {
+  const searchInput = document.getElementById("resource-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentResourceSearch = event.target.value;
+      renderResourceTable();
+    });
+  }
+
+  document.querySelectorAll(".resource-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentResourceFilter = button.dataset.resourceFilter;
+      document.querySelectorAll(".resource-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderResourceTable();
+    });
+  });
+}
+
 function setupDialog(dialogId, openButtonId, closeButtonId, cancelButtonId) {
   const dialog = document.getElementById(dialogId);
   const openButton = document.getElementById(openButtonId);
@@ -415,10 +603,13 @@ function initialiseApp() {
   setupNavigation();
   setupCustomerControls();
   setupProjectControls();
+  setupResourceControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
+  setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
   renderCustomerTable();
   renderProjectTable();
+  renderResourceTable();
   updateDashboardMetrics();
 }
 

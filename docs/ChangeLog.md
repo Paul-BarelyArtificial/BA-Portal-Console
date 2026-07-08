@@ -51,3 +51,11 @@ Initial Console foundation release.
 - Added placeholder New Project dialog.
 - Updated dashboard project metric from project sample data.
 - Updated version to v0.1.2 – Projects.
+
+
+## v0.1.3 – Resources
+- Added Resources management screen.
+- Added resource search and filters.
+- Added resource detail panel with close control.
+- Added placeholder New Resource dialog.
+- Updated dashboard resource metric.

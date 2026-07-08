@@ -320,3 +320,6 @@ select:disabled {
   align-items: center;
   gap: 10px;
 }
+
+.status.published { color: var(--accent); background: var(--accent-soft); }
+.status.draft { color: #f9d783; background: rgba(249, 215, 131, 0.10); }

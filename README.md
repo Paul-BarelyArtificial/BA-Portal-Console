@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.1.2a – Projects Detail Fix**
+Current version: **v0.1.3 – Resources**
 
 ## Current features
 - Dashboard
@@ -15,3 +15,7 @@ Current version: **v0.1.2a – Projects Detail Fix**
 
 ## Notes
 This is a static front-end foundation. No authentication, backend or Firebase data is connected yet.
+
+
+## v0.1.3
+Resources management screen added with search, filters, detail rows and a placeholder new resource dialog.
