@@ -306,3 +306,17 @@ select:disabled {
 .status.planning { color: #9ed4ff; background: rgba(158, 212, 255, 0.10); }
 .status.completed { color: #b7ff3c; background: var(--accent-soft); }
 .status.archived { color: #a8afc2; background: rgba(168, 175, 194, 0.10); }
+
+.inline-detail-row > td {
+  padding: 0 18px 18px;
+  background: rgba(15,17,23,.35);
+}
+.inline-detail-panel {
+  margin-top: 0;
+  box-shadow: none;
+}
+.detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

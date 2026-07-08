@@ -34,6 +34,13 @@ Initial Console foundation release.
 - Updated dashboard metrics from customer sample data.
 - Updated version to v0.1.1 – Customers.
 
+## v0.1.2a – Projects Detail Fix
+
+- Fixed project View behaviour so the detail card opens directly beneath the selected project.
+- Added close buttons to project and customer detail cards.
+- Updated customer detail behaviour to match the project detail pattern.
+- Updated version to v0.1.2a – Projects Detail Fix.
+
 ## v0.1.2 – Projects
 
 - Added project management screen.

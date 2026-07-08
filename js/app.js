@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.2 – Projects";
+const APP_VERSION = "v0.1.2a – Projects Detail Fix";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -132,6 +132,8 @@ let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
 let currentProjectFilter = "all";
 let currentProjectSearch = "";
+let selectedCustomerId = null;
+let selectedProjectId = null;
 
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((page) => {
@@ -190,13 +192,34 @@ function renderCustomerTable() {
         <td><button class="secondary-button compact" data-customer-id="${customer.id}">View</button></td>
       `;
       tableBody.appendChild(row);
+
+      if (selectedCustomerId === customer.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="7">${getCustomerDetailMarkup(customer)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
     });
   }
 
   summary.textContent = `Showing ${filteredCustomers.length} of ${customers.length} sample customers`;
 
   document.querySelectorAll("[data-customer-id]").forEach((button) => {
-    button.addEventListener("click", () => renderCustomerDetail(button.dataset.customerId));
+    button.addEventListener("click", () => {
+      selectedCustomerId = selectedCustomerId === button.dataset.customerId ? null : button.dataset.customerId;
+      renderCustomerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedCustomerId = null;
+      renderCustomerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-page-link]").forEach((item) => {
+    item.addEventListener("click", () => showPage(item.dataset.pageLink));
   });
 }
 
@@ -223,80 +246,93 @@ function renderProjectTable() {
         <td><button class="secondary-button compact" data-project-id="${project.id}">View</button></td>
       `;
       tableBody.appendChild(row);
+
+      if (selectedProjectId === project.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="7">${getProjectDetailMarkup(project)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
     });
   }
 
   summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} sample projects`;
 
   document.querySelectorAll("[data-project-id]").forEach((button) => {
-    button.addEventListener("click", () => renderProjectDetail(button.dataset.projectId));
+    button.addEventListener("click", () => {
+      selectedProjectId = selectedProjectId === button.dataset.projectId ? null : button.dataset.projectId;
+      renderProjectTable();
+    });
   });
-}
 
-function renderCustomerDetail(customerId) {
-  const customer = customers.find((item) => item.id === customerId);
-  const detailPanel = document.getElementById("customer-detail");
-  if (!customer || !detailPanel) return;
+  document.querySelectorAll("[data-close-project-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedProjectId = null;
+      renderProjectTable();
+    });
+  });
 
-  detailPanel.classList.remove("hidden");
-  detailPanel.innerHTML = `
-    <div class="detail-header">
-      <div>
-        <p class="eyebrow">Customer record</p>
-        <h3>${customer.company}</h3>
-      </div>
-      <span class="status ${getStatusClass(customer.status)}">${customer.status}</span>
-    </div>
-    <div class="detail-grid">
-      <div><span>Projects</span><strong>${customer.projects}</strong></div>
-      <div><span>Users</span><strong>${customer.users}</strong></div>
-      <div><span>Owner</span><strong>${customer.owner}</strong></div>
-      <div><span>Last updated</span><strong>${customer.lastUpdated}</strong></div>
-    </div>
-    <p>${customer.notes}</p>
-    <div class="detail-actions">
-      <button class="secondary-button">Edit later</button>
-      <button class="secondary-button" data-page-link="projects">Open projects</button>
-    </div>
-  `;
-
-  detailPanel.querySelectorAll("[data-page-link]").forEach((item) => {
+  document.querySelectorAll("[data-page-link]").forEach((item) => {
     item.addEventListener("click", () => showPage(item.dataset.pageLink));
   });
 }
 
-function renderProjectDetail(projectId) {
-  const project = projects.find((item) => item.id === projectId);
-  const detailPanel = document.getElementById("project-detail");
-  if (!project || !detailPanel) return;
-
-  detailPanel.classList.remove("hidden");
-  detailPanel.innerHTML = `
-    <div class="detail-header">
-      <div>
-        <p class="eyebrow">Project record</p>
-        <h3>${project.name}</h3>
+function getCustomerDetailMarkup(customer) {
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Customer record</p>
+          <h3>${customer.company}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(customer.status)}">${customer.status}</span>
+          <button class="icon-button" data-close-customer-detail aria-label="Close customer detail">×</button>
+        </div>
       </div>
-      <span class="status ${getStatusClass(project.status)}">${project.status}</span>
-    </div>
-    <div class="detail-grid">
-      <div><span>Customer</span><strong>${project.customer}</strong></div>
-      <div><span>Type</span><strong>${project.type}</strong></div>
-      <div><span>Resources</span><strong>${project.resources}</strong></div>
-      <div><span>Owner</span><strong>${project.owner}</strong></div>
-      <div><span>Created</span><strong>${project.created}</strong></div>
-      <div><span>Last updated</span><strong>${project.lastUpdated}</strong></div>
-    </div>
-    <p>${project.description}</p>
-    <div class="detail-actions">
-      <button class="secondary-button">Edit later</button>
-      <button class="secondary-button" data-page-link="resources">Open resources later</button>
+      <div class="detail-grid">
+        <div><span>Projects</span><strong>${customer.projects}</strong></div>
+        <div><span>Users</span><strong>${customer.users}</strong></div>
+        <div><span>Owner</span><strong>${customer.owner}</strong></div>
+        <div><span>Last updated</span><strong>${customer.lastUpdated}</strong></div>
+      </div>
+      <p>${customer.notes}</p>
+      <div class="detail-actions">
+        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button" data-page-link="projects">Open projects</button>
+      </div>
     </div>
   `;
+}
 
-  detailPanel.querySelectorAll("[data-page-link]").forEach((item) => {
-    item.addEventListener("click", () => showPage(item.dataset.pageLink));
-  });
+function getProjectDetailMarkup(project) {
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Project record</p>
+          <h3>${project.name}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(project.status)}">${project.status}</span>
+          <button class="icon-button" data-close-project-detail aria-label="Close project detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Customer</span><strong>${project.customer}</strong></div>
+        <div><span>Type</span><strong>${project.type}</strong></div>
+        <div><span>Resources</span><strong>${project.resources}</strong></div>
+        <div><span>Owner</span><strong>${project.owner}</strong></div>
+        <div><span>Created</span><strong>${project.created}</strong></div>
+        <div><span>Last updated</span><strong>${project.lastUpdated}</strong></div>
+      </div>
+      <p>${project.description}</p>
+      <div class="detail-actions">
+        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button" data-page-link="resources">Open resources later</button>
+      </div>
+    </div>
+  `;
 }
 
 function updateDashboardMetrics() {

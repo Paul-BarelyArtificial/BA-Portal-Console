@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.1.2 – Projects**
+Current version: **v0.1.2a – Projects Detail Fix**
 
 ## Current features
 - Dashboard
