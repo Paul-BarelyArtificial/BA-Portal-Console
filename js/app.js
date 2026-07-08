@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.1 – Customers";
+const APP_VERSION = "v0.1.2 – Projects";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -53,8 +53,85 @@ const customers = [
   }
 ];
 
+const projects = [
+  {
+    id: "curzon-seo",
+    name: "SEO Consultation",
+    customer: "Curzon Outsourcing",
+    status: "Active",
+    type: "Consulting",
+    resources: 8,
+    owner: "Paul O’Brien",
+    created: "2 July 2026",
+    lastUpdated: "Today",
+    description: "Practical SEO review, recommendations and customer-facing guidance."
+  },
+  {
+    id: "curzon-portal",
+    name: "Customer Resource Portal",
+    customer: "Curzon Outsourcing",
+    status: "Planning",
+    type: "Portal",
+    resources: 4,
+    owner: "Paul O’Brien",
+    created: "3 July 2026",
+    lastUpdated: "Yesterday",
+    description: "Example customer portal setup for training material and project documents."
+  },
+  {
+    id: "ba-console",
+    name: "Barely Artificial Console",
+    customer: "Barely Artificial",
+    status: "Active",
+    type: "Internal Product",
+    resources: 12,
+    owner: "Paul O’Brien",
+    created: "8 July 2026",
+    lastUpdated: "Today",
+    description: "Internal management console for customers, projects, resources and bookings."
+  },
+  {
+    id: "hospitality-ai",
+    name: "AI Quick Start",
+    customer: "Hospitality Group",
+    status: "Active",
+    type: "Training",
+    resources: 6,
+    owner: "Paul O’Brien",
+    created: "28 June 2026",
+    lastUpdated: "This week",
+    description: "Introductory AI training and practical adoption plan for hospitality teams."
+  },
+  {
+    id: "restaurant-demo",
+    name: "Restaurant Demo Portal",
+    customer: "Restaurant Demo Co",
+    status: "Completed",
+    type: "Demo",
+    resources: 5,
+    owner: "Paul O’Brien",
+    created: "20 June 2026",
+    lastUpdated: "Last week",
+    description: "Completed sample project used to test portal structure and content flow."
+  },
+  {
+    id: "archive-test",
+    name: "Legacy Training Pack",
+    customer: "Example Customer",
+    status: "Archived",
+    type: "Training",
+    resources: 3,
+    owner: "Paul O’Brien",
+    created: "10 June 2026",
+    lastUpdated: "Last month",
+    description: "Archived sample project used for status filtering and table behaviour."
+  }
+];
+
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
+let currentProjectFilter = "all";
+let currentProjectSearch = "";
 
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((page) => {
@@ -69,7 +146,7 @@ function showPage(pageId) {
 }
 
 function getStatusClass(status) {
-  return status.toLowerCase();
+  return status.toLowerCase().replace(/\s+/g, "-");
 }
 
 function getFilteredCustomers() {
@@ -77,6 +154,15 @@ function getFilteredCustomers() {
     const matchesFilter = currentCustomerFilter === "all" || customer.status === currentCustomerFilter;
     const searchTarget = `${customer.company} ${customer.status} ${customer.owner} ${customer.notes}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentCustomerSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getFilteredProjects() {
+  return projects.filter((project) => {
+    const matchesFilter = currentProjectFilter === "all" || project.status === currentProjectFilter;
+    const searchTarget = `${project.name} ${project.customer} ${project.status} ${project.type} ${project.owner} ${project.description}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentProjectSearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 }
@@ -114,6 +200,39 @@ function renderCustomerTable() {
   });
 }
 
+function renderProjectTable() {
+  const tableBody = document.getElementById("projects-table");
+  const summary = document.getElementById("project-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredProjects = getFilteredProjects();
+  tableBody.innerHTML = "";
+
+  if (filteredProjects.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No projects match your search.</td></tr>`;
+  } else {
+    filteredProjects.forEach((project) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${project.name}</strong><span class="table-subtext">${project.description}</span></td>
+        <td>${project.customer}</td>
+        <td><span class="status ${getStatusClass(project.status)}">${project.status}</span></td>
+        <td>${project.type}</td>
+        <td>${project.resources}</td>
+        <td>${project.lastUpdated}</td>
+        <td><button class="secondary-button compact" data-project-id="${project.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} sample projects`;
+
+  document.querySelectorAll("[data-project-id]").forEach((button) => {
+    button.addEventListener("click", () => renderProjectDetail(button.dataset.projectId));
+  });
+}
+
 function renderCustomerDetail(customerId) {
   const customer = customers.find((item) => item.id === customerId);
   const detailPanel = document.getElementById("customer-detail");
@@ -137,9 +256,47 @@ function renderCustomerDetail(customerId) {
     <p>${customer.notes}</p>
     <div class="detail-actions">
       <button class="secondary-button">Edit later</button>
-      <button class="secondary-button">Open projects later</button>
+      <button class="secondary-button" data-page-link="projects">Open projects</button>
     </div>
   `;
+
+  detailPanel.querySelectorAll("[data-page-link]").forEach((item) => {
+    item.addEventListener("click", () => showPage(item.dataset.pageLink));
+  });
+}
+
+function renderProjectDetail(projectId) {
+  const project = projects.find((item) => item.id === projectId);
+  const detailPanel = document.getElementById("project-detail");
+  if (!project || !detailPanel) return;
+
+  detailPanel.classList.remove("hidden");
+  detailPanel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <p class="eyebrow">Project record</p>
+        <h3>${project.name}</h3>
+      </div>
+      <span class="status ${getStatusClass(project.status)}">${project.status}</span>
+    </div>
+    <div class="detail-grid">
+      <div><span>Customer</span><strong>${project.customer}</strong></div>
+      <div><span>Type</span><strong>${project.type}</strong></div>
+      <div><span>Resources</span><strong>${project.resources}</strong></div>
+      <div><span>Owner</span><strong>${project.owner}</strong></div>
+      <div><span>Created</span><strong>${project.created}</strong></div>
+      <div><span>Last updated</span><strong>${project.lastUpdated}</strong></div>
+    </div>
+    <p>${project.description}</p>
+    <div class="detail-actions">
+      <button class="secondary-button">Edit later</button>
+      <button class="secondary-button" data-page-link="resources">Open resources later</button>
+    </div>
+  `;
+
+  detailPanel.querySelectorAll("[data-page-link]").forEach((item) => {
+    item.addEventListener("click", () => showPage(item.dataset.pageLink));
+  });
 }
 
 function updateDashboardMetrics() {
@@ -150,11 +307,10 @@ function updateDashboardMetrics() {
 
   const activeCount = customers.filter((customer) => customer.status === "Active").length;
   const trialCount = customers.filter((customer) => customer.status === "Trial").length;
-  const projectCount = customers.reduce((total, customer) => total + customer.projects, 0);
 
   customerMetric.textContent = customers.length;
   customerNote.textContent = `${activeCount} active, ${trialCount} trial`;
-  projectsMetric.textContent = projectCount;
+  projectsMetric.textContent = projects.length;
 }
 
 function setupCustomerControls() {
@@ -166,21 +322,40 @@ function setupCustomerControls() {
     });
   }
 
-  document.querySelectorAll(".filter-button").forEach((button) => {
+  document.querySelectorAll(".filter-button[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       currentCustomerFilter = button.dataset.filter;
-      document.querySelectorAll(".filter-button").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".filter-button[data-filter]").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       renderCustomerTable();
     });
   });
 }
 
-function setupDialog() {
-  const dialog = document.getElementById("customer-dialog");
-  const openButton = document.getElementById("new-customer-button");
-  const closeButton = document.getElementById("close-dialog-button");
-  const cancelButton = document.getElementById("cancel-dialog-button");
+function setupProjectControls() {
+  const searchInput = document.getElementById("project-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentProjectSearch = event.target.value;
+      renderProjectTable();
+    });
+  }
+
+  document.querySelectorAll(".project-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentProjectFilter = button.dataset.projectFilter;
+      document.querySelectorAll(".project-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderProjectTable();
+    });
+  });
+}
+
+function setupDialog(dialogId, openButtonId, closeButtonId, cancelButtonId) {
+  const dialog = document.getElementById(dialogId);
+  const openButton = document.getElementById(openButtonId);
+  const closeButton = document.getElementById(closeButtonId);
+  const cancelButton = document.getElementById(cancelButtonId);
 
   if (!dialog || !openButton || !closeButton || !cancelButton) return;
 
@@ -203,8 +378,11 @@ function initialiseApp() {
   document.getElementById("version-label").textContent = APP_VERSION;
   setupNavigation();
   setupCustomerControls();
-  setupDialog();
+  setupProjectControls();
+  setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
+  setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   renderCustomerTable();
+  renderProjectTable();
   updateDashboardMetrics();
 }
 

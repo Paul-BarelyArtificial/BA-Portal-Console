@@ -1,7 +1,17 @@
 # Barely Artificial Console
 
-Internal management console for Barely Artificial customer portals.
+Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.1.1 – Customers**
+Current version: **v0.1.2 – Projects**
 
-This is a static front-end foundation. Customer data is sample-only and Firebase is not connected yet.
+## Current features
+- Dashboard
+- Customer management screen
+- Project management screen
+- Resources placeholder
+- Bookings placeholder
+- Reports placeholder
+- Settings placeholder
+
+## Notes
+This is a static front-end foundation. No authentication, backend or Firebase data is connected yet.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.1.1" />
+  <link rel="stylesheet" href="css/styles.css?v=0.1.2" />
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.1.1 – Customers</div>
+        <div id="version-label">v0.1.2 – Projects</div>
       </div>
     </aside>
 
@@ -130,8 +130,49 @@
       </section>
 
       <section id="projects" class="page">
-        <div class="page-intro"><h2>Projects</h2><p>Track customer projects and the resources connected to them.</p></div>
-        <div class="card-grid"><article class="simple-card"><h3>AI Readiness</h3><p>Curzon Outsourcing</p><span class="badge">Active</span></article><article class="simple-card"><h3>Customer Portal</h3><p>Internal Barely Artificial</p><span class="badge">Build</span></article></div>
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Projects</p>
+            <h2>Project management</h2>
+            <p>Track customer projects, status, ownership and connected resources. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-project-button">+ New Project</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="project-search">
+            <span>Search</span>
+            <input id="project-search" type="search" placeholder="Search projects..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Project status filters">
+            <button class="project-filter-button filter-button active" data-project-filter="all">All</button>
+            <button class="project-filter-button filter-button" data-project-filter="Planning">Planning</button>
+            <button class="project-filter-button filter-button" data-project-filter="Active">Active</button>
+            <button class="project-filter-button filter-button" data-project-filter="Completed">Completed</button>
+            <button class="project-filter-button filter-button" data-project-filter="Archived">Archived</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="project-summary">Showing sample projects</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Resources</th>
+                <th>Last updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table"></tbody>
+          </table>
+        </div>
+
+        <div id="project-detail" class="detail-panel hidden" aria-live="polite"></div>
       </section>
 
       <section id="resources" class="page">
@@ -177,6 +218,24 @@
     </div>
   </dialog>
 
-  <script src="js/app.js?v=0.1.1"></script>
+  <dialog id="project-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Project</h3>
+      <button class="icon-button" id="close-project-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future project creation form.</p>
+    <div class="form-preview">
+      <label>Project name<input type="text" placeholder="AI Quick Start" disabled /></label>
+      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
+      <label>Status<select disabled><option>Planning</option><option>Active</option><option>Completed</option></select></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-project-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+
+  <script src="js/app.js?v=0.1.2"></script>
 </body>
 </html>

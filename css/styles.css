@@ -303,3 +303,6 @@ select:disabled {
   .detail-grid { grid-template-columns: 1fr; }
   .modal-actions { flex-direction: column; }
 }
+.status.planning { color: #9ed4ff; background: rgba(158, 212, 255, 0.10); }
+.status.completed { color: #b7ff3c; background: var(--accent-soft); }
+.status.archived { color: #a8afc2; background: rgba(168, 175, 194, 0.10); }

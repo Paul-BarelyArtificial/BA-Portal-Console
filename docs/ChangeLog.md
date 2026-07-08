@@ -33,3 +33,14 @@ Initial Console foundation release.
 - Added placeholder New Customer dialog.
 - Updated dashboard metrics from customer sample data.
 - Updated version to v0.1.1 – Customers.
+
+## v0.1.2 – Projects
+
+- Added project management screen.
+- Added searchable project table.
+- Added status filters for All, Planning, Active, Completed and Archived.
+- Added sample project records.
+- Added project detail panel.
+- Added placeholder New Project dialog.
+- Updated dashboard project metric from project sample data.
+- Updated version to v0.1.2 – Projects.
