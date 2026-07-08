@@ -323,3 +323,6 @@ select:disabled {
 
 .status.published { color: var(--accent); background: var(--accent-soft); }
 .status.draft { color: #f9d783; background: rgba(249, 215, 131, 0.10); }
+
+.status.upcoming { color: #9ed4ff; background: rgba(158, 212, 255, 0.10); }
+.status.cancelled { color: var(--danger); background: rgba(255, 180, 168, 0.10); }

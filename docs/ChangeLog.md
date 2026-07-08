@@ -1,5 +1,13 @@
 # Barely Artificial Console – Changelog
 
+## v0.1.4 – Bookings
+- Added Bookings management screen.
+- Added booking search and status filters.
+- Added sample booking data and inline detail panels.
+- Added placeholder New Booking dialog.
+- Updated dashboard booking metric.
+
+
 ## v0.1.0 – Foundation
 
 Initial Console foundation release.

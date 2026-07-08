@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.1.3" />
+  <link rel="stylesheet" href="css/styles.css?v=0.1.4" />
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.1.3 – Resources</div>
+        <div id="version-label">v0.1.4 – Bookings</div>
       </div>
     </aside>
 
@@ -55,7 +55,7 @@
           <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Resources</span><strong id="metric-resources">0</strong><small>Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Bookings</span><strong>2</strong><small>This week</small></article>
+          <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Sample data</small></article>
         </div>
 
         <div class="content-grid two-column">
@@ -215,8 +215,46 @@
       </section>
 
       <section id="bookings" class="page">
-        <div class="page-intro"><h2>Bookings</h2><p>Review training sessions, advice calls and project meetings.</p></div>
-        <div class="empty-state"><h3>No live booking feed yet</h3><p>This will connect to Calendly or another booking source later.</p></div>
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Bookings</p>
+            <h2>Booking management</h2>
+            <p>Review training sessions, AI advice calls and project meetings. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-booking-button">+ New Booking</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="booking-search">
+            <span>Search</span>
+            <input id="booking-search" type="search" placeholder="Search bookings..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Booking status filters">
+            <button class="booking-filter-button filter-button active" data-booking-filter="all">All</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Upcoming">Upcoming</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Completed">Completed</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Cancelled">Cancelled</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="booking-summary">Showing sample bookings</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table"></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="reports" class="page">
@@ -287,6 +325,24 @@
   </dialog>
 
 
-  <script src="js/app.js?v=0.1.3"></script>
+  <dialog id="booking-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Booking</h3>
+      <button class="icon-button" id="close-booking-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future booking creation or Calendly import flow.</p>
+    <div class="form-preview">
+      <label>Booking title<input type="text" placeholder="Training Session" disabled /></label>
+      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
+      <label>Status<select disabled><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-booking-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+
+  <script src="js/app.js?v=0.1.4"></script>
 </body>
 </html>

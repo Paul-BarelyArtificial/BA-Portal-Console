@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.1.3 – Resources**
+Current version: **v0.1.4 – Bookings**
 
 ## Current features
 - Dashboard
@@ -19,3 +19,8 @@ This is a static front-end foundation. No authentication, backend or Firebase da
 
 ## v0.1.3
 Resources management screen added with search, filters, detail rows and a placeholder new resource dialog.
+
+
+## v0.1.4 – Bookings
+
+Adds the Bookings management screen with sample data, search, filters, inline details and a placeholder new booking dialog.

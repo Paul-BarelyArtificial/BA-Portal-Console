@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.3 – Resources";
+const APP_VERSION = "v0.1.4 – Bookings";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -203,15 +203,73 @@ const resources = [
   }
 ];
 
+const bookings = [
+  {
+    id: "curzon-training",
+    title: "Training Session",
+    customer: "Curzon Outsourcing",
+    type: "Training",
+    status: "Upcoming",
+    date: "Tomorrow",
+    time: "10:00",
+    duration: "30 minutes",
+    owner: "Paul O’Brien",
+    source: "Calendly",
+    notes: "Portal walkthrough and resource library review."
+  },
+  {
+    id: "hospitality-ai-advice",
+    title: "AI Advice Call",
+    customer: "Hospitality Group",
+    type: "AI Advice",
+    status: "Upcoming",
+    date: "This week",
+    time: "14:30",
+    duration: "30 minutes",
+    owner: "Paul O’Brien",
+    source: "Calendly",
+    notes: "Discuss practical AI use cases for hospitality teams."
+  },
+  {
+    id: "restaurant-demo-review",
+    title: "Project Review",
+    customer: "Restaurant Demo Co",
+    type: "Project",
+    status: "Completed",
+    date: "Last week",
+    time: "11:00",
+    duration: "45 minutes",
+    owner: "Paul O’Brien",
+    source: "Manual",
+    notes: "Review completed demo portal and resource structure."
+  },
+  {
+    id: "example-cancelled",
+    title: "Strategy Session",
+    customer: "Example Customer",
+    type: "Strategy",
+    status: "Cancelled",
+    date: "Last month",
+    time: "16:00",
+    duration: "30 minutes",
+    owner: "Paul O’Brien",
+    source: "Manual",
+    notes: "Cancelled sample booking used for status filtering."
+  }
+];
+
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
 let currentProjectFilter = "all";
 let currentProjectSearch = "";
 let currentResourceFilter = "all";
 let currentResourceSearch = "";
+let currentBookingFilter = "all";
+let currentBookingSearch = "";
 let selectedCustomerId = null;
 let selectedProjectId = null;
 let selectedResourceId = null;
+let selectedBookingId = null;
 
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((page) => {
@@ -252,6 +310,15 @@ function getFilteredResources() {
     const matchesFilter = currentResourceFilter === "all" || resource.type === currentResourceFilter;
     const searchTarget = `${resource.name} ${resource.customer} ${resource.project} ${resource.type} ${resource.status} ${resource.visibility} ${resource.owner} ${resource.description}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentResourceSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getFilteredBookings() {
+  return bookings.filter((booking) => {
+    const matchesFilter = currentBookingFilter === "all" || booking.status === currentBookingFilter;
+    const searchTarget = `${booking.title} ${booking.customer} ${booking.type} ${booking.status} ${booking.date} ${booking.time} ${booking.owner} ${booking.source} ${booking.notes}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentBookingSearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 }
@@ -414,6 +481,56 @@ function renderResourceTable() {
   });
 }
 
+function renderBookingTable() {
+  const tableBody = document.getElementById("bookings-table");
+  const summary = document.getElementById("booking-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredBookings = getFilteredBookings();
+  tableBody.innerHTML = "";
+
+  if (filteredBookings.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No bookings match your search.</td></tr>`;
+  } else {
+    filteredBookings.forEach((booking) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${booking.title}</strong><span class="table-subtext">${booking.notes}</span></td>
+        <td>${booking.customer}</td>
+        <td>${booking.type}</td>
+        <td><span class="status ${getStatusClass(booking.status)}">${booking.status}</span></td>
+        <td>${booking.date}</td>
+        <td>${booking.time}</td>
+        <td><button class="secondary-button compact" data-booking-id="${booking.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedBookingId === booking.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="7">${getBookingDetailMarkup(booking)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredBookings.length} of ${bookings.length} sample bookings`;
+
+  document.querySelectorAll("[data-booking-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedBookingId = selectedBookingId === button.dataset.bookingId ? null : button.dataset.bookingId;
+      renderBookingTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-booking-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedBookingId = null;
+      renderBookingTable();
+    });
+  });
+}
+
 function getCustomerDetailMarkup(customer) {
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
@@ -502,12 +619,45 @@ function getResourceDetailMarkup(resource) {
   `;
 }
 
+function getBookingDetailMarkup(booking) {
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Booking record</p>
+          <h3>${booking.title}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(booking.status)}">${booking.status}</span>
+          <button class="icon-button" data-close-booking-detail aria-label="Close booking detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Customer</span><strong>${booking.customer}</strong></div>
+        <div><span>Type</span><strong>${booking.type}</strong></div>
+        <div><span>Date</span><strong>${booking.date}</strong></div>
+        <div><span>Time</span><strong>${booking.time}</strong></div>
+        <div><span>Duration</span><strong>${booking.duration}</strong></div>
+        <div><span>Source</span><strong>${booking.source}</strong></div>
+        <div><span>Owner</span><strong>${booking.owner}</strong></div>
+      </div>
+      <p>${booking.notes}</p>
+      <div class="detail-actions">
+        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button">Open calendar later</button>
+      </div>
+    </div>
+  `;
+}
+
 function updateDashboardMetrics() {
   const customerMetric = document.getElementById("metric-customers");
   const customerNote = document.getElementById("metric-customers-note");
   const projectsMetric = document.getElementById("metric-projects");
   const resourcesMetric = document.getElementById("metric-resources");
-  if (!customerMetric || !customerNote || !projectsMetric || !resourcesMetric) return;
+  const bookingsMetric = document.getElementById("metric-bookings");
+  const bookingsNote = document.getElementById("metric-bookings-note");
+  if (!customerMetric || !customerNote || !projectsMetric || !resourcesMetric || !bookingsMetric || !bookingsNote) return;
 
   const activeCount = customers.filter((customer) => customer.status === "Active").length;
   const trialCount = customers.filter((customer) => customer.status === "Trial").length;
@@ -516,6 +666,8 @@ function updateDashboardMetrics() {
   customerNote.textContent = `${activeCount} active, ${trialCount} trial`;
   projectsMetric.textContent = projects.length;
   resourcesMetric.textContent = resources.length;
+  bookingsMetric.textContent = bookings.length;
+  bookingsNote.textContent = `${bookings.filter((booking) => booking.status === "Upcoming").length} upcoming`;
 }
 
 function setupCustomerControls() {
@@ -575,6 +727,25 @@ function setupResourceControls() {
   });
 }
 
+function setupBookingControls() {
+  const searchInput = document.getElementById("booking-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentBookingSearch = event.target.value;
+      renderBookingTable();
+    });
+  }
+
+  document.querySelectorAll(".booking-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentBookingFilter = button.dataset.bookingFilter;
+      document.querySelectorAll(".booking-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderBookingTable();
+    });
+  });
+}
+
 function setupDialog(dialogId, openButtonId, closeButtonId, cancelButtonId) {
   const dialog = document.getElementById(dialogId);
   const openButton = document.getElementById(openButtonId);
@@ -604,12 +775,15 @@ function initialiseApp() {
   setupCustomerControls();
   setupProjectControls();
   setupResourceControls();
+  setupBookingControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
+  setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
   renderCustomerTable();
   renderProjectTable();
   renderResourceTable();
+  renderBookingTable();
   updateDashboardMetrics();
 }
 
