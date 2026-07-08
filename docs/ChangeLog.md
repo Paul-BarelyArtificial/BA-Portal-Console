@@ -67,3 +67,7 @@ Initial Console foundation release.
 - Added resource detail panel with close control.
 - Added placeholder New Resource dialog.
 - Updated dashboard resource metric.
+
+
+## v0.1.5
+- Reports screen enhanced.
