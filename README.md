@@ -1,12 +1,7 @@
 # Barely Artificial Console
 
-A lightweight admin console for managing the Barely Artificial customer portal ecosystem.
+Internal management console for Barely Artificial customer portals.
 
-## Current Version
-v0.1.0 – Foundation
+Current version: **v0.1.1 – Customers**
 
-## Status
-Static front-end foundation. No backend or authentication connected yet.
-
-## Local Testing
-Open `index.html` in a browser.
+This is a static front-end foundation. Customer data is sample-only and Firebase is not connected yet.

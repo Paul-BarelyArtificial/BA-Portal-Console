@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=0.1.1" />
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.1.0 – Foundation</div>
+        <div id="version-label">v0.1.1 – Customers</div>
       </div>
     </aside>
 
@@ -52,8 +52,8 @@
         </div>
 
         <div class="metric-grid">
-          <article class="metric-card"><span class="metric-label">Customers</span><strong>3</strong><small>Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Projects</span><strong>5</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Resources</span><strong>18</strong><small>Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Bookings</span><strong>2</strong><small>This week</small></article>
         </div>
@@ -65,9 +65,9 @@
               <span class="badge">Placeholder</span>
             </div>
             <ul class="activity-list">
-              <li><span>Curzon resources page reviewed</span><time>Today</time></li>
-              <li><span>Training guide added to sample library</span><time>Yesterday</time></li>
-              <li><span>New customer portal framework approved</span><time>This week</time></li>
+              <li><span>Customer list structure added</span><time>Today</time></li>
+              <li><span>Console foundation approved</span><time>Today</time></li>
+              <li><span>Customer portal access foundation tested</span><time>Today</time></li>
             </ul>
           </section>
 
@@ -76,29 +76,57 @@
               <h3>Next steps</h3>
             </div>
             <ol class="task-list">
-              <li>Build the customer management screen.</li>
-              <li>Connect authentication when the structure is stable.</li>
-              <li>Add resource upload and assignment later.</li>
+              <li>Add the Projects management screen.</li>
+              <li>Connect customer records to Firebase later.</li>
+              <li>Add resource assignment once Projects is in place.</li>
             </ol>
           </section>
         </div>
       </section>
 
       <section id="customers" class="page">
-        <div class="page-intro">
-          <h2>Customers</h2>
-          <p>Manage customer organisations and access. This release contains the page structure only.</p>
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Customers</p>
+            <h2>Customer management</h2>
+            <p>Manage customer organisations, access status and basic account information. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-customer-button">+ New Customer</button>
         </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="customer-search">
+            <span>Search</span>
+            <input id="customer-search" type="search" placeholder="Search customers..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Customer status filters">
+            <button class="filter-button active" data-filter="all">All</button>
+            <button class="filter-button" data-filter="Active">Active</button>
+            <button class="filter-button" data-filter="Trial">Trial</button>
+            <button class="filter-button" data-filter="Paused">Paused</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="customer-summary">Showing sample customers</div>
+
         <div class="table-card">
           <table>
-            <thead><tr><th>Customer</th><th>Status</th><th>Projects</th><th>Users</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr><td>Curzon Outsourcing</td><td><span class="status active">Active</span></td><td>2</td><td>3</td><td><button class="secondary-button">View</button></td></tr>
-              <tr><td>Hospitality Group</td><td><span class="status trial">Trial</span></td><td>1</td><td>1</td><td><button class="secondary-button">View</button></td></tr>
-              <tr><td>Example Customer</td><td><span class="status paused">Paused</span></td><td>2</td><td>2</td><td><button class="secondary-button">View</button></td></tr>
-            </tbody>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Projects</th>
+                <th>Users</th>
+                <th>Owner</th>
+                <th>Last updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="customers-table"></tbody>
           </table>
         </div>
+
+        <div id="customer-detail" class="detail-panel hidden" aria-live="polite"></div>
       </section>
 
       <section id="projects" class="page">
@@ -132,7 +160,23 @@
     </main>
   </div>
 
-  <script src="js/app.js"></script>
+  <dialog id="customer-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Customer</h3>
+      <button class="icon-button" id="close-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future customer creation form.</p>
+    <div class="form-preview">
+      <label>Company name<input type="text" placeholder="Example Ltd" disabled /></label>
+      <label>Status<select disabled><option>Active</option><option>Trial</option></select></label>
+      <label>Primary contact<input type="text" placeholder="Name or email" disabled /></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+  <script src="js/app.js?v=0.1.1"></script>
 </body>
 </html>
-    

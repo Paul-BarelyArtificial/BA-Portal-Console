@@ -22,3 +22,14 @@ Initial Console foundation release.
 - No backend is connected yet.
 - No authentication is connected yet.
 - All data is placeholder data for layout and testing.
+
+## v0.1.1 – Customers
+
+- Added customer management screen.
+- Added searchable customer table.
+- Added status filters for All, Active, Trial and Paused.
+- Added sample customer records.
+- Added customer detail panel.
+- Added placeholder New Customer dialog.
+- Updated dashboard metrics from customer sample data.
+- Updated version to v0.1.1 – Customers.
