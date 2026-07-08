@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barely Artificial Console</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-mark">BA</div>
+        <div>
+          <div class="brand-title">Barely Artificial</div>
+          <div class="brand-subtitle">Console</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu" aria-label="Console navigation">
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
+        <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
+        <button class="nav-item" data-page="resources"><span>▤</span>Resources</button>
+        <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
+        <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
+        <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="version-label">v0.1.0 – Foundation</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Barely Artificial Console</p>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="profile-pill">Paul O’Brien</div>
+      </header>
+
+      <section id="dashboard" class="page active-page">
+        <div class="hero-panel">
+          <div>
+            <p class="eyebrow">Overview</p>
+            <h2>Welcome back, Paul</h2>
+            <p>Your customer portal management area. This is where customers, projects, resources and bookings will be managed as the product grows.</p>
+          </div>
+          <button class="primary-button" data-page-link="customers">View customers</button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card"><span class="metric-label">Customers</span><strong>3</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Projects</span><strong>5</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Resources</span><strong>18</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Bookings</span><strong>2</strong><small>This week</small></article>
+        </div>
+
+        <div class="content-grid two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Recent activity</h3>
+              <span class="badge">Placeholder</span>
+            </div>
+            <ul class="activity-list">
+              <li><span>Curzon resources page reviewed</span><time>Today</time></li>
+              <li><span>Training guide added to sample library</span><time>Yesterday</time></li>
+              <li><span>New customer portal framework approved</span><time>This week</time></li>
+            </ul>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Next steps</h3>
+            </div>
+            <ol class="task-list">
+              <li>Build the customer management screen.</li>
+              <li>Connect authentication when the structure is stable.</li>
+              <li>Add resource upload and assignment later.</li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <section id="customers" class="page">
+        <div class="page-intro">
+          <h2>Customers</h2>
+          <p>Manage customer organisations and access. This release contains the page structure only.</p>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Customer</th><th>Status</th><th>Projects</th><th>Users</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Curzon Outsourcing</td><td><span class="status active">Active</span></td><td>2</td><td>3</td><td><button class="secondary-button">View</button></td></tr>
+              <tr><td>Hospitality Group</td><td><span class="status trial">Trial</span></td><td>1</td><td>1</td><td><button class="secondary-button">View</button></td></tr>
+              <tr><td>Example Customer</td><td><span class="status paused">Paused</span></td><td>2</td><td>2</td><td><button class="secondary-button">View</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="projects" class="page">
+        <div class="page-intro"><h2>Projects</h2><p>Track customer projects and the resources connected to them.</p></div>
+        <div class="card-grid"><article class="simple-card"><h3>AI Readiness</h3><p>Curzon Outsourcing</p><span class="badge">Active</span></article><article class="simple-card"><h3>Customer Portal</h3><p>Internal Barely Artificial</p><span class="badge">Build</span></article></div>
+      </section>
+
+      <section id="resources" class="page">
+        <div class="page-intro"><h2>Resources</h2><p>Manage documents, guides and useful links that customers will see in their portal.</p></div>
+        <div class="card-grid"><article class="simple-card"><h3>AI Basics Guide</h3><p>Training Guides</p><button class="secondary-button">Manage</button></article><article class="simple-card"><h3>Project Proposal</h3><p>Project Documents</p><button class="secondary-button">Manage</button></article><article class="simple-card"><h3>ChatGPT</h3><p>Useful Links</p><button class="secondary-button">Manage</button></article></div>
+      </section>
+
+      <section id="bookings" class="page">
+        <div class="page-intro"><h2>Bookings</h2><p>Review training sessions, advice calls and project meetings.</p></div>
+        <div class="empty-state"><h3>No live booking feed yet</h3><p>This will connect to Calendly or another booking source later.</p></div>
+      </section>
+
+      <section id="reports" class="page">
+        <div class="page-intro"><h2>Reports</h2><p>Reporting will show portal usage, resource views and customer activity when analytics are added.</p></div>
+        <div class="empty-state"><h3>Reports are not connected yet</h3><p>The page is ready for future metrics.</p></div>
+      </section>
+
+      <section id="settings" class="page">
+        <div class="page-intro"><h2>Settings</h2><p>Configure branding, booking links, admin details and future integrations.</p></div>
+        <div class="settings-list">
+          <div><strong>Branding</strong><span>Barely Artificial default theme</span></div>
+          <div><strong>Booking URL</strong><span>Calendly placeholder</span></div>
+          <div><strong>Authentication</strong><span>Not connected yet</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
