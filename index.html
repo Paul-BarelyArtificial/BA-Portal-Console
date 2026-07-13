@@ -162,7 +162,7 @@
           <div>
             <p class="eyebrow">Projects</p>
             <h2>Project management</h2>
-            <p>Track customer projects, status, ownership and connected resources. This release uses sample data only.</p>
+            <p>Track customer projects, status, ownership and connected resources using live Firestore data.</p>
           </div>
           <button class="primary-button" id="new-project-button">+ New Project</button>
         </div>
@@ -181,7 +181,7 @@
           </div>
         </div>
 
-        <div class="summary-row" id="project-summary">Showing sample projects</div>
+        <div class="summary-row" id="project-summary">Loading projects…</div>
 
         <div class="table-card">
           <table>
@@ -416,20 +416,25 @@
   </dialog>
 
   <dialog id="project-dialog" class="modal">
-    <div class="modal-header">
-      <h3>New Project</h3>
-      <button class="icon-button" id="close-project-dialog-button" aria-label="Close dialog">×</button>
-    </div>
-    <p>This is a placeholder for the future project creation form.</p>
-    <div class="form-preview">
-      <label>Project name<input type="text" placeholder="AI Quick Start" disabled /></label>
-      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
-      <label>Status<select disabled><option>Planning</option><option>Active</option><option>Completed</option></select></label>
-    </div>
-    <div class="modal-actions">
-      <button class="secondary-button" id="cancel-project-dialog-button">Close</button>
-      <button class="primary-button" disabled>Create later</button>
-    </div>
+    <form id="project-form">
+      <div class="modal-header">
+        <h3>New Project</h3>
+        <button class="icon-button" id="close-project-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Create a project and connect it to an existing customer.</p>
+      <div class="form-preview">
+        <label>Project name<input name="name" type="text" placeholder="AI Quick Start" required /></label>
+        <label>Customer<select id="project-customer" name="customerId" required><option value="">Select a customer</option></select></label>
+        <label>Status<select name="status"><option>Planning</option><option>Active</option><option>Completed</option><option>Archived</option></select></label>
+        <label>Type<select name="type"><option>Consulting</option><option>Training</option><option>Portal</option><option>Internal Product</option><option>Other</option></select></label>
+        <label class="full-width">Description<textarea name="description" rows="3" placeholder="What will this project deliver?"></textarea></label>
+      </div>
+      <p id="project-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-project-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-project-button" type="submit">Create Project</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="resource-dialog" class="modal">
@@ -471,8 +476,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.1"></script>
-  <script src="js/app.js?v=0.2.1"></script>
-  <script src="js/auth.js?v=0.2.1"></script>
+  <script src="js/firebase-config.js?v=0.2.2"></script>
+  <script src="js/app.js?v=0.2.2"></script>
+  <script src="js/auth.js?v=0.2.2"></script>
 </body>
 </html>

@@ -1,3 +1,12 @@
+## v0.2.2 – Live Projects
+
+- Replaced sample project data with the live Firestore `projects` collection.
+- Added a working New Project form with live customer selection.
+- Linked projects to customers using `customerId` and `customerName`.
+- Updated customer project counts when projects are created.
+- Added live project loading, empty and error states.
+- Updated dashboard project count to use live data.
+
 # Change Log
 
 ## v0.2.0 – Firebase Authentication

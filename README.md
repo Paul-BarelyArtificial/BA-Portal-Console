@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.2.1 – Settings**
+Current version: **v0.2.2 – Live Projects
 
 ## Current features
 - Dashboard
@@ -38,3 +38,8 @@ The Console now requires Firebase Authentication and verifies access using the s
 ## v0.2.1
 
 The Customers screen now reads live records from Firestore and the New Customer form creates customer documents.
+
+
+## v0.2.2
+
+Projects now load from Firestore. The New Project form creates a project linked to a live customer and updates the customer project count.

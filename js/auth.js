@@ -1,8 +1,8 @@
 /*
 ==================================================
 BA Console
-Version : v0.2.1
-Release : Live Customers
+Version : v0.2.2
+Release : Live Projects
 ==================================================
 */
 

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.1 – Live Customers";
+const APP_VERSION = "v0.2.2 – Live Projects";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -12,82 +12,9 @@ const pageTitles = {
 
 let customers = [];
 let unsubscribeCustomers = null;
+let projects = [];
+let unsubscribeProjects = null;
 
-
-const projects = [
-  {
-    id: "curzon-seo",
-    name: "SEO Consultation",
-    customer: "Curzon Outsourcing",
-    status: "Active",
-    type: "Consulting",
-    resources: 8,
-    owner: "Paul O’Brien",
-    created: "2 July 2026",
-    lastUpdated: "Today",
-    description: "Practical SEO review, recommendations and customer-facing guidance."
-  },
-  {
-    id: "curzon-portal",
-    name: "Customer Resource Portal",
-    customer: "Curzon Outsourcing",
-    status: "Planning",
-    type: "Portal",
-    resources: 4,
-    owner: "Paul O’Brien",
-    created: "3 July 2026",
-    lastUpdated: "Yesterday",
-    description: "Example customer portal setup for training material and project documents."
-  },
-  {
-    id: "ba-console",
-    name: "Barely Artificial Console",
-    customer: "Barely Artificial",
-    status: "Active",
-    type: "Internal Product",
-    resources: 12,
-    owner: "Paul O’Brien",
-    created: "8 July 2026",
-    lastUpdated: "Today",
-    description: "Internal management console for customers, projects, resources and bookings."
-  },
-  {
-    id: "hospitality-ai",
-    name: "AI Quick Start",
-    customer: "Hospitality Group",
-    status: "Active",
-    type: "Training",
-    resources: 6,
-    owner: "Paul O’Brien",
-    created: "28 June 2026",
-    lastUpdated: "This week",
-    description: "Introductory AI training and practical adoption plan for hospitality teams."
-  },
-  {
-    id: "restaurant-demo",
-    name: "Restaurant Demo Portal",
-    customer: "Restaurant Demo Co",
-    status: "Completed",
-    type: "Demo",
-    resources: 5,
-    owner: "Paul O’Brien",
-    created: "20 June 2026",
-    lastUpdated: "Last week",
-    description: "Completed sample project used to test portal structure and content flow."
-  },
-  {
-    id: "archive-test",
-    name: "Legacy Training Pack",
-    customer: "Example Customer",
-    status: "Archived",
-    type: "Training",
-    resources: 3,
-    owner: "Paul O’Brien",
-    created: "10 June 2026",
-    lastUpdated: "Last month",
-    description: "Archived sample project used for status filtering and table behaviour."
-  }
-];
 
 const resources = [
   {
@@ -254,7 +181,7 @@ function escapeHtml(value = "") {
   })[character]);
 }
 
-function formatCustomerDate(timestamp) {
+function formatFirestoreDate(timestamp) {
   if (!timestamp || typeof timestamp.toDate !== "function") return "Just now";
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(timestamp.toDate());
 }
@@ -268,7 +195,7 @@ function normaliseCustomer(document) {
     projects: Number(data.projects || 0),
     users: Number(data.users || 0),
     owner: data.owner || "Paul O’Brien",
-    lastUpdated: formatCustomerDate(data.updatedAt || data.createdAt),
+    lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
     notes: data.notes || "No notes added.",
     contactName: data.contactName || "",
     contactEmail: data.contactEmail || ""
@@ -285,6 +212,7 @@ function loadLiveCustomers() {
     customers = snapshot.docs.map(normaliseCustomer);
     selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
     renderCustomerTable();
+    populateProjectCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -333,6 +261,109 @@ async function createCustomer(event) {
   }
 }
 
+
+function normaliseProject(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    name: data.name || "Unnamed project",
+    customerId: data.customerId || "",
+    customer: data.customerName || "Unassigned customer",
+    status: data.status || "Planning",
+    type: data.type || "Consulting",
+    resources: Number(data.resources || 0),
+    owner: data.owner || "Paul O’Brien",
+    created: formatFirestoreDate(data.createdAt),
+    lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
+    description: data.description || "No description added."
+  };
+}
+
+function populateProjectCustomerOptions() {
+  const select = document.getElementById("project-customer");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">Select a customer</option>' + customers
+    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
+    .join("");
+  if (customers.some((customer) => customer.id === selected)) select.value = selected;
+}
+
+function loadLiveProjects() {
+  if (unsubscribeProjects) unsubscribeProjects();
+  const summary = document.getElementById("project-summary");
+  if (summary) summary.textContent = "Loading projects…";
+
+  unsubscribeProjects = firebase.firestore().collection("projects").orderBy("name").onSnapshot((snapshot) => {
+    projects = snapshot.docs.map(normaliseProject);
+    selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
+    renderProjectTable();
+    updateDashboardMetrics();
+  }, (error) => {
+    console.error("Could not load projects", error);
+    projects = [];
+    renderProjectTable();
+    if (summary) summary.textContent = "Projects could not be loaded. Check Firestore access.";
+  });
+}
+
+async function createProject(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-project-button");
+  const message = document.getElementById("project-form-message");
+  const formData = new FormData(form);
+  const name = String(formData.get("name") || "").trim();
+  const customerId = String(formData.get("customerId") || "").trim();
+  const customer = customers.find((item) => item.id === customerId);
+
+  if (!name || !customer) {
+    message.textContent = "Enter a project name and select a customer.";
+    return;
+  }
+
+  saveButton.disabled = true;
+  message.textContent = "Saving project…";
+
+  try {
+    const database = firebase.firestore();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    const projectRef = database.collection("projects").doc();
+    const customerRef = database.collection("customers").doc(customerId);
+
+    await database.runTransaction(async (transaction) => {
+      const customerSnapshot = await transaction.get(customerRef);
+      if (!customerSnapshot.exists) throw new Error("Customer no longer exists");
+      const currentProjects = Number(customerSnapshot.data().projects || 0);
+      transaction.set(projectRef, {
+        name,
+        customerId,
+        customerName: customer.company,
+        status: formData.get("status") || "Planning",
+        type: formData.get("type") || "Consulting",
+        description: String(formData.get("description") || "").trim(),
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        resources: 0,
+        createdAt: now,
+        updatedAt: now
+      });
+      transaction.update(customerRef, { projects: currentProjects + 1, updatedAt: now });
+    });
+
+    form.reset();
+    message.textContent = "Project created.";
+    setTimeout(() => {
+      document.getElementById("project-dialog")?.close();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not create project", error);
+    message.textContent = "Project could not be saved. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
 function getFilteredCustomers() {
   return customers.filter((customer) => {
     const matchesFilter = currentCustomerFilter === "all" || customer.status === currentCustomerFilter;
@@ -345,7 +376,7 @@ function getFilteredCustomers() {
 function getFilteredProjects() {
   return projects.filter((project) => {
     const matchesFilter = currentProjectFilter === "all" || project.status === currentProjectFilter;
-    const searchTarget = `${project.name} ${project.customer} ${project.status} ${project.type} ${project.owner} ${project.description}`.toLowerCase();
+    const searchTarget = `${escapeHtml(project.name)} ${escapeHtml(project.customer)} ${escapeHtml(project.status)} ${escapeHtml(project.type)} ${escapeHtml(project.owner)} ${escapeHtml(project.description)}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentProjectSearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -437,12 +468,12 @@ function renderProjectTable() {
     filteredProjects.forEach((project) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${project.name}</strong><span class="table-subtext">${project.description}</span></td>
-        <td>${project.customer}</td>
-        <td><span class="status ${getStatusClass(project.status)}">${project.status}</span></td>
-        <td>${project.type}</td>
+        <td><strong>${escapeHtml(project.name)}</strong><span class="table-subtext">${escapeHtml(project.description)}</span></td>
+        <td>${escapeHtml(project.customer)}</td>
+        <td><span class="status ${getStatusClass(project.status)}">${escapeHtml(project.status)}</span></td>
+        <td>${escapeHtml(project.type)}</td>
         <td>${project.resources}</td>
-        <td>${project.lastUpdated}</td>
+        <td>${escapeHtml(project.lastUpdated)}</td>
         <td><button class="secondary-button compact" data-project-id="${project.id}">View</button></td>
       `;
       tableBody.appendChild(row);
@@ -456,7 +487,7 @@ function renderProjectTable() {
     });
   }
 
-  summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} sample projects`;
+  summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} live projects`;
 
   document.querySelectorAll("[data-project-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -611,22 +642,22 @@ function getProjectDetailMarkup(project) {
       <div class="detail-header">
         <div>
           <p class="eyebrow">Project record</p>
-          <h3>${project.name}</h3>
+          <h3>${escapeHtml(project.name)}</h3>
         </div>
         <div class="detail-header-actions">
-          <span class="status ${getStatusClass(project.status)}">${project.status}</span>
+          <span class="status ${getStatusClass(project.status)}">${escapeHtml(project.status)}</span>
           <button class="icon-button" data-close-project-detail aria-label="Close project detail">×</button>
         </div>
       </div>
       <div class="detail-grid">
-        <div><span>Customer</span><strong>${project.customer}</strong></div>
-        <div><span>Type</span><strong>${project.type}</strong></div>
+        <div><span>Customer</span><strong>${escapeHtml(project.customer)}</strong></div>
+        <div><span>Type</span><strong>${escapeHtml(project.type)}</strong></div>
         <div><span>Resources</span><strong>${project.resources}</strong></div>
-        <div><span>Owner</span><strong>${project.owner}</strong></div>
-        <div><span>Created</span><strong>${project.created}</strong></div>
-        <div><span>Last updated</span><strong>${project.lastUpdated}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(project.owner)}</strong></div>
+        <div><span>Created</span><strong>${escapeHtml(project.created)}</strong></div>
+        <div><span>Last updated</span><strong>${escapeHtml(project.lastUpdated)}</strong></div>
       </div>
-      <p>${project.description}</p>
+      <p>${escapeHtml(project.description)}</p>
       <div class="detail-actions">
         <button class="secondary-button">Edit later</button>
         <button class="secondary-button" data-page-link="resources">Open resources later</button>
@@ -835,6 +866,7 @@ function initialiseApp() {
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   document.getElementById("customer-form")?.addEventListener("submit", createCustomer);
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
+  document.getElementById("project-form")?.addEventListener("submit", createProject);
   setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
   renderCustomerTable();
@@ -847,4 +879,7 @@ function initialiseApp() {
 initialiseApp();
 
 
-document.addEventListener("ba:admin-authorised", loadLiveCustomers);
+document.addEventListener("ba:admin-authorised", () => {
+  loadLiveCustomers();
+  loadLiveProjects();
+});
