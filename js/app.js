@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.2 – Live Projects";
+const APP_VERSION = "v0.2.3 – Live Resources";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -16,80 +16,8 @@ let projects = [];
 let unsubscribeProjects = null;
 
 
-const resources = [
-  {
-    id: "ai-basics-guide",
-    name: "AI Basics Guide",
-    customer: "Curzon Outsourcing",
-    project: "SEO Consultation",
-    type: "Training Guide",
-    status: "Published",
-    visibility: "Customer Portal",
-    owner: "Paul O’Brien",
-    lastUpdated: "Today",
-    description: "Introductory guide explaining AI in simple business terms."
-  },
-  {
-    id: "prompt-writing",
-    name: "Prompt Writing Quick Start",
-    customer: "Hospitality Group",
-    project: "AI Quick Start",
-    type: "Training Guide",
-    status: "Draft",
-    visibility: "Internal Only",
-    owner: "Paul O’Brien",
-    lastUpdated: "Yesterday",
-    description: "Short practical guide for writing better prompts."
-  },
-  {
-    id: "project-proposal",
-    name: "Project Proposal",
-    customer: "Curzon Outsourcing",
-    project: "Customer Resource Portal",
-    type: "Document",
-    status: "Published",
-    visibility: "Customer Portal",
-    owner: "Paul O’Brien",
-    lastUpdated: "This week",
-    description: "Customer-facing proposal and agreed direction."
-  },
-  {
-    id: "statement-of-work",
-    name: "Statement of Work",
-    customer: "Restaurant Demo Co",
-    project: "Restaurant Demo Portal",
-    type: "Document",
-    status: "Archived",
-    visibility: "Internal Only",
-    owner: "Paul O’Brien",
-    lastUpdated: "Last week",
-    description: "Archived sample SOW used for resource status testing."
-  },
-  {
-    id: "chatgpt-link",
-    name: "ChatGPT",
-    customer: "Hospitality Group",
-    project: "AI Quick Start",
-    type: "Useful Link",
-    status: "Published",
-    visibility: "Customer Portal",
-    owner: "Paul O’Brien",
-    lastUpdated: "Today",
-    description: "External link used in customer AI training sessions."
-  },
-  {
-    id: "console-readme",
-    name: "Console README",
-    customer: "Barely Artificial",
-    project: "Barely Artificial Console",
-    type: "Document",
-    status: "Draft",
-    visibility: "Internal Only",
-    owner: "Paul O’Brien",
-    lastUpdated: "Today",
-    description: "Internal notes for the Console application."
-  }
-];
+let resources = [];
+let unsubscribeResources = null;
 
 const bookings = [
   {
@@ -213,6 +141,7 @@ function loadLiveCustomers() {
     selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
     renderCustomerTable();
     populateProjectCustomerOptions();
+    populateResourceCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -298,6 +227,7 @@ function loadLiveProjects() {
     projects = snapshot.docs.map(normaliseProject);
     selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
     renderProjectTable();
+    populateResourceProjectOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load projects", error);
@@ -361,6 +291,211 @@ async function createProject(event) {
     message.textContent = "Project could not be saved. Please try again.";
   } finally {
     saveButton.disabled = false;
+  }
+}
+
+
+function normaliseResource(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    name: data.name || "Unnamed resource",
+    customerId: data.customerId || "",
+    customer: data.customerName || "Unassigned customer",
+    projectId: data.projectId || "",
+    project: data.projectName || "Unassigned project",
+    type: data.type || "Document",
+    status: data.status || "Draft",
+    visibility: data.visibility || "Internal Only",
+    version: data.version || "1.0",
+    owner: data.owner || "Paul O’Brien",
+    lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
+    description: data.description || "No description added.",
+    fileName: data.fileName || "",
+    filePath: data.filePath || "",
+    downloadUrl: data.downloadUrl || "",
+    externalUrl: data.externalUrl || "",
+    size: Number(data.size || 0),
+    contentType: data.contentType || ""
+  };
+}
+
+function populateResourceCustomerOptions() {
+  const select = document.getElementById("resource-customer");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">Select a customer</option>' + customers
+    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
+    .join("");
+  if (customers.some((customer) => customer.id === selected)) select.value = selected;
+  populateResourceProjectOptions();
+}
+
+function populateResourceProjectOptions() {
+  const customerSelect = document.getElementById("resource-customer");
+  const projectSelect = document.getElementById("resource-project");
+  if (!customerSelect || !projectSelect) return;
+  const selectedProject = projectSelect.value;
+  const customerProjects = projects.filter((project) => project.customerId === customerSelect.value);
+  projectSelect.innerHTML = '<option value="">Select a project</option>' + customerProjects
+    .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`)
+    .join("");
+  projectSelect.disabled = !customerSelect.value || customerProjects.length === 0;
+  if (customerProjects.some((project) => project.id === selectedProject)) projectSelect.value = selectedProject;
+}
+
+function updateResourceInputMode() {
+  const typeSelect = document.getElementById("resource-type");
+  const fileGroup = document.getElementById("resource-file-group");
+  const linkGroup = document.getElementById("resource-link-group");
+  const fileInput = document.getElementById("resource-file");
+  const linkInput = document.getElementById("resource-link");
+  if (!typeSelect || !fileGroup || !linkGroup || !fileInput || !linkInput) return;
+  const isLink = typeSelect.value === "Useful Link";
+  fileGroup.hidden = isLink;
+  linkGroup.hidden = !isLink;
+  fileInput.required = !isLink;
+  linkInput.required = isLink;
+}
+
+function loadLiveResources() {
+  if (unsubscribeResources) unsubscribeResources();
+  const summary = document.getElementById("resource-summary");
+  if (summary) summary.textContent = "Loading resources…";
+
+  unsubscribeResources = firebase.firestore().collection("resources").orderBy("name").onSnapshot((snapshot) => {
+    resources = snapshot.docs.map(normaliseResource);
+    selectedResourceId = resources.some((resource) => resource.id === selectedResourceId) ? selectedResourceId : null;
+    renderResourceTable();
+    updateDashboardMetrics();
+  }, (error) => {
+    console.error("Could not load resources", error);
+    resources = [];
+    renderResourceTable();
+    if (summary) summary.textContent = "Resources could not be loaded. Check Firestore access.";
+  });
+}
+
+function safeStorageName(fileName) {
+  const clean = fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
+  return `${Date.now()}-${clean || "resource-file"}`;
+}
+
+function validateResourceFile(file) {
+  const maxBytes = 50 * 1024 * 1024;
+  const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "png", "jpg", "jpeg", "webp", "txt", "zip"];
+  const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+  if (file.size > maxBytes) return "Files must be 50 MB or smaller.";
+  if (!allowedExtensions.includes(extension)) return "That file type is not supported yet.";
+  return "";
+}
+
+async function createResource(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-resource-button");
+  const message = document.getElementById("resource-form-message");
+  const progress = document.getElementById("resource-upload-progress");
+  const formData = new FormData(form);
+  const name = String(formData.get("name") || "").trim();
+  const customerId = String(formData.get("customerId") || "").trim();
+  const projectId = String(formData.get("projectId") || "").trim();
+  const type = String(formData.get("type") || "Document");
+  const customer = customers.find((item) => item.id === customerId);
+  const project = projects.find((item) => item.id === projectId && item.customerId === customerId);
+
+  if (!name || !customer || !project) {
+    message.textContent = "Enter a title, then select a customer and one of their projects.";
+    return;
+  }
+
+  const file = formData.get("file");
+  const externalUrl = String(formData.get("externalUrl") || "").trim();
+  if (type === "Useful Link") {
+    try { new URL(externalUrl); } catch { message.textContent = "Enter a complete website address, including https://"; return; }
+  } else {
+    if (!(file instanceof File) || !file.name) { message.textContent = "Choose a file to upload."; return; }
+    const validationMessage = validateResourceFile(file);
+    if (validationMessage) { message.textContent = validationMessage; return; }
+  }
+
+  saveButton.disabled = true;
+  message.textContent = type === "Useful Link" ? "Saving resource…" : "Preparing upload…";
+  progress.hidden = type === "Useful Link";
+  progress.value = 0;
+  let uploadedRef = null;
+
+  try {
+    let fileDetails = { fileName: "", filePath: "", downloadUrl: "", size: 0, contentType: "", externalUrl };
+
+    if (type !== "Useful Link") {
+      const filePath = `resources/${customerId}/${projectId}/${safeStorageName(file.name)}`;
+      uploadedRef = firebase.storage().ref(filePath);
+      const uploadTask = uploadedRef.put(file, { contentType: file.type || "application/octet-stream" });
+      await new Promise((resolve, reject) => {
+        uploadTask.on("state_changed", (snapshot) => {
+          const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          progress.value = percent;
+          message.textContent = `Uploading… ${percent}%`;
+        }, reject, resolve);
+      });
+      const downloadUrl = await uploadedRef.getDownloadURL();
+      fileDetails = {
+        fileName: file.name,
+        filePath,
+        downloadUrl,
+        size: file.size,
+        contentType: file.type || "application/octet-stream",
+        externalUrl: ""
+      };
+    }
+
+    const database = firebase.firestore();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    const resourceRef = database.collection("resources").doc();
+    const projectRef = database.collection("projects").doc(projectId);
+
+    await database.runTransaction(async (transaction) => {
+      const projectSnapshot = await transaction.get(projectRef);
+      if (!projectSnapshot.exists) throw new Error("Project no longer exists");
+      const currentResources = Number(projectSnapshot.data().resources || 0);
+      transaction.set(resourceRef, {
+        name,
+        description: String(formData.get("description") || "").trim(),
+        customerId,
+        customerName: customer.company,
+        projectId,
+        projectName: project.name,
+        type,
+        status: formData.get("status") || "Draft",
+        visibility: formData.get("visibility") || "Internal Only",
+        version: String(formData.get("version") || "1.0").trim() || "1.0",
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        ...fileDetails,
+        createdAt: now,
+        updatedAt: now
+      });
+      transaction.update(projectRef, { resources: currentResources + 1, updatedAt: now });
+    });
+
+    form.reset();
+    populateResourceProjectOptions();
+    updateResourceInputMode();
+    message.textContent = "Resource created.";
+    progress.hidden = true;
+    setTimeout(() => {
+      document.getElementById("resource-dialog")?.close();
+      message.textContent = "";
+    }, 600);
+  } catch (error) {
+    console.error("Could not create resource", error);
+    if (uploadedRef) {
+      try { await uploadedRef.delete(); } catch (cleanupError) { console.warn("Could not remove incomplete upload", cleanupError); }
+    }
+    message.textContent = "Resource could not be saved. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+    progress.hidden = true;
   }
 }
 
@@ -522,12 +657,12 @@ function renderResourceTable() {
     filteredResources.forEach((resource) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${resource.name}</strong><span class="table-subtext">${resource.description}</span></td>
-        <td>${resource.customer}</td>
-        <td>${resource.project}</td>
-        <td>${resource.type}</td>
-        <td><span class="status ${getStatusClass(resource.status)}">${resource.status}</span></td>
-        <td>${resource.lastUpdated}</td>
+        <td><strong>${escapeHtml(resource.name)}</strong><span class="table-subtext">${escapeHtml(resource.description)}</span></td>
+        <td>${escapeHtml(resource.customer)}</td>
+        <td>${escapeHtml(resource.project)}</td>
+        <td>${escapeHtml(resource.type)}</td>
+        <td><span class="status ${getStatusClass(resource.status)}">${escapeHtml(resource.status)}</span></td>
+        <td>${escapeHtml(resource.lastUpdated)}</td>
         <td><button class="secondary-button compact" data-resource-id="${resource.id}">View</button></td>
       `;
       tableBody.appendChild(row);
@@ -541,7 +676,7 @@ function renderResourceTable() {
     });
   }
 
-  summary.textContent = `Showing ${filteredResources.length} of ${resources.length} sample resources`;
+  summary.textContent = `Showing ${filteredResources.length} of ${resources.length} live resources`;
 
   document.querySelectorAll("[data-resource-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -667,30 +802,34 @@ function getProjectDetailMarkup(project) {
 }
 
 function getResourceDetailMarkup(resource) {
+  const targetUrl = resource.type === "Useful Link" ? resource.externalUrl : resource.downloadUrl;
+  const actionLabel = resource.type === "Useful Link" ? "Visit link" : "Open file";
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
       <div class="detail-header">
         <div>
           <p class="eyebrow">Resource record</p>
-          <h3>${resource.name}</h3>
+          <h3>${escapeHtml(resource.name)}</h3>
         </div>
         <div class="detail-header-actions">
-          <span class="status ${getStatusClass(resource.status)}">${resource.status}</span>
+          <span class="status ${getStatusClass(resource.status)}">${escapeHtml(resource.status)}</span>
           <button class="icon-button" data-close-resource-detail aria-label="Close resource detail">×</button>
         </div>
       </div>
       <div class="detail-grid">
-        <div><span>Customer</span><strong>${resource.customer}</strong></div>
-        <div><span>Project</span><strong>${resource.project}</strong></div>
-        <div><span>Type</span><strong>${resource.type}</strong></div>
-        <div><span>Visibility</span><strong>${resource.visibility}</strong></div>
-        <div><span>Owner</span><strong>${resource.owner}</strong></div>
-        <div><span>Last updated</span><strong>${resource.lastUpdated}</strong></div>
+        <div><span>Customer</span><strong>${escapeHtml(resource.customer)}</strong></div>
+        <div><span>Project</span><strong>${escapeHtml(resource.project)}</strong></div>
+        <div><span>Type</span><strong>${escapeHtml(resource.type)}</strong></div>
+        <div><span>Visibility</span><strong>${escapeHtml(resource.visibility)}</strong></div>
+        <div><span>Version</span><strong>${escapeHtml(resource.version)}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(resource.owner)}</strong></div>
+        <div><span>Last updated</span><strong>${escapeHtml(resource.lastUpdated)}</strong></div>
+        ${resource.fileName ? `<div><span>File</span><strong>${escapeHtml(resource.fileName)}</strong></div>` : ""}
       </div>
-      <p>${resource.description}</p>
+      <p>${escapeHtml(resource.description)}</p>
       <div class="detail-actions">
-        <button class="secondary-button">Edit later</button>
-        <button class="secondary-button">Assign later</button>
+        ${targetUrl ? `<a class="secondary-button button-link" href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener">${actionLabel}</a>` : ""}
+        <button class="secondary-button" type="button">Edit later</button>
       </div>
     </div>
   `;
@@ -786,6 +925,9 @@ function setupProjectControls() {
 }
 
 function setupResourceControls() {
+  document.getElementById("resource-customer")?.addEventListener("change", populateResourceProjectOptions);
+  document.getElementById("resource-type")?.addEventListener("change", updateResourceInputMode);
+
   const searchInput = document.getElementById("resource-search");
   if (searchInput) {
     searchInput.addEventListener("input", (event) => {
@@ -868,6 +1010,8 @@ function initialiseApp() {
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   document.getElementById("project-form")?.addEventListener("submit", createProject);
   setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
+  document.getElementById("resource-form")?.addEventListener("submit", createResource);
+  updateResourceInputMode();
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
   renderCustomerTable();
   renderProjectTable();
@@ -882,4 +1026,5 @@ initialiseApp();
 document.addEventListener("ba:admin-authorised", () => {
   loadLiveCustomers();
   loadLiveProjects();
+  loadLiveResources();
 });

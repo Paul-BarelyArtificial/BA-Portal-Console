@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.2.2 – Live Projects
+Current version: **v0.2.3 – Live Resources
 
 ## Current features
 - Dashboard
@@ -40,6 +40,11 @@ The Console now requires Firebase Authentication and verifies access using the s
 The Customers screen now reads live records from Firestore and the New Customer form creates customer documents.
 
 
-## v0.2.2
+## v0.2.3
 
 Projects now load from Firestore. The New Project form creates a project linked to a live customer and updates the customer project count.
+
+
+## v0.2.3 – Live Resources
+
+Resources are stored in Firestore. Uploaded files are stored under `resources/{customerId}/{projectId}/` in Firebase Storage. Useful links are stored as Firestore metadata without a file upload.

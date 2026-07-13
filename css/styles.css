@@ -440,3 +440,19 @@ select:disabled {
 }
 .form-preview .full-width { grid-column: 1 / -1; }
 .form-message { min-height: 20px; color: var(--muted); margin: 12px 0 0; }
+
+/* Live resources and uploads — v0.2.3 */
+.upload-progress {
+  width: 100%;
+  height: 10px;
+  accent-color: var(--accent);
+}
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.form-preview input[type="file"] {
+  padding: 10px;
+}

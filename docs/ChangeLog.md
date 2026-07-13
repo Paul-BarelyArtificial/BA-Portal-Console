@@ -1,3 +1,14 @@
+# v0.2.3 – Live Resources
+
+- Replaced sample resources with the live Firestore `resources` collection.
+- Added a working New Resource form.
+- Added customer-aware project selection.
+- Added Firebase Storage uploads for documents and training guides.
+- Added useful-link resources without file uploads.
+- Added title, description, status, visibility and version metadata.
+- Project resource totals now update when a resource is created.
+- Dashboard resource count now uses live data.
+
 ## v0.2.2 – Live Projects
 
 - Replaced sample project data with the live Firestore `projects` collection.

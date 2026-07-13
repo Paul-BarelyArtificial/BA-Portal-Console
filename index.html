@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.1" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.3" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.1 – Live Customers</div>
+        <div id="version-label">v0.2.3 – Live Resources</div>
       </div>
     </aside>
 
@@ -206,7 +206,7 @@
           <div>
             <p class="eyebrow">Resources</p>
             <h2>Resource management</h2>
-            <p>Manage documents, training guides and useful links that customers will see in their portal. This release uses sample data only.</p>
+            <p>Manage documents, training guides and useful links that customers will see in their portal. Resources are stored in Firestore, with files uploaded securely to Firebase Storage.</p>
           </div>
           <button class="primary-button" id="new-resource-button">+ New Resource</button>
         </div>
@@ -224,7 +224,7 @@
           </div>
         </div>
 
-        <div class="summary-row" id="resource-summary">Showing sample resources</div>
+        <div class="summary-row" id="resource-summary">Loading resources…</div>
 
         <div class="table-card">
           <table>
@@ -356,12 +356,12 @@
           <section class="settings-panel">
             <div class="panel-heading">
               <h3>Firebase</h3>
-              <span class="badge status paused">Not connected</span>
+              <span class="badge status active">Connected</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Authentication</strong><span>Planned for next phase</span></div>
-              <div><strong>Firestore</strong><span>Not connected yet</span></div>
-              <div><strong>Storage</strong><span>Not connected yet</span></div>
+              <div><strong>Authentication</strong><span>Connected</span></div>
+              <div><strong>Firestore</strong><span>Connected</span></div>
+              <div><strong>Storage</strong><span>Connected</span></div>
             </div>
           </section>
 
@@ -383,9 +383,9 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.1 – Live Customers</span></div>
-              <div><strong>Customer Portal version</strong><span>v0.2.0 – Customer Access Foundations</span></div>
-              <div><strong>Build type</strong><span>Static front-end foundation</span></div>
+              <div><strong>Console version</strong><span>v0.2.3 – Live Resources</span></div>
+              <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
+              <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
           </section>
         </div>
@@ -438,20 +438,31 @@
   </dialog>
 
   <dialog id="resource-dialog" class="modal">
-    <div class="modal-header">
-      <h3>New Resource</h3>
-      <button class="icon-button" id="close-resource-dialog-button" aria-label="Close dialog">×</button>
-    </div>
-    <p>This is a placeholder for the future resource creation and upload form.</p>
-    <div class="form-preview">
-      <label>Resource name<input type="text" placeholder="AI Basics Guide" disabled /></label>
-      <label>Type<select disabled><option>Training Guide</option><option>Document</option><option>Useful Link</option></select></label>
-      <label>Customer or project<input type="text" placeholder="Assign later" disabled /></label>
-    </div>
-    <div class="modal-actions">
-      <button class="secondary-button" id="cancel-resource-dialog-button">Close</button>
-      <button class="primary-button" disabled>Create later</button>
-    </div>
+    <form id="resource-form">
+      <div class="modal-header">
+        <h3>New Resource</h3>
+        <button class="icon-button" id="close-resource-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Add a document, training guide or useful link and assign it to a customer project.</p>
+      <div class="form-preview">
+        <label>Title<input name="name" type="text" placeholder="AI Basics Guide" required /></label>
+        <label>Type<select id="resource-type" name="type"><option>Training Guide</option><option>Document</option><option>Useful Link</option></select></label>
+        <label>Customer<select id="resource-customer" name="customerId" required><option value="">Select a customer</option></select></label>
+        <label>Project<select id="resource-project" name="projectId" required disabled><option value="">Select a project</option></select></label>
+        <label>Status<select name="status"><option>Draft</option><option>Published</option><option>Archived</option></select></label>
+        <label>Visibility<select name="visibility"><option>Internal Only</option><option>Customer Portal</option></select></label>
+        <label>Version<input name="version" type="text" value="1.0" /></label>
+        <label id="resource-file-group">File<input id="resource-file" name="file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.zip" /></label>
+        <label id="resource-link-group" hidden>Website address<input id="resource-link" name="externalUrl" type="url" placeholder="https://example.com" /></label>
+        <label class="full-width">Description<textarea name="description" rows="3" placeholder="What is this resource for?"></textarea></label>
+      </div>
+      <progress id="resource-upload-progress" class="upload-progress" value="0" max="100" hidden></progress>
+      <p id="resource-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-resource-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-resource-button" type="submit">Create Resource</button>
+      </div>
+    </form>
   </dialog>
 
 
@@ -476,8 +487,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.2"></script>
-  <script src="js/app.js?v=0.2.2"></script>
-  <script src="js/auth.js?v=0.2.2"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js?v=0.2.3"></script>
+  <script src="js/app.js?v=0.2.3"></script>
+  <script src="js/auth.js?v=0.2.3"></script>
 </body>
 </html>
