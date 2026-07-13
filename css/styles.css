@@ -456,3 +456,34 @@ select:disabled {
 .form-preview input[type="file"] {
   padding: 10px;
 }
+
+/* Library foundations — v0.2.4 */
+.checkbox-fieldset {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0;
+}
+.checkbox-fieldset legend {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+  padding: 0 6px;
+}
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.checkbox-option {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 9px !important;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  color: var(--text) !important;
+}
+.checkbox-option input { width: auto; margin: 0; }
+@media (max-width: 700px) { .checkbox-grid { grid-template-columns: 1fr; } }

@@ -1,50 +1,37 @@
-# Barely Artificial Console
+# Barely Artificial Admin Console
 
-Internal management console for Barely Artificial customer portal operations.
+Internal management application for the Barely Artificial Customer Portal.
 
-Current version: **v0.2.3 – Live Resources
+**Current version:** v0.2.4 — Identity & Library Foundations
 
 ## Current features
-- Dashboard
-- Customer management screen
-- Project management screen
-- Resources placeholder
-- Bookings placeholder
-- Reports placeholder
-- Settings configuration screen
 
-## Notes
-This is a static front-end foundation. No authentication, backend or Firebase data is connected yet.
+- Firebase email/password authentication
+- Administrator authorisation using the Firestore `admins` collection
+- Live Dashboard metrics
+- Live Customers
+- Live Projects
+- Live Library foundations with file uploads and useful links
+- Internal, All Customers and Selected Customers visibility
+- Sample Bookings
+- Placeholder Reports and Settings
 
+## Technology
 
-## v0.1.3
-Resources management screen added with search, filters, detail rows and a placeholder new resource dialog.
+- Plain HTML, CSS and JavaScript
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
 
+## Documentation
 
-## v0.1.4 – Bookings
+Project documentation is in the `docs` folder. Start with:
 
-Adds the Bookings management screen with sample data, search, filters, inline details and a placeholder new booking dialog.
+1. `docs/PROJECT.md`
+2. `docs/ROADMAP.md`
+3. `docs/TESTING.md`
+4. `docs/FIREBASE.md`
 
+## Important v0.2.4 note
 
-## v0.2.1 – Settings
-
-Adds a structured settings screen covering account details, branding, booking, Firebase, notifications and application version information. Settings are placeholders until Firebase is connected.
-
-
-## v0.2.1
-The Console now requires Firebase Authentication and verifies access using the signed-in user UID in the Firestore `admins` collection.
-
-
-## v0.2.1
-
-The Customers screen now reads live records from Firestore and the New Customer form creates customer documents.
-
-
-## v0.2.3
-
-Projects now load from Firestore. The New Project form creates a project linked to a live customer and updates the customer project count.
-
-
-## v0.2.3 – Live Resources
-
-Resources are stored in Firestore. Uploaded files are stored under `resources/{customerId}/{projectId}/` in Firebase Storage. Useful links are stored as Firestore metadata without a file upload.
+The previous `resources` collection is not automatically deleted or migrated. New items are written to `library`. Review `docs/FIREBASE.md` and `docs/releases/v0.2.4.md` before deciding how to handle existing Resource records.

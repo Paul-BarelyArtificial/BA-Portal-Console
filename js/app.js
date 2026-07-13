@@ -1,10 +1,10 @@
-const APP_VERSION = "v0.2.3 – Live Resources";
+const APP_VERSION = "v0.2.4 – Identity & Library Foundations";
 
 const pageTitles = {
   dashboard: "Dashboard",
   customers: "Customers",
   projects: "Projects",
-  resources: "Resources",
+  library: "Library",
   bookings: "Bookings",
   reports: "Reports",
   settings: "Settings"
@@ -16,8 +16,8 @@ let projects = [];
 let unsubscribeProjects = null;
 
 
-let resources = [];
-let unsubscribeResources = null;
+let libraryItems = [];
+let unsubscribeLibrary = null;
 
 const bookings = [
   {
@@ -78,13 +78,13 @@ let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
 let currentProjectFilter = "all";
 let currentProjectSearch = "";
-let currentResourceFilter = "all";
-let currentResourceSearch = "";
+let currentLibraryFilter = "all";
+let currentLibrarySearch = "";
 let currentBookingFilter = "all";
 let currentBookingSearch = "";
 let selectedCustomerId = null;
 let selectedProjectId = null;
-let selectedResourceId = null;
+let selectedLibraryItemId = null;
 let selectedBookingId = null;
 
 function showPage(pageId) {
@@ -141,7 +141,7 @@ function loadLiveCustomers() {
     selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
     renderCustomerTable();
     populateProjectCustomerOptions();
-    populateResourceCustomerOptions();
+    populateLibraryCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -227,7 +227,7 @@ function loadLiveProjects() {
     projects = snapshot.docs.map(normaliseProject);
     selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
     renderProjectTable();
-    populateResourceProjectOptions();
+    
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load projects", error);
@@ -295,22 +295,22 @@ async function createProject(event) {
 }
 
 
-function normaliseResource(documentSnapshot) {
+function normaliseLibraryItem(documentSnapshot) {
   const data = documentSnapshot.data() || {};
   return {
     id: documentSnapshot.id,
-    name: data.name || "Unnamed resource",
-    customerId: data.customerId || "",
-    customer: data.customerName || "Unassigned customer",
-    projectId: data.projectId || "",
-    project: data.projectName || "Unassigned project",
-    type: data.type || "Document",
-    status: data.status || "Draft",
-    visibility: data.visibility || "Internal Only",
+    title: data.title || data.name || "Untitled library item",
+    description: data.description || "No description added.",
+    source: data.source || "Barely Artificial",
+    visibility: data.visibility || "Internal",
+    customerIds: Array.isArray(data.customerIds) ? data.customerIds : (data.customerId ? [data.customerId] : []),
+    customerNames: Array.isArray(data.customerNames) ? data.customerNames : (data.customerName ? [data.customerName] : []),
+    category: data.category || data.type || "Document",
     version: data.version || "1.0",
+    status: data.status || "Draft",
+    itemType: data.itemType || (data.externalUrl ? "Link" : "File"),
     owner: data.owner || "Paul O’Brien",
     lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
-    description: data.description || "No description added.",
     fileName: data.fileName || "",
     filePath: data.filePath || "",
     downloadUrl: data.downloadUrl || "",
@@ -320,68 +320,67 @@ function normaliseResource(documentSnapshot) {
   };
 }
 
-function populateResourceCustomerOptions() {
-  const select = document.getElementById("resource-customer");
-  if (!select) return;
-  const selected = select.value;
-  select.innerHTML = '<option value="">Select a customer</option>' + customers
-    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
-    .join("");
-  if (customers.some((customer) => customer.id === selected)) select.value = selected;
-  populateResourceProjectOptions();
+function populateLibraryCustomerOptions() {
+  const container = document.getElementById("library-customers");
+  if (!container) return;
+  container.innerHTML = customers.length
+    ? customers.map((customer) => `
+      <label class="checkbox-option">
+        <input type="checkbox" name="customerIds" value="${escapeHtml(customer.id)}">
+        <span>${escapeHtml(customer.company)}</span>
+      </label>`).join("")
+    : '<p class="muted">Create a customer before assigning selected-customer access.</p>';
+  updateLibraryVisibilityMode();
 }
 
-function populateResourceProjectOptions() {
-  const customerSelect = document.getElementById("resource-customer");
-  const projectSelect = document.getElementById("resource-project");
-  if (!customerSelect || !projectSelect) return;
-  const selectedProject = projectSelect.value;
-  const customerProjects = projects.filter((project) => project.customerId === customerSelect.value);
-  projectSelect.innerHTML = '<option value="">Select a project</option>' + customerProjects
-    .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`)
-    .join("");
-  projectSelect.disabled = !customerSelect.value || customerProjects.length === 0;
-  if (customerProjects.some((project) => project.id === selectedProject)) projectSelect.value = selectedProject;
+function updateLibraryVisibilityMode() {
+  const visibility = document.getElementById("library-visibility");
+  const customerGroup = document.getElementById("library-customer-group");
+  if (!visibility || !customerGroup) return;
+  customerGroup.hidden = visibility.value !== "Selected Customers";
+  customerGroup.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    input.disabled = customerGroup.hidden;
+  });
 }
 
-function updateResourceInputMode() {
-  const typeSelect = document.getElementById("resource-type");
-  const fileGroup = document.getElementById("resource-file-group");
-  const linkGroup = document.getElementById("resource-link-group");
-  const fileInput = document.getElementById("resource-file");
-  const linkInput = document.getElementById("resource-link");
-  if (!typeSelect || !fileGroup || !linkGroup || !fileInput || !linkInput) return;
-  const isLink = typeSelect.value === "Useful Link";
+function updateLibraryInputMode() {
+  const itemType = document.getElementById("library-item-type");
+  const fileGroup = document.getElementById("library-file-group");
+  const linkGroup = document.getElementById("library-link-group");
+  const fileInput = document.getElementById("library-file");
+  const linkInput = document.getElementById("library-link");
+  if (!itemType || !fileGroup || !linkGroup || !fileInput || !linkInput) return;
+  const isLink = itemType.value === "Link";
   fileGroup.hidden = isLink;
   linkGroup.hidden = !isLink;
   fileInput.required = !isLink;
   linkInput.required = isLink;
 }
 
-function loadLiveResources() {
-  if (unsubscribeResources) unsubscribeResources();
-  const summary = document.getElementById("resource-summary");
-  if (summary) summary.textContent = "Loading resources…";
+function loadLiveLibrary() {
+  if (unsubscribeLibrary) unsubscribeLibrary();
+  const summary = document.getElementById("library-summary");
+  if (summary) summary.textContent = "Loading library…";
 
-  unsubscribeResources = firebase.firestore().collection("resources").orderBy("name").onSnapshot((snapshot) => {
-    resources = snapshot.docs.map(normaliseResource);
-    selectedResourceId = resources.some((resource) => resource.id === selectedResourceId) ? selectedResourceId : null;
-    renderResourceTable();
+  unsubscribeLibrary = firebase.firestore().collection("library").orderBy("title").onSnapshot((snapshot) => {
+    libraryItems = snapshot.docs.map(normaliseLibraryItem);
+    selectedLibraryItemId = libraryItems.some((item) => item.id === selectedLibraryItemId) ? selectedLibraryItemId : null;
+    renderLibraryTable();
     updateDashboardMetrics();
   }, (error) => {
-    console.error("Could not load resources", error);
-    resources = [];
-    renderResourceTable();
-    if (summary) summary.textContent = "Resources could not be loaded. Check Firestore access.";
+    console.error("Could not load library", error);
+    libraryItems = [];
+    renderLibraryTable();
+    if (summary) summary.textContent = "Library could not be loaded. Check Firestore access.";
   });
 }
 
 function safeStorageName(fileName) {
   const clean = fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
-  return `${Date.now()}-${clean || "resource-file"}`;
+  return `${Date.now()}-${clean || "library-file"}`;
 }
 
-function validateResourceFile(file) {
+function validateLibraryFile(file) {
   const maxBytes = 50 * 1024 * 1024;
   const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "png", "jpg", "jpeg", "webp", "txt", "zip"];
   const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
@@ -390,46 +389,50 @@ function validateResourceFile(file) {
   return "";
 }
 
-async function createResource(event) {
+async function createLibraryItem(event) {
   event.preventDefault();
   const form = event.currentTarget;
-  const saveButton = document.getElementById("save-resource-button");
-  const message = document.getElementById("resource-form-message");
-  const progress = document.getElementById("resource-upload-progress");
+  const saveButton = document.getElementById("save-library-button");
+  const message = document.getElementById("library-form-message");
+  const progress = document.getElementById("library-upload-progress");
   const formData = new FormData(form);
-  const name = String(formData.get("name") || "").trim();
-  const customerId = String(formData.get("customerId") || "").trim();
-  const projectId = String(formData.get("projectId") || "").trim();
-  const type = String(formData.get("type") || "Document");
-  const customer = customers.find((item) => item.id === customerId);
-  const project = projects.find((item) => item.id === projectId && item.customerId === customerId);
+  const title = String(formData.get("title") || "").trim();
+  const itemType = String(formData.get("itemType") || "File");
+  const visibility = String(formData.get("visibility") || "Internal");
+  const customerIds = formData.getAll("customerIds").map(String);
+  const selectedCustomers = customers.filter((customer) => customerIds.includes(customer.id));
 
-  if (!name || !customer || !project) {
-    message.textContent = "Enter a title, then select a customer and one of their projects.";
+  if (!title) {
+    message.textContent = "Enter a title.";
+    return;
+  }
+  if (visibility === "Selected Customers" && customerIds.length === 0) {
+    message.textContent = "Select at least one customer, or choose a different visibility option.";
     return;
   }
 
   const file = formData.get("file");
   const externalUrl = String(formData.get("externalUrl") || "").trim();
-  if (type === "Useful Link") {
+  if (itemType === "Link") {
     try { new URL(externalUrl); } catch { message.textContent = "Enter a complete website address, including https://"; return; }
   } else {
     if (!(file instanceof File) || !file.name) { message.textContent = "Choose a file to upload."; return; }
-    const validationMessage = validateResourceFile(file);
+    const validationMessage = validateLibraryFile(file);
     if (validationMessage) { message.textContent = validationMessage; return; }
   }
 
   saveButton.disabled = true;
-  message.textContent = type === "Useful Link" ? "Saving resource…" : "Preparing upload…";
-  progress.hidden = type === "Useful Link";
+  message.textContent = itemType === "Link" ? "Saving library item…" : "Preparing upload…";
+  progress.hidden = itemType === "Link";
   progress.value = 0;
   let uploadedRef = null;
 
   try {
     let fileDetails = { fileName: "", filePath: "", downloadUrl: "", size: 0, contentType: "", externalUrl };
+    const libraryId = firebase.firestore().collection("library").doc().id;
 
-    if (type !== "Useful Link") {
-      const filePath = `resources/${customerId}/${projectId}/${safeStorageName(file.name)}`;
+    if (itemType === "File") {
+      const filePath = `library/${libraryId}/${safeStorageName(file.name)}`;
       uploadedRef = firebase.storage().ref(filePath);
       const uploadTask = uploadedRef.put(file, { contentType: file.type || "application/octet-stream" });
       await new Promise((resolve, reject) => {
@@ -440,59 +443,42 @@ async function createResource(event) {
         }, reject, resolve);
       });
       const downloadUrl = await uploadedRef.getDownloadURL();
-      fileDetails = {
-        fileName: file.name,
-        filePath,
-        downloadUrl,
-        size: file.size,
-        contentType: file.type || "application/octet-stream",
-        externalUrl: ""
-      };
+      fileDetails = { fileName: file.name, filePath, downloadUrl, size: file.size, contentType: file.type || "application/octet-stream", externalUrl: "" };
     }
 
-    const database = firebase.firestore();
     const now = firebase.firestore.FieldValue.serverTimestamp();
-    const resourceRef = database.collection("resources").doc();
-    const projectRef = database.collection("projects").doc(projectId);
-
-    await database.runTransaction(async (transaction) => {
-      const projectSnapshot = await transaction.get(projectRef);
-      if (!projectSnapshot.exists) throw new Error("Project no longer exists");
-      const currentResources = Number(projectSnapshot.data().resources || 0);
-      transaction.set(resourceRef, {
-        name,
-        description: String(formData.get("description") || "").trim(),
-        customerId,
-        customerName: customer.company,
-        projectId,
-        projectName: project.name,
-        type,
-        status: formData.get("status") || "Draft",
-        visibility: formData.get("visibility") || "Internal Only",
-        version: String(formData.get("version") || "1.0").trim() || "1.0",
-        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
-        ...fileDetails,
-        createdAt: now,
-        updatedAt: now
-      });
-      transaction.update(projectRef, { resources: currentResources + 1, updatedAt: now });
+    await firebase.firestore().collection("library").doc(libraryId).set({
+      title,
+      description: String(formData.get("description") || "").trim(),
+      source: formData.get("source") || "Barely Artificial",
+      visibility,
+      customerIds: visibility === "Selected Customers" ? customerIds : [],
+      customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
+      category: formData.get("category") || "Document",
+      version: String(formData.get("version") || "1.0").trim() || "1.0",
+      status: formData.get("status") || "Draft",
+      itemType,
+      owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+      ...fileDetails,
+      createdAt: now,
+      updatedAt: now
     });
 
     form.reset();
-    populateResourceProjectOptions();
-    updateResourceInputMode();
-    message.textContent = "Resource created.";
+    updateLibraryVisibilityMode();
+    updateLibraryInputMode();
+    message.textContent = "Library item created.";
     progress.hidden = true;
     setTimeout(() => {
-      document.getElementById("resource-dialog")?.close();
+      document.getElementById("library-dialog")?.close();
       message.textContent = "";
     }, 600);
   } catch (error) {
-    console.error("Could not create resource", error);
+    console.error("Could not create library item", error);
     if (uploadedRef) {
       try { await uploadedRef.delete(); } catch (cleanupError) { console.warn("Could not remove incomplete upload", cleanupError); }
     }
-    message.textContent = "Resource could not be saved. Please try again.";
+    message.textContent = "Library item could not be saved. Please try again.";
   } finally {
     saveButton.disabled = false;
     progress.hidden = true;
@@ -517,11 +503,11 @@ function getFilteredProjects() {
   });
 }
 
-function getFilteredResources() {
-  return resources.filter((resource) => {
-    const matchesFilter = currentResourceFilter === "all" || resource.type === currentResourceFilter;
-    const searchTarget = `${resource.name} ${resource.customer} ${resource.project} ${resource.type} ${resource.status} ${resource.visibility} ${resource.owner} ${resource.description}`.toLowerCase();
-    const matchesSearch = searchTarget.includes(currentResourceSearch.toLowerCase());
+function getFilteredLibraryItems() {
+  return libraryItems.filter((item) => {
+    const matchesFilter = currentLibraryFilter === "all" || item.category === currentLibraryFilter;
+    const searchTarget = `${item.title} ${item.category} ${item.status} ${item.visibility} ${item.source} ${item.customerNames.join(" ")} ${item.owner} ${item.description}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentLibrarySearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 }
@@ -643,52 +629,55 @@ function renderProjectTable() {
   });
 }
 
-function renderResourceTable() {
-  const tableBody = document.getElementById("resources-table");
-  const summary = document.getElementById("resource-summary");
+function renderLibraryTable() {
+  const tableBody = document.getElementById("library-table");
+  const summary = document.getElementById("library-summary");
   if (!tableBody || !summary) return;
 
-  const filteredResources = getFilteredResources();
+  const filteredItems = getFilteredLibraryItems();
   tableBody.innerHTML = "";
 
-  if (filteredResources.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No resources match your search.</td></tr>`;
+  if (filteredItems.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No library items match your search.</td></tr>`;
   } else {
-    filteredResources.forEach((resource) => {
+    filteredItems.forEach((item) => {
+      const audience = item.visibility === "Selected Customers"
+        ? (item.customerNames.join(", ") || "No customers selected")
+        : item.visibility;
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(resource.name)}</strong><span class="table-subtext">${escapeHtml(resource.description)}</span></td>
-        <td>${escapeHtml(resource.customer)}</td>
-        <td>${escapeHtml(resource.project)}</td>
-        <td>${escapeHtml(resource.type)}</td>
-        <td><span class="status ${getStatusClass(resource.status)}">${escapeHtml(resource.status)}</span></td>
-        <td>${escapeHtml(resource.lastUpdated)}</td>
-        <td><button class="secondary-button compact" data-resource-id="${resource.id}">View</button></td>
+        <td><strong>${escapeHtml(item.title)}</strong><span class="table-subtext">${escapeHtml(item.description)}</span></td>
+        <td>${escapeHtml(item.category)}</td>
+        <td>${escapeHtml(item.source)}</td>
+        <td>${escapeHtml(audience)}</td>
+        <td><span class="status ${getStatusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+        <td>${escapeHtml(item.lastUpdated)}</td>
+        <td><button class="secondary-button compact" data-library-id="${item.id}">View</button></td>
       `;
       tableBody.appendChild(row);
 
-      if (selectedResourceId === resource.id) {
+      if (selectedLibraryItemId === item.id) {
         const detailRow = document.createElement("tr");
         detailRow.className = "inline-detail-row";
-        detailRow.innerHTML = `<td colspan="7">${getResourceDetailMarkup(resource)}</td>`;
+        detailRow.innerHTML = `<td colspan="7">${getLibraryDetailMarkup(item)}</td>`;
         tableBody.appendChild(detailRow);
       }
     });
   }
 
-  summary.textContent = `Showing ${filteredResources.length} of ${resources.length} live resources`;
+  summary.textContent = `Showing ${filteredItems.length} of ${libraryItems.length} live library items`;
 
-  document.querySelectorAll("[data-resource-id]").forEach((button) => {
+  document.querySelectorAll("[data-library-id]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedResourceId = selectedResourceId === button.dataset.resourceId ? null : button.dataset.resourceId;
-      renderResourceTable();
+      selectedLibraryItemId = selectedLibraryItemId === button.dataset.libraryId ? null : button.dataset.libraryId;
+      renderLibraryTable();
     });
   });
 
-  document.querySelectorAll("[data-close-resource-detail]").forEach((button) => {
+  document.querySelectorAll("[data-close-library-detail]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedResourceId = null;
-      renderResourceTable();
+      selectedLibraryItemId = null;
+      renderLibraryTable();
     });
   });
 }
@@ -795,41 +784,38 @@ function getProjectDetailMarkup(project) {
       <p>${escapeHtml(project.description)}</p>
       <div class="detail-actions">
         <button class="secondary-button">Edit later</button>
-        <button class="secondary-button" data-page-link="resources">Open resources later</button>
+        <button class="secondary-button" data-page-link="library">Open Library</button>
       </div>
     </div>
   `;
 }
 
-function getResourceDetailMarkup(resource) {
-  const targetUrl = resource.type === "Useful Link" ? resource.externalUrl : resource.downloadUrl;
-  const actionLabel = resource.type === "Useful Link" ? "Visit link" : "Open file";
+function getLibraryDetailMarkup(item) {
+  const audience = item.visibility === "Selected Customers"
+    ? (item.customerNames.join(", ") || "No customers selected")
+    : item.visibility;
+  const destination = item.itemType === "Link" ? item.externalUrl : item.downloadUrl;
+  const actionLabel = item.itemType === "Link" ? "Open link" : "Open file";
   return `
-    <div class="detail-panel inline-detail-panel" aria-live="polite">
-      <div class="detail-header">
-        <div>
-          <p class="eyebrow">Resource record</p>
-          <h3>${escapeHtml(resource.name)}</h3>
-        </div>
-        <div class="detail-header-actions">
-          <span class="status ${getStatusClass(resource.status)}">${escapeHtml(resource.status)}</span>
-          <button class="icon-button" data-close-resource-detail aria-label="Close resource detail">×</button>
-        </div>
+    <div class="inline-detail">
+      <div class="detail-heading">
+        <div><p class="eyebrow">Library item</p><h3>${escapeHtml(item.title)}</h3></div>
+        <button class="icon-button" data-close-library-detail aria-label="Close detail">×</button>
       </div>
       <div class="detail-grid">
-        <div><span>Customer</span><strong>${escapeHtml(resource.customer)}</strong></div>
-        <div><span>Project</span><strong>${escapeHtml(resource.project)}</strong></div>
-        <div><span>Type</span><strong>${escapeHtml(resource.type)}</strong></div>
-        <div><span>Visibility</span><strong>${escapeHtml(resource.visibility)}</strong></div>
-        <div><span>Version</span><strong>${escapeHtml(resource.version)}</strong></div>
-        <div><span>Owner</span><strong>${escapeHtml(resource.owner)}</strong></div>
-        <div><span>Last updated</span><strong>${escapeHtml(resource.lastUpdated)}</strong></div>
-        ${resource.fileName ? `<div><span>File</span><strong>${escapeHtml(resource.fileName)}</strong></div>` : ""}
+        <div><span>Category</span><strong>${escapeHtml(item.category)}</strong></div>
+        <div><span>Source</span><strong>${escapeHtml(item.source)}</strong></div>
+        <div><span>Visibility</span><strong>${escapeHtml(audience)}</strong></div>
+        <div><span>Status</span><strong>${escapeHtml(item.status)}</strong></div>
+        <div><span>Version</span><strong>${escapeHtml(item.version)}</strong></div>
+        <div><span>Type</span><strong>${escapeHtml(item.itemType)}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(item.owner)}</strong></div>
+        <div><span>Last updated</span><strong>${escapeHtml(item.lastUpdated)}</strong></div>
       </div>
-      <p>${escapeHtml(resource.description)}</p>
+      <p>${escapeHtml(item.description)}</p>
       <div class="detail-actions">
-        ${targetUrl ? `<a class="secondary-button button-link" href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener">${actionLabel}</a>` : ""}
-        <button class="secondary-button" type="button">Edit later</button>
+        ${destination ? `<a class="secondary-button button-link" href="${escapeHtml(destination)}" target="_blank" rel="noopener">${actionLabel}</a>` : ""}
+        <button class="secondary-button" disabled>Edit in v0.2.5</button>
       </div>
     </div>
   `;
@@ -870,10 +856,10 @@ function updateDashboardMetrics() {
   const customerMetric = document.getElementById("metric-customers");
   const customerNote = document.getElementById("metric-customers-note");
   const projectsMetric = document.getElementById("metric-projects");
-  const resourcesMetric = document.getElementById("metric-resources");
+  const libraryMetric = document.getElementById("metric-library");
   const bookingsMetric = document.getElementById("metric-bookings");
   const bookingsNote = document.getElementById("metric-bookings-note");
-  if (!customerMetric || !customerNote || !projectsMetric || !resourcesMetric || !bookingsMetric || !bookingsNote) return;
+  if (!customerMetric || !customerNote || !projectsMetric || !libraryMetric || !bookingsMetric || !bookingsNote) return;
 
   const activeCount = customers.filter((customer) => customer.status === "Active").length;
   const trialCount = customers.filter((customer) => customer.status === "Trial").length;
@@ -881,7 +867,7 @@ function updateDashboardMetrics() {
   customerMetric.textContent = customers.length;
   customerNote.textContent = `${activeCount} active, ${trialCount} trial`;
   projectsMetric.textContent = projects.length;
-  resourcesMetric.textContent = resources.length;
+  libraryMetric.textContent = libraryItems.length;
   bookingsMetric.textContent = bookings.length;
   bookingsNote.textContent = `${bookings.filter((booking) => booking.status === "Upcoming").length} upcoming`;
 }
@@ -924,24 +910,24 @@ function setupProjectControls() {
   });
 }
 
-function setupResourceControls() {
-  document.getElementById("resource-customer")?.addEventListener("change", populateResourceProjectOptions);
-  document.getElementById("resource-type")?.addEventListener("change", updateResourceInputMode);
+function setupLibraryControls() {
+  document.getElementById("library-visibility")?.addEventListener("change", updateLibraryVisibilityMode);
+  document.getElementById("library-item-type")?.addEventListener("change", updateLibraryInputMode);
 
-  const searchInput = document.getElementById("resource-search");
+  const searchInput = document.getElementById("library-search");
   if (searchInput) {
     searchInput.addEventListener("input", (event) => {
-      currentResourceSearch = event.target.value;
-      renderResourceTable();
+      currentLibrarySearch = event.target.value;
+      renderLibraryTable();
     });
   }
 
-  document.querySelectorAll(".resource-filter-button").forEach((button) => {
+  document.querySelectorAll(".library-filter-button").forEach((button) => {
     button.addEventListener("click", () => {
-      currentResourceFilter = button.dataset.resourceFilter;
-      document.querySelectorAll(".resource-filter-button").forEach((item) => item.classList.remove("active"));
+      currentLibraryFilter = button.dataset.libraryFilter;
+      document.querySelectorAll(".library-filter-button").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
-      renderResourceTable();
+      renderLibraryTable();
     });
   });
 }
@@ -1002,20 +988,20 @@ function initialiseApp() {
   setupNavigation();
   setupCustomerControls();
   setupProjectControls();
-  setupResourceControls();
+  setupLibraryControls();
   setupBookingControls();
   setupSettingsControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   document.getElementById("customer-form")?.addEventListener("submit", createCustomer);
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   document.getElementById("project-form")?.addEventListener("submit", createProject);
-  setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
-  document.getElementById("resource-form")?.addEventListener("submit", createResource);
-  updateResourceInputMode();
+  setupDialog("library-dialog", "new-library-button", "close-library-dialog-button", "cancel-library-dialog-button");
+  document.getElementById("library-form")?.addEventListener("submit", createLibraryItem);
+  updateLibraryInputMode();
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
   renderCustomerTable();
   renderProjectTable();
-  renderResourceTable();
+  renderLibraryTable();
   renderBookingTable();
   updateDashboardMetrics();
 }
@@ -1026,5 +1012,5 @@ initialiseApp();
 document.addEventListener("ba:admin-authorised", () => {
   loadLiveCustomers();
   loadLiveProjects();
-  loadLiveResources();
+  loadLiveLibrary();
 });

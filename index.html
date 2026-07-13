@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.3" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.4" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -48,14 +48,14 @@
         <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
         <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
         <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
-        <button class="nav-item" data-page="resources"><span>▤</span>Resources</button>
+        <button class="nav-item" data-page="library"><span>▤</span>Library</button>
         <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
         <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
         <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.3 – Live Resources</div>
+        <div id="version-label">v0.2.4 – Identity & Library Foundations</div>
       </div>
     </aside>
 
@@ -76,7 +76,7 @@
           <div>
             <p class="eyebrow">Overview</p>
             <h2>Welcome back, Paul</h2>
-            <p>Your customer portal management area. This is where customers, projects, resources and bookings will be managed as the product grows.</p>
+            <p>Your customer portal management area. This is where customers, projects, library items and bookings will be managed as the product grows.</p>
           </div>
           <button class="primary-button" data-page-link="customers">View customers</button>
         </div>
@@ -84,7 +84,7 @@
         <div class="metric-grid">
           <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Resources</span><strong id="metric-resources">0</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Library items</span><strong id="metric-library">0</strong><small>Sample data</small></article>
           <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Sample data</small></article>
         </div>
 
@@ -106,9 +106,9 @@
               <h3>Next steps</h3>
             </div>
             <ol class="task-list">
-              <li>Add the Resources management screen.</li>
+              <li>Build the live Library and customer visibility model.</li>
               <li>Connect records to Firebase later.</li>
-              <li>Add resource assignment and upload workflow later.</li>
+              <li>Connect the Customer Portal to the live Library in v0.2.6.</li>
             </ol>
           </section>
         </div>
@@ -162,7 +162,7 @@
           <div>
             <p class="eyebrow">Projects</p>
             <h2>Project management</h2>
-            <p>Track customer projects, status, ownership and connected resources using live Firestore data.</p>
+            <p>Track customer projects, status, ownership and customer projects using live Firestore data. Library access is managed separately.</p>
           </div>
           <button class="primary-button" id="new-project-button">+ New Project</button>
         </div>
@@ -191,7 +191,7 @@
                 <th>Customer</th>
                 <th>Status</th>
                 <th>Type</th>
-                <th>Resources</th>
+                <th>Library items</th>
                 <th>Last updated</th>
                 <th>Action</th>
               </tr>
@@ -201,45 +201,47 @@
         </div>
       </section>
 
-      <section id="resources" class="page">
+      <section id="library" class="page">
         <div class="console-header">
           <div>
-            <p class="eyebrow">Resources</p>
-            <h2>Resource management</h2>
-            <p>Manage documents, training guides and useful links that customers will see in their portal. Resources are stored in Firestore, with files uploaded securely to Firebase Storage.</p>
+            <p class="eyebrow">Library</p>
+            <h2>Library management</h2>
+            <p>Upload a file or add a useful link once, then control whether it is internal, available to every customer, or shared with selected customers.</p>
           </div>
-          <button class="primary-button" id="new-resource-button">+ New Resource</button>
+          <button class="primary-button" id="new-library-button">+ New Library Item</button>
         </div>
 
         <div class="toolbar">
-          <label class="search-box" for="resource-search">
+          <label class="search-box" for="library-search">
             <span>Search</span>
-            <input id="resource-search" type="search" placeholder="Search resources..." autocomplete="off" />
+            <input id="library-search" type="search" placeholder="Search the library..." autocomplete="off" />
           </label>
-          <div class="filter-group" aria-label="Resource type filters">
-            <button class="resource-filter-button filter-button active" data-resource-filter="all">All</button>
-            <button class="resource-filter-button filter-button" data-resource-filter="Training Guide">Training Guides</button>
-            <button class="resource-filter-button filter-button" data-resource-filter="Document">Documents</button>
-            <button class="resource-filter-button filter-button" data-resource-filter="Useful Link">Useful Links</button>
+          <div class="filter-group" aria-label="Library category filters">
+            <button class="library-filter-button filter-button active" data-library-filter="all">All</button>
+            <button class="library-filter-button filter-button" data-library-filter="Training">Training</button>
+            <button class="library-filter-button filter-button" data-library-filter="Document">Documents</button>
+            <button class="library-filter-button filter-button" data-library-filter="Template">Templates</button>
+            <button class="library-filter-button filter-button" data-library-filter="Download">Downloads</button>
+            <button class="library-filter-button filter-button" data-library-filter="Link">Links</button>
           </div>
         </div>
 
-        <div class="summary-row" id="resource-summary">Loading resources…</div>
+        <div class="summary-row" id="library-summary">Loading library…</div>
 
         <div class="table-card">
           <table>
             <thead>
               <tr>
-                <th>Resource</th>
-                <th>Customer</th>
-                <th>Project</th>
-                <th>Type</th>
+                <th>Library item</th>
+                <th>Category</th>
+                <th>Source</th>
+                <th>Visibility</th>
                 <th>Status</th>
                 <th>Last updated</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="resources-table"></tbody>
+            <tbody id="library-table"></tbody>
           </table>
         </div>
       </section>
@@ -292,7 +294,7 @@
 <div class="metric-grid">
 <article class="metric-card"><span class="metric-label">Customers</span><strong>4</strong><small>Active records</small></article>
 <article class="metric-card"><span class="metric-label">Projects</span><strong>6</strong><small>Sample data</small></article>
-<article class="metric-card"><span class="metric-label">Resources</span><strong>12</strong><small>Sample data</small></article>
+<article class="metric-card"><span class="metric-label">Library items</span><strong id="report-library-count">—</strong><small>Live data shown on Dashboard</small></article>
 <article class="metric-card"><span class="metric-label">Bookings</span><strong>3</strong><small>Upcoming</small></article>
 </div>
 <div class="content-grid two-column">
@@ -383,7 +385,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.3 – Live Resources</span></div>
+              <div><strong>Console version</strong><span>v0.2.4 – Identity & Library Foundations</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -399,7 +401,7 @@
         <h3>New Customer</h3>
         <button class="icon-button" id="close-dialog-button" type="button" aria-label="Close dialog">×</button>
       </div>
-      <p>Add the customer organisation now. Projects, users and resources can be connected later.</p>
+      <p>Add the customer organisation now. Projects and users can be connected later. Library access is managed separately.</p>
       <div class="form-preview">
         <label>Company name<input name="company" type="text" placeholder="Example Ltd" required /></label>
         <label>Status<select name="status"><option>Trial</option><option>Active</option><option>Paused</option></select></label>
@@ -437,34 +439,37 @@
     </form>
   </dialog>
 
-  <dialog id="resource-dialog" class="modal">
-    <form id="resource-form">
-      <div class="modal-header">
-        <h3>New Resource</h3>
-        <button class="icon-button" id="close-resource-dialog-button" type="button" aria-label="Close dialog">×</button>
+  <dialog id="library-dialog" class="modal">
+    <form id="library-form">
+      <div class="modal-heading">
+        <div><p class="eyebrow">Library</p><h2>New Library Item</h2></div>
+        <button class="icon-button" id="close-library-dialog-button" type="button" aria-label="Close dialog">×</button>
       </div>
-      <p>Add a document, training guide or useful link and assign it to a customer project.</p>
+      <p>Create one item and choose who can see it. Library items are not tied to projects.</p>
       <div class="form-preview">
-        <label>Title<input name="name" type="text" placeholder="AI Basics Guide" required /></label>
-        <label>Type<select id="resource-type" name="type"><option>Training Guide</option><option>Document</option><option>Useful Link</option></select></label>
-        <label>Customer<select id="resource-customer" name="customerId" required><option value="">Select a customer</option></select></label>
-        <label>Project<select id="resource-project" name="projectId" required disabled><option value="">Select a project</option></select></label>
+        <label>Title<input name="title" required placeholder="e.g. AI Basics Guide" /></label>
+        <label>Category<select name="category"><option>Training</option><option>Document</option><option>Template</option><option>Download</option><option>Link</option></select></label>
+        <label>Source<select name="source"><option>Barely Artificial</option><option>Customer</option></select></label>
+        <label>Item type<select id="library-item-type" name="itemType"><option>File</option><option>Link</option></select></label>
+        <label>Visibility<select id="library-visibility" name="visibility"><option>Internal</option><option>All Customers</option><option>Selected Customers</option></select></label>
         <label>Status<select name="status"><option>Draft</option><option>Published</option><option>Archived</option></select></label>
-        <label>Visibility<select name="visibility"><option>Internal Only</option><option>Customer Portal</option></select></label>
-        <label>Version<input name="version" type="text" value="1.0" /></label>
-        <label id="resource-file-group">File<input id="resource-file" name="file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.zip" /></label>
-        <label id="resource-link-group" hidden>Website address<input id="resource-link" name="externalUrl" type="url" placeholder="https://example.com" /></label>
-        <label class="full-width">Description<textarea name="description" rows="3" placeholder="What is this resource for?"></textarea></label>
+        <label>Version<input name="version" value="1.0" /></label>
+        <label id="library-file-group">File<input id="library-file" name="file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.zip" /></label>
+        <label id="library-link-group" hidden>Website address<input id="library-link" name="externalUrl" type="url" placeholder="https://example.com" /></label>
+        <fieldset id="library-customer-group" class="full-width checkbox-fieldset" hidden>
+          <legend>Selected customers</legend>
+          <div id="library-customers" class="checkbox-grid"></div>
+        </fieldset>
+        <label class="full-width">Description<textarea name="description" rows="3" placeholder="What is this item for?"></textarea></label>
       </div>
-      <progress id="resource-upload-progress" class="upload-progress" value="0" max="100" hidden></progress>
-      <p id="resource-form-message" class="form-message" aria-live="polite"></p>
+      <progress id="library-upload-progress" class="upload-progress" value="0" max="100" hidden></progress>
+      <p id="library-form-message" class="form-message" aria-live="polite"></p>
       <div class="modal-actions">
-        <button class="secondary-button" id="cancel-resource-dialog-button" type="button">Cancel</button>
-        <button class="primary-button" id="save-resource-button" type="submit">Create Resource</button>
+        <button class="secondary-button" id="cancel-library-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-library-button" type="submit">Create Library Item</button>
       </div>
     </form>
   </dialog>
-
 
   <dialog id="booking-dialog" class="modal">
     <div class="modal-header">
@@ -488,8 +493,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.3"></script>
-  <script src="js/app.js?v=0.2.3"></script>
+  <script src="js/firebase-config.js?v=0.2.4"></script>
+  <script src="js/app.js?v=0.2.4"></script>
   <script src="js/auth.js?v=0.2.3"></script>
 </body>
 </html>

@@ -113,3 +113,12 @@ Initial Console foundation release.
 - Added working New Customer form.
 - Added live customer counts and filtering.
 - Added loading and error states.
+
+## v0.2.4 — Identity & Library Foundations
+
+- Replaced the project-bound Resources workflow with an independent Library model.
+- Added visibility for Internal, All Customers and Selected Customers.
+- Added multiple customer assignment, source, category, version, status and file/link type.
+- Moved new uploads to Library item-based Storage paths.
+- Added living project documentation and architectural decision records.
+- Left existing `resources` data untouched for deliberate migration in v0.2.5.
