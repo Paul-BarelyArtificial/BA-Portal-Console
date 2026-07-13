@@ -2,7 +2,7 @@
 
 Internal management console for Barely Artificial customer portal operations.
 
-Current version: **v0.2.0 – Settings**
+Current version: **v0.2.1 – Settings**
 
 ## Current features
 - Dashboard
@@ -26,10 +26,15 @@ Resources management screen added with search, filters, detail rows and a placeh
 Adds the Bookings management screen with sample data, search, filters, inline details and a placeholder new booking dialog.
 
 
-## v0.2.0 – Settings
+## v0.2.1 – Settings
 
 Adds a structured settings screen covering account details, branding, booking, Firebase, notifications and application version information. Settings are placeholders until Firebase is connected.
 
 
-## v0.2.0
+## v0.2.1
 The Console now requires Firebase Authentication and verifies access using the signed-in user UID in the Firestore `admins` collection.
+
+
+## v0.2.1
+
+The Customers screen now reads live records from Firestore and the New Customer form creates customer documents.

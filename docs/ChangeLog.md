@@ -86,3 +86,10 @@ Initial Console foundation release.
 
 ## v0.1.5
 - Reports screen enhanced.
+
+
+## v0.2.1 – Live Customers
+- Replaced sample customer data with Firestore records.
+- Added working New Customer form.
+- Added live customer counts and filtering.
+- Added loading and error states.

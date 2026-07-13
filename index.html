@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.0" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.1" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.0 – Firebase Authentication</div>
+        <div id="version-label">v0.2.1 – Live Customers</div>
       </div>
     </aside>
 
@@ -119,7 +119,7 @@
           <div>
             <p class="eyebrow">Customers</p>
             <h2>Customer management</h2>
-            <p>Manage customer organisations, access status and basic account information. This release uses sample data only.</p>
+            <p>Manage live customer organisations, access status and contact information stored in Firestore.</p>
           </div>
           <button class="primary-button" id="new-customer-button">+ New Customer</button>
         </div>
@@ -137,7 +137,7 @@
           </div>
         </div>
 
-        <div class="summary-row" id="customer-summary">Showing sample customers</div>
+        <div class="summary-row" id="customer-summary">Loading customers…</div>
 
         <div class="table-card">
           <table>
@@ -383,7 +383,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.0 – Firebase Authentication</span></div>
+              <div><strong>Console version</strong><span>v0.2.1 – Live Customers</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.0 – Customer Access Foundations</span></div>
               <div><strong>Build type</strong><span>Static front-end foundation</span></div>
             </div>
@@ -394,20 +394,25 @@
   </div>
 
   <dialog id="customer-dialog" class="modal">
-    <div class="modal-header">
-      <h3>New Customer</h3>
-      <button class="icon-button" id="close-dialog-button" aria-label="Close dialog">×</button>
-    </div>
-    <p>This is a placeholder for the future customer creation form.</p>
-    <div class="form-preview">
-      <label>Company name<input type="text" placeholder="Example Ltd" disabled /></label>
-      <label>Status<select disabled><option>Active</option><option>Trial</option></select></label>
-      <label>Primary contact<input type="text" placeholder="Name or email" disabled /></label>
-    </div>
-    <div class="modal-actions">
-      <button class="secondary-button" id="cancel-dialog-button">Close</button>
-      <button class="primary-button" disabled>Create later</button>
-    </div>
+    <form id="customer-form">
+      <div class="modal-header">
+        <h3>New Customer</h3>
+        <button class="icon-button" id="close-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Add the customer organisation now. Projects, users and resources can be connected later.</p>
+      <div class="form-preview">
+        <label>Company name<input name="company" type="text" placeholder="Example Ltd" required /></label>
+        <label>Status<select name="status"><option>Trial</option><option>Active</option><option>Paused</option></select></label>
+        <label>Primary contact<input name="contactName" type="text" placeholder="Contact name" /></label>
+        <label>Contact email<input name="contactEmail" type="email" placeholder="name@example.com" /></label>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="What are we helping this customer with?"></textarea></label>
+      </div>
+      <p id="customer-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-customer-button" type="submit">Create Customer</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="project-dialog" class="modal">
@@ -466,8 +471,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.0"></script>
-  <script src="js/app.js?v=0.2.0"></script>
-  <script src="js/auth.js?v=0.2.0"></script>
+  <script src="js/firebase-config.js?v=0.2.1"></script>
+  <script src="js/app.js?v=0.2.1"></script>
+  <script src="js/auth.js?v=0.2.1"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.0 – Firebase Authentication";
+const APP_VERSION = "v0.2.1 – Live Customers";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -10,48 +10,9 @@ const pageTitles = {
   settings: "Settings"
 };
 
-const customers = [
-  {
-    id: "curzon",
-    company: "Curzon Outsourcing",
-    status: "Active",
-    projects: 2,
-    users: 3,
-    owner: "Paul O’Brien",
-    lastUpdated: "Today",
-    notes: "SEO consultation and customer portal resources."
-  },
-  {
-    id: "hospitality-group",
-    company: "Hospitality Group",
-    status: "Trial",
-    projects: 1,
-    users: 1,
-    owner: "Paul O’Brien",
-    lastUpdated: "Yesterday",
-    notes: "Early-stage AI training and practical guidance."
-  },
-  {
-    id: "restaurant-demo",
-    company: "Restaurant Demo Co",
-    status: "Active",
-    projects: 1,
-    users: 2,
-    owner: "Paul O’Brien",
-    lastUpdated: "This week",
-    notes: "Sample hospitality customer for portal testing."
-  },
-  {
-    id: "example-customer",
-    company: "Example Customer",
-    status: "Paused",
-    projects: 2,
-    users: 2,
-    owner: "Paul O’Brien",
-    lastUpdated: "Last week",
-    notes: "Paused sample account used for status filtering."
-  }
-];
+let customers = [];
+let unsubscribeCustomers = null;
+
 
 const projects = [
   {
@@ -283,8 +244,93 @@ function showPage(pageId) {
   document.getElementById("page-title").textContent = pageTitles[pageId] || "Dashboard";
 }
 
-function getStatusClass(status) {
-  return status.toLowerCase().replace(/\s+/g, "-");
+function getStatusClass(status = "") {
+  return String(status).toLowerCase().replace(/\s+/g, "-");
+}
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+  })[character]);
+}
+
+function formatCustomerDate(timestamp) {
+  if (!timestamp || typeof timestamp.toDate !== "function") return "Just now";
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(timestamp.toDate());
+}
+
+function normaliseCustomer(document) {
+  const data = document.data() || {};
+  return {
+    id: document.id,
+    company: data.company || "Unnamed customer",
+    status: data.status || "Trial",
+    projects: Number(data.projects || 0),
+    users: Number(data.users || 0),
+    owner: data.owner || "Paul O’Brien",
+    lastUpdated: formatCustomerDate(data.updatedAt || data.createdAt),
+    notes: data.notes || "No notes added.",
+    contactName: data.contactName || "",
+    contactEmail: data.contactEmail || ""
+  };
+}
+
+function loadLiveCustomers() {
+  if (unsubscribeCustomers) unsubscribeCustomers();
+  const database = firebase.firestore();
+  const summary = document.getElementById("customer-summary");
+  if (summary) summary.textContent = "Loading customers…";
+
+  unsubscribeCustomers = database.collection("customers").orderBy("company").onSnapshot((snapshot) => {
+    customers = snapshot.docs.map(normaliseCustomer);
+    selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
+    renderCustomerTable();
+    updateDashboardMetrics();
+  }, (error) => {
+    console.error("Could not load customers", error);
+    customers = [];
+    renderCustomerTable();
+    if (summary) summary.textContent = "Customers could not be loaded. Check Firestore access.";
+  });
+}
+
+async function createCustomer(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-customer-button");
+  const message = document.getElementById("customer-form-message");
+  const formData = new FormData(form);
+  const company = String(formData.get("company") || "").trim();
+  if (!company) return;
+
+  saveButton.disabled = true;
+  message.textContent = "Saving customer…";
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    await firebase.firestore().collection("customers").add({
+      company,
+      status: formData.get("status") || "Trial",
+      contactName: String(formData.get("contactName") || "").trim(),
+      contactEmail: String(formData.get("contactEmail") || "").trim(),
+      notes: String(formData.get("notes") || "").trim(),
+      owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+      projects: 0,
+      users: 0,
+      createdAt: now,
+      updatedAt: now
+    });
+    form.reset();
+    message.textContent = "Customer created.";
+    setTimeout(() => {
+      document.getElementById("customer-dialog")?.close();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not create customer", error);
+    message.textContent = "Customer could not be saved. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
 }
 
 function getFilteredCustomers() {
@@ -337,12 +383,12 @@ function renderCustomerTable() {
     filteredCustomers.forEach((customer) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${customer.company}</strong><span class="table-subtext">${customer.notes}</span></td>
-        <td><span class="status ${getStatusClass(customer.status)}">${customer.status}</span></td>
+        <td><strong>${escapeHtml(customer.company)}</strong><span class="table-subtext">${escapeHtml(customer.notes)}</span></td>
+        <td><span class="status ${getStatusClass(customer.status)}">${escapeHtml(customer.status)}</span></td>
         <td>${customer.projects}</td>
         <td>${customer.users}</td>
-        <td>${customer.owner}</td>
-        <td>${customer.lastUpdated}</td>
+        <td>${escapeHtml(customer.owner)}</td>
+        <td>${escapeHtml(customer.lastUpdated)}</td>
         <td><button class="secondary-button compact" data-customer-id="${customer.id}">View</button></td>
       `;
       tableBody.appendChild(row);
@@ -356,7 +402,7 @@ function renderCustomerTable() {
     });
   }
 
-  summary.textContent = `Showing ${filteredCustomers.length} of ${customers.length} sample customers`;
+  summary.textContent = `Showing ${filteredCustomers.length} of ${customers.length} live customers`;
 
   document.querySelectorAll("[data-customer-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -537,20 +583,20 @@ function getCustomerDetailMarkup(customer) {
       <div class="detail-header">
         <div>
           <p class="eyebrow">Customer record</p>
-          <h3>${customer.company}</h3>
+          <h3>${escapeHtml(customer.company)}</h3>
         </div>
         <div class="detail-header-actions">
-          <span class="status ${getStatusClass(customer.status)}">${customer.status}</span>
+          <span class="status ${getStatusClass(customer.status)}">${escapeHtml(customer.status)}</span>
           <button class="icon-button" data-close-customer-detail aria-label="Close customer detail">×</button>
         </div>
       </div>
       <div class="detail-grid">
         <div><span>Projects</span><strong>${customer.projects}</strong></div>
         <div><span>Users</span><strong>${customer.users}</strong></div>
-        <div><span>Owner</span><strong>${customer.owner}</strong></div>
-        <div><span>Last updated</span><strong>${customer.lastUpdated}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(customer.owner)}</strong></div>
+        <div><span>Last updated</span><strong>${escapeHtml(customer.lastUpdated)}</strong></div>
       </div>
-      <p>${customer.notes}</p>
+      <p>${escapeHtml(customer.notes)}</p>
       <div class="detail-actions">
         <button class="secondary-button">Edit later</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>
@@ -787,6 +833,7 @@ function initialiseApp() {
   setupBookingControls();
   setupSettingsControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
+  document.getElementById("customer-form")?.addEventListener("submit", createCustomer);
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   setupDialog("resource-dialog", "new-resource-button", "close-resource-dialog-button", "cancel-resource-dialog-button");
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
@@ -798,3 +845,6 @@ function initialiseApp() {
 }
 
 initialiseApp();
+
+
+document.addEventListener("ba:admin-authorised", loadLiveCustomers);

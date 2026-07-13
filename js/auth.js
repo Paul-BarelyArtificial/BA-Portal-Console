@@ -1,8 +1,8 @@
 /*
 ==================================================
 BA Console
-Version : v0.2.0
-Release : Firebase Authentication
+Version : v0.2.1
+Release : Live Customers
 ==================================================
 */
 
@@ -50,6 +50,7 @@ function unlockConsole(user, adminData = {}) {
   consoleShell.setAttribute("aria-hidden", "false");
   const displayName = adminData.name || user.displayName || user.email || "Administrator";
   adminProfile.textContent = displayName;
+  document.dispatchEvent(new CustomEvent("ba:admin-authorised", { detail: { user, adminData } }));
 }
 
 function friendlyAuthError(error) {
