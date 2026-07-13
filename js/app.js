@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.1.6 – Settings";
+const APP_VERSION = "v0.2.0 – Firebase Authentication";
 
 const pageTitles = {
   dashboard: "Dashboard",

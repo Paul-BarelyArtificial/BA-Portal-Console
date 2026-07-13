@@ -1,3 +1,12 @@
+# Change Log
+
+## v0.2.0 – Firebase Authentication
+- Added real Firebase email/password login.
+- Added persistent administrator sessions and sign out.
+- Added Firestore admin check using `admins/{uid}`.
+- Added access-denied handling for valid non-admin accounts.
+- Protected the Console until authentication and authorisation complete.
+
 # Barely Artificial Console – Changelog
 
 ## v0.1.6 – Settings
