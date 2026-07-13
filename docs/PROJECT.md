@@ -1,6 +1,6 @@
 # BA Platform — Admin Console
 
-**Current version:** v0.2.4 — Identity & Library Foundations  
+**Current version:** v0.2.5 — Identity & Library Foundations  
 **Status:** Active development
 
 ## Purpose

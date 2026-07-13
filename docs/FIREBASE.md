@@ -34,4 +34,4 @@ Collection: `library`
 
 ## Legacy Resources
 
-v0.2.3 stored records in `resources` and required `customerId` and `projectId`. v0.2.4 does not delete or silently migrate those records. Migration should be reviewed because the new visibility decision cannot always be inferred safely from the old data.
+v0.2.3 stored records in `resources` and required `customerId` and `projectId`. v0.2.5 does not delete or silently migrate those records. Migration should be reviewed because the new visibility decision cannot always be inferred safely from the old data.

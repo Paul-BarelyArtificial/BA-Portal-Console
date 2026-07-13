@@ -1,7 +1,7 @@
 # Decision 001 — Library items are independent of projects
 
 **Status:** Accepted  
-**Introduced:** v0.2.4
+**Introduced:** v0.2.5
 
 ## Decision
 

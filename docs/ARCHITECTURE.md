@@ -24,7 +24,7 @@ Both applications use one Firebase project.
 - `bookings` — planned live implementation
 - `settings` — planned live implementation
 
-The previous `resources` collection belongs to the v0.2.3 model. It is not deleted automatically by v0.2.4.
+The previous `resources` collection belongs to the v0.2.3 model. It is not deleted automatically by v0.2.5.
 
 ## Library storage path
 

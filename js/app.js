@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.4 – Identity & Library Foundations";
+const APP_VERSION = "v0.2.5 – Identity & Library Foundations";
 
 const pageTitles = {
   dashboard: "Dashboard",

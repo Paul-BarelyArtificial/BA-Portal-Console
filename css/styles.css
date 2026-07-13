@@ -487,3 +487,6 @@ select:disabled {
 }
 .checkbox-option input { width: auto; margin: 0; }
 @media (max-width: 700px) { .checkbox-grid { grid-template-columns: 1fr; } }
+
+/* v0.2.5 form polish */
+select,input,textarea{min-height:46px;padding:12px 14px;}label{display:block;margin-bottom:8px;}

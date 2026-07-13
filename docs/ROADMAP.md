@@ -7,7 +7,7 @@
 - **Console v0.2.1** — Live Customers
 - **Console v0.2.2** — Live Projects
 - **Console v0.2.3** — Live Resources
-- **Console v0.2.4** — Identity & Library Foundations
+- **Console v0.2.5** — Identity & Library Foundations
 
 ## Next releases
 

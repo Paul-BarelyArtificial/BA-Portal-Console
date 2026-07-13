@@ -1,6 +1,6 @@
 # Release Testing
 
-## v0.2.4 test plan
+## v0.2.5 test plan
 
 1. Sign in with an authorised administrator account.
 2. Confirm Dashboard, Customers and Projects still load.

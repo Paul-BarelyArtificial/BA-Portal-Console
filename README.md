@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.4 — Identity & Library Foundations
+**Current version:** v0.2.5 — Identity & Library Foundations
 
 ## Current features
 
@@ -32,6 +32,6 @@ Project documentation is in the `docs` folder. Start with:
 3. `docs/TESTING.md`
 4. `docs/FIREBASE.md`
 
-## Important v0.2.4 note
+## Important v0.2.5 note
 
-The previous `resources` collection is not automatically deleted or migrated. New items are written to `library`. Review `docs/FIREBASE.md` and `docs/releases/v0.2.4.md` before deciding how to handle existing Resource records.
+The previous `resources` collection is not automatically deleted or migrated. New items are written to `library`. Review `docs/FIREBASE.md` and `docs/releases/v0.2.5.md` before deciding how to handle existing Resource records.

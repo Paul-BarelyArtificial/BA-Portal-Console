@@ -114,7 +114,7 @@ Initial Console foundation release.
 - Added live customer counts and filtering.
 - Added loading and error states.
 
-## v0.2.4 — Identity & Library Foundations
+## v0.2.5 — Identity & Library Foundations
 
 - Replaced the project-bound Resources workflow with an independent Library model.
 - Added visibility for Internal, All Customers and Selected Customers.
