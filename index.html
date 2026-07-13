@@ -1,326 +1,438 @@
-<!--
-==================================================
-BA Portal
-Version : v0.2.1
-Release : Firebase Authentication
-Date    : 13 July 2026
-==================================================
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BA Portal v0.2.1</title>
-<link rel="stylesheet" href="css/styles.css?v=0.2.1">
-<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-<script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barely Artificial Console</title>
+  <link rel="stylesheet" href="css/styles.css?v=0.1.6" />
 </head>
-<body class="access-locked">
-<div id="access-screen" class="access-screen">
-  <div class="access-card">
-    <p class="eyebrow">Barely Artificial</p>
-    <h1>Customer Portal</h1>
-    <p>Sign in to view your resources, training and booking options.</p>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-mark">BA</div>
+        <div>
+          <div class="brand-title">Barely Artificial</div>
+          <div class="brand-subtitle">Console</div>
+        </div>
+      </div>
 
-    <form id="login-form" class="login-form" novalidate>
-      <label for="login-email">Email address</label>
-      <input id="login-email" name="email" type="email" autocomplete="email" required>
+      <nav class="nav-menu" aria-label="Console navigation">
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
+        <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
+        <button class="nav-item" data-page="resources"><span>▤</span>Resources</button>
+        <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
+        <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
+        <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
+      </nav>
 
-      <label for="login-password">Password</label>
-      <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+      <div class="sidebar-footer">
+        <div id="version-label">v0.1.6 – Settings</div>
+      </div>
+    </aside>
 
-      <p id="login-error" class="login-message login-error" role="alert" hidden></p>
-      <p id="login-status" class="login-message" aria-live="polite">Checking your access…</p>
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Barely Artificial Console</p>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="profile-pill">Paul O’Brien</div>
+      </header>
 
-      <button id="login-button" type="submit">Sign In</button>
-    </form>
-  </div>
+      <section id="dashboard" class="page active-page">
+        <div class="hero-panel">
+          <div>
+            <p class="eyebrow">Overview</p>
+            <h2>Welcome back, Paul</h2>
+            <p>Your customer portal management area. This is where customers, projects, resources and bookings will be managed as the product grows.</p>
+          </div>
+          <button class="primary-button" data-page-link="customers">View customers</button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Resources</span><strong id="metric-resources">0</strong><small>Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Sample data</small></article>
+        </div>
+
+        <div class="content-grid two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Recent activity</h3>
+              <span class="badge">Placeholder</span>
+            </div>
+            <ul class="activity-list">
+              <li><span>Customer list structure added</span><time>Today</time></li>
+              <li><span>Console foundation approved</span><time>Today</time></li>
+              <li><span>Customer portal access foundation tested</span><time>Today</time></li>
+            </ul>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Next steps</h3>
+            </div>
+            <ol class="task-list">
+              <li>Add the Resources management screen.</li>
+              <li>Connect records to Firebase later.</li>
+              <li>Add resource assignment and upload workflow later.</li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <section id="customers" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Customers</p>
+            <h2>Customer management</h2>
+            <p>Manage customer organisations, access status and basic account information. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-customer-button">+ New Customer</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="customer-search">
+            <span>Search</span>
+            <input id="customer-search" type="search" placeholder="Search customers..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Customer status filters">
+            <button class="filter-button active" data-filter="all">All</button>
+            <button class="filter-button" data-filter="Active">Active</button>
+            <button class="filter-button" data-filter="Trial">Trial</button>
+            <button class="filter-button" data-filter="Paused">Paused</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="customer-summary">Showing sample customers</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Projects</th>
+                <th>Users</th>
+                <th>Owner</th>
+                <th>Last updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="customers-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="projects" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Projects</p>
+            <h2>Project management</h2>
+            <p>Track customer projects, status, ownership and connected resources. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-project-button">+ New Project</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="project-search">
+            <span>Search</span>
+            <input id="project-search" type="search" placeholder="Search projects..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Project status filters">
+            <button class="project-filter-button filter-button active" data-project-filter="all">All</button>
+            <button class="project-filter-button filter-button" data-project-filter="Planning">Planning</button>
+            <button class="project-filter-button filter-button" data-project-filter="Active">Active</button>
+            <button class="project-filter-button filter-button" data-project-filter="Completed">Completed</button>
+            <button class="project-filter-button filter-button" data-project-filter="Archived">Archived</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="project-summary">Showing sample projects</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Resources</th>
+                <th>Last updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="resources" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Resources</p>
+            <h2>Resource management</h2>
+            <p>Manage documents, training guides and useful links that customers will see in their portal. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-resource-button">+ New Resource</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="resource-search">
+            <span>Search</span>
+            <input id="resource-search" type="search" placeholder="Search resources..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Resource type filters">
+            <button class="resource-filter-button filter-button active" data-resource-filter="all">All</button>
+            <button class="resource-filter-button filter-button" data-resource-filter="Training Guide">Training Guides</button>
+            <button class="resource-filter-button filter-button" data-resource-filter="Document">Documents</button>
+            <button class="resource-filter-button filter-button" data-resource-filter="Useful Link">Useful Links</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="resource-summary">Showing sample resources</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Customer</th>
+                <th>Project</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Last updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="resources-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="bookings" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Bookings</p>
+            <h2>Booking management</h2>
+            <p>Review training sessions, AI advice calls and project meetings. This release uses sample data only.</p>
+          </div>
+          <button class="primary-button" id="new-booking-button">+ New Booking</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="booking-search">
+            <span>Search</span>
+            <input id="booking-search" type="search" placeholder="Search bookings..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Booking status filters">
+            <button class="booking-filter-button filter-button active" data-booking-filter="all">All</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Upcoming">Upcoming</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Completed">Completed</button>
+            <button class="booking-filter-button filter-button" data-booking-filter="Cancelled">Cancelled</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="booking-summary">Showing sample bookings</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="reports" class="page">
+<div class="console-header"><div><p class="eyebrow">Reports</p><h2>Reporting</h2></div></div>
+<div class="metric-grid">
+<article class="metric-card"><span class="metric-label">Customers</span><strong>4</strong><small>Active records</small></article>
+<article class="metric-card"><span class="metric-label">Projects</span><strong>6</strong><small>Sample data</small></article>
+<article class="metric-card"><span class="metric-label">Resources</span><strong>12</strong><small>Sample data</small></article>
+<article class="metric-card"><span class="metric-label">Bookings</span><strong>3</strong><small>Upcoming</small></article>
 </div>
-<aside class="sidebar portal-shell">
-<h1>BA Portal</h1>
-<nav>
-<button class="nav-button active" data-page="dashboard">🏠 Dashboard</button>
-<button class="nav-button" data-page="resources">📚 Resources</button>
-<button class="nav-button" data-page="training">🎓 Training</button>
-<button class="nav-button" data-page="support">💬 Support</button>
-<button class="nav-button" data-page="booking">📅 Book a Session</button>
-<button class="nav-button" data-page="account">👤 My Account</button>
-</nav>
-
-<footer class="sidebar-footer">
-<div class="app-name">BA Portal</div>
-<div class="app-version">v0.2.1 – Firebase Authentication</div>
-</footer>
-</aside>
-
-<main class="main-content portal-shell">
-<section id="dashboard" class="page active">
-  <div class="dashboard-hero">
-    <div>
-      <p class="eyebrow">Customer Portal</p>
-      <h2>Welcome back</h2>
-      <p class="intro">Everything you need for your project, all in one place.</p>
-    </div>
-
-    <div class="account-summary-card">
-      <span class="summary-label">Portal Access</span>
-      <strong>Active</strong>
-      <span id="dashboard-customer-name">Demo customer view</span>
-    </div>
-  </div>
-
-  <div class="status-grid">
-    <div class="status-card">
-      <span>Project</span>
-      <strong id="dashboard-project-name">AI Customer Portal</strong>
-      <p id="dashboard-project-summary">Resources, training and booking are available.</p>
-    </div>
-
-    <div class="status-card">
-      <span>Next Step</span>
-      <strong>Review Resources</strong>
-      <p>Start with the latest guides and project documents.</p>
-    </div>
-
-    <div class="status-card">
-      <span>Support</span>
-      <strong>Help Available</strong>
-      <p>Book a session whenever you need a hand.</p>
-    </div>
-  </div>
-
-  <h3 class="section-heading">Start Here</h3>
-
-  <div class="card-grid">
-    <div class="card priority-card" data-page-link="resources">
-      <h3>Open Resources</h3>
-      <p>Find guides, documents and useful links in one place.</p>
-      <button>Open Resources</button>
-    </div>
-
-    <div class="card priority-card" data-page-link="booking">
-      <h3>Book a Session</h3>
-      <p>Arrange a one-to-one session if you would like someone to talk you through anything.</p>
-      <button>Book Session</button>
-    </div>
-  </div>
-
-  <h3 class="section-heading">What’s New</h3>
-
-  <div class="update-list">
-    <div class="update-item">
-      <div>
-        <h3>Resources page added</h3>
-        <p>Training guides, project documents and useful links are now grouped together.</p>
-      </div>
-    </div>
-
-    <div class="update-item">
-      <div>
-        <h3>Booking options added</h3>
-        <p>You can now choose the type of help you need before booking a session.</p>
-      </div>
-    </div>
-  </div>
-
-  <h3 class="section-heading">Quick Links</h3>
-
-  <div class="quick-link-row">
-    <button class="quick-link" data-target-page="resources">Resources</button>
-    <button class="quick-link" data-target-page="training">Training</button>
-    <button class="quick-link" data-target-page="support">Support</button>
-    <button class="quick-link" data-target-page="account">My Account</button>
-  </div>
+<div class="content-grid two-column">
+<section class="panel"><div class="panel-heading"><h3>Report Exports</h3></div>
+<p>Export functionality will be connected in a future release.</p>
+<button class="secondary-button">Export PDF</button>
+<button class="secondary-button">Export CSV</button>
 </section>
+<section class="panel"><div class="panel-heading"><h3>Date Range</h3></div>
+<select><option>Last 7 days</option><option>Last 30 days</option><option>This Year</option></select>
+<p class="muted">Reporting uses sample data in this release.</p>
+</section></div></section>
 
-<section id="resources" class="page">
-  <h2>📚 Resources</h2>
-  <p class="intro">Everything you need for your project, all in one place.</p>
-
-  <div class="resource-search-wrap">
-    <label for="resource-search">Search resources</label>
-    <input id="resource-search" type="search" placeholder="Search resources..." autocomplete="off">
-  </div>
-
-  <div id="resource-empty" class="card muted resource-empty" hidden>
-    <h3>No matching resources</h3>
-    <p>Try a different search word, or clear the search box to see everything again.</p>
-  </div>
-
-  <section class="resource-section" data-resource-section="recent">
-    <h3 class="section-heading">⭐ Recently Added</h3>
-    <div id="recent-resources" class="resource-grid"></div>
-  </section>
-
-  <section class="resource-section" data-resource-section="Training Guides">
-    <h3 class="section-heading">📘 Training Guides</h3>
-    <div id="training-guide-resources" class="resource-grid"></div>
-  </section>
-
-  <section class="resource-section" data-resource-section="Project Documents">
-    <h3 class="section-heading">📄 Project Documents</h3>
-    <div id="project-document-resources" class="resource-grid"></div>
-  </section>
-
-  <section class="resource-section" data-resource-section="Useful Links">
-    <h3 class="section-heading">🌐 Useful Links</h3>
-    <div id="useful-link-resources" class="resource-grid"></div>
-  </section>
-
-  <h3 class="section-heading">Coming Soon</h3>
-
-  <div class="card-grid">
-    <div class="card muted">
-      <h3>🎥 Video Library</h3>
-      <p>Short, easy-to-follow training videos will be added in a future release.</p>
-      <span class="badge">Coming Soon</span>
-    </div>
-
-    <div class="card muted">
-      <h3>📤 Customer Uploads</h3>
-      <p>Soon customers will be able to upload documents directly through the portal.</p>
-      <span class="badge">Coming Soon</span>
-    </div>
-  </div>
-</section>
-
-<section id="training" class="page">
-  <h2>🎓 Training</h2>
-  <p class="intro">Learn at your own pace with simple, practical training.</p>
-
-  <h3 class="section-heading">Available Courses</h3>
-
-  <div class="card-grid">
-    <div class="card">
-      <h3>📘 AI Basics for Business</h3>
-      <p>A simple introduction to AI, written for business owners and teams.</p>
-      <button>Start Course</button>
-    </div>
-
-    <div class="card">
-      <h3>💬 Getting Started with ChatGPT</h3>
-      <p>Learn what ChatGPT is, what it can help with, and how to use it safely.</p>
-      <button>Open Course</button>
-    </div>
-
-    <div class="card">
-      <h3>✍️ Prompt Writing</h3>
-      <p>Learn how to ask better questions and get more useful answers.</p>
-      <button>Open Course</button>
-    </div>
-  </div>
-
-  <h3 class="section-heading">Coming Soon</h3>
-
-  <div class="card muted">
-    <h3>📈 Training Progress</h3>
-    <p>Soon you'll be able to see which courses you've started and completed.</p>
-    <span class="badge">Coming Soon</span>
-  </div>
-
-  <h3 class="section-heading">Need Help?</h3>
-
-  <div class="card">
-    <h3>📅 Book a Training Session</h3>
-    <p>Book a one-to-one session if you'd like us to guide you through anything.</p>
-<button
-    onclick="Calendly.initPopupWidget({url:'https://calendly.com/paul-barelyartificial/new-meeting'});return false;">
-    Book a Training Session
-</button>
-  </div>
-</section>
-<section id="support" class="page">
-  <h2>💬 Support</h2>
-  <p class="intro">Get help when you need it.</p>
-
-  <div class="card-grid">
-    <div class="card">
-      <h3>📅 Book a Session</h3>
-      <p>Arrange a one-to-one session if you would like someone to talk you through anything.</p>
-      <button class="page-button" data-target-page="booking">Book a Session</button>
-    </div>
-
-    <div class="card">
-      <h3>✉️ Contact Barely Artificial</h3>
-      <p>For anything urgent, contact Barely Artificial directly using your usual contact details.</p>
-      <button disabled>Contact Details Coming Soon</button>
-    </div>
-  </div>
-</section>
-
-<section id="booking" class="page">
-  <h2>📅 Book a Session</h2>
-  <p class="intro">Choose the type of help you need. For now, each option uses the same booking calendar.</p>
-
-  <div id="session-list" class="card-grid"></div>
-</section>
-
-<section id="account" class="page">
-  <h2>👤 My Account</h2>
-  <p class="intro">Your portal details and access information.</p>
-
-  <div class="account-detail-grid">
-    <div class="card">
-      <h3>Customer Details</h3>
-      <dl class="detail-list">
-        <div>
-          <dt>Customer</dt>
-          <dd id="account-customer-name">Demo Customer</dd>
+      <section id="settings" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Settings</p>
+            <h2>Console settings</h2>
+            <p>Control the basic configuration for the Console and Customer Portal. These settings are placeholders for now and will be connected to Firebase later.</p>
+          </div>
+          <button class="primary-button" id="save-settings-button">Save Settings</button>
         </div>
-        <div>
-          <dt>Project</dt>
-          <dd id="account-project-name">AI Customer Portal</dd>
-        </div>
-        <div>
-          <dt>Contact</dt>
-          <dd id="account-contact-name">Main Contact</dd>
-        </div>
-        <div>
-          <dt>Signed in as</dt>
-          <dd id="account-email">—</dd>
-        </div>
-      </dl>
-    </div>
 
-    <div class="card">
-      <h3>Portal Access</h3>
-      <dl class="detail-list">
-        <div>
-          <dt>Status</dt>
-          <dd id="account-access-status">Active</dd>
-        </div>
-        <div>
-          <dt>Access Level</dt>
-          <dd id="account-access-level">Customer</dd>
-        </div>
-        <div>
-          <dt>Expiry</dt>
-          <dd id="account-access-expiry">To be confirmed</dd>
-        </div>
-      </dl>
-    </div>
+        <div class="settings-grid">
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Your account</h3>
+              <span class="badge">Internal</span>
+            </div>
+            <div class="settings-form">
+              <label>Name<input type="text" value="Paul O’Brien" disabled /></label>
+              <label>Email<input type="email" value="pob@thepob.net" disabled /></label>
+              <label>Company<input type="text" value="Barely Artificial" disabled /></label>
+            </div>
+          </section>
 
-    <div class="card muted">
-      <h3>Security</h3>
-      <p>Your portal is protected by Firebase Authentication. Always sign out when using a shared computer.</p>
-      <span class="badge">Protected</span>
-    </div>
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Portal branding</h3>
+              <span class="badge">Placeholder</span>
+            </div>
+            <div class="settings-form">
+              <label>Portal name<input type="text" value="Barely Artificial Portal" disabled /></label>
+              <label>Primary colour<input type="text" value="#b7ff3c" disabled /></label>
+              <label>Welcome message<input type="text" value="Everything you need for your project, all in one place." disabled /></label>
+            </div>
+          </section>
 
-    <div class="card">
-      <h3>Leave Portal</h3>
-      <p>Use this when you have finished reviewing your portal.</p>
-      <button id="logout-button" type="button">Sign Out</button>
-    </div>
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Booking</h3>
+              <span class="badge">Calendly</span>
+            </div>
+            <div class="settings-form">
+              <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/new-meeting" disabled /></label>
+              <label>Default session length<input type="text" value="30 minutes" disabled /></label>
+              <label>Time zone<input type="text" value="Europe/London" disabled /></label>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Firebase</h3>
+              <span class="badge status paused">Not connected</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Authentication</strong><span>Planned for next phase</span></div>
+              <div><strong>Firestore</strong><span>Not connected yet</span></div>
+              <div><strong>Storage</strong><span>Not connected yet</span></div>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>Notifications</h3>
+              <span class="badge">Future</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Email alerts</strong><span>Off</span></div>
+              <div><strong>Booking confirmations</strong><span>Handled by Calendly</span></div>
+              <div><strong>Customer updates</strong><span>Not connected yet</span></div>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <h3>About</h3>
+              <span class="badge">v0.1.6</span>
+            </div>
+            <div class="settings-list compact-list">
+              <div><strong>Console version</strong><span>v0.1.6 – Settings</span></div>
+              <div><strong>Customer Portal version</strong><span>v0.2.0 – Customer Access Foundations</span></div>
+              <div><strong>Build type</strong><span>Static front-end foundation</span></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
   </div>
-</section>
 
-</main>
+  <dialog id="customer-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Customer</h3>
+      <button class="icon-button" id="close-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future customer creation form.</p>
+    <div class="form-preview">
+      <label>Company name<input type="text" placeholder="Example Ltd" disabled /></label>
+      <label>Status<select disabled><option>Active</option><option>Trial</option></select></label>
+      <label>Primary contact<input type="text" placeholder="Name or email" disabled /></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
 
-<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
-<script src="js/firebase-config.js?v=0.2.1"></script>
-<script src="js/version.js?v=0.2.1"></script>
-<script src="js/main.js?v=0.2.1"></script>
+  <dialog id="project-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Project</h3>
+      <button class="icon-button" id="close-project-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future project creation form.</p>
+    <div class="form-preview">
+      <label>Project name<input type="text" placeholder="AI Quick Start" disabled /></label>
+      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
+      <label>Status<select disabled><option>Planning</option><option>Active</option><option>Completed</option></select></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-project-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+  <dialog id="resource-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Resource</h3>
+      <button class="icon-button" id="close-resource-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future resource creation and upload form.</p>
+    <div class="form-preview">
+      <label>Resource name<input type="text" placeholder="AI Basics Guide" disabled /></label>
+      <label>Type<select disabled><option>Training Guide</option><option>Document</option><option>Useful Link</option></select></label>
+      <label>Customer or project<input type="text" placeholder="Assign later" disabled /></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-resource-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+
+  <dialog id="booking-dialog" class="modal">
+    <div class="modal-header">
+      <h3>New Booking</h3>
+      <button class="icon-button" id="close-booking-dialog-button" aria-label="Close dialog">×</button>
+    </div>
+    <p>This is a placeholder for the future booking creation or Calendly import flow.</p>
+    <div class="form-preview">
+      <label>Booking title<input type="text" placeholder="Training Session" disabled /></label>
+      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
+      <label>Status<select disabled><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></label>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" id="cancel-booking-dialog-button">Close</button>
+      <button class="primary-button" disabled>Create later</button>
+    </div>
+  </dialog>
+
+
+  <script src="js/app.js?v=0.1.6"></script>
 </body>
 </html>
