@@ -1,79 +1,93 @@
-# Barely Artificial Console – Changelog
+# BA Portal Change Log
 
-## v0.1.6 – Settings
-- Replaced the Settings placeholder with a structured Console settings screen.
-- Added account, branding, booking, Firebase, notifications and about sections.
-- Added placeholder Save Settings action.
-- Updated version to v0.1.6 – Settings.
-
-## v0.1.4 – Bookings
-- Added Bookings management screen.
-- Added booking search and status filters.
-- Added sample booking data and inline detail panels.
-- Added placeholder New Booking dialog.
-- Updated dashboard booking metric.
-
-
-## v0.1.0 – Foundation
-
-Initial Console foundation release.
+## v0.2.0 – Customer Access Foundations
+**Date:** 08 July 2026
 
 ### Added
-- Application shell
-- Sidebar navigation
-- Dashboard
-- Customers page
-- Projects page
-- Resources page
-- Bookings page
-- Reports page
-- Settings page
-- Version footer
-- Responsive layout
-- Sample placeholder data
+- Added a front-end customer access screen before the portal loads.
+- Added an **Enter Portal** action for controlled testing.
+- Added a basic sign out action on the **My Account** page.
+- Added a customer profile object in `js/main.js` to drive customer, project and access details from one place.
+- Added customer/project/access placeholders across Dashboard and My Account.
+
+### Changed
+- Updated the displayed portal version to **v0.2.0 – Customer Access Foundations**.
+- Improved **My Account** so it now shows customer details, portal access and a security notice.
 
 ### Notes
-- No backend is connected yet.
-- No authentication is connected yet.
-- All data is placeholder data for layout and testing.
+- This is not real authentication yet. It is a front-end foundation so the portal behaves like a customer portal while Firebase authentication is planned.
+- Real email/password authentication, permissions and customer-specific resources should follow in later releases.
 
-## v0.1.1 – Customers
+## v0.1.9 – Dashboard Improvements
+**Date:** 08 July 2026
 
-- Added customer management screen.
-- Added searchable customer table.
-- Added status filters for All, Active, Trial and Paused.
-- Added sample customer records.
-- Added customer detail panel.
-- Added placeholder New Customer dialog.
-- Updated dashboard metrics from customer sample data.
-- Updated version to v0.1.1 – Customers.
+### Added
+- Added a more customer-facing dashboard hero area.
+- Added a portal access summary card.
+- Added project, next step and support status cards.
+- Added a clearer **Start Here** section with priority dashboard actions.
+- Added a **What’s New** panel for recent portal updates.
+- Added quick link buttons for faster navigation.
+- Improved the **My Account** page with static access detail placeholders.
 
-## v0.1.2a – Projects Detail Fix
+### Changed
+- Updated the displayed portal version to **v0.1.9 – Dashboard Improvements**.
+- Tidied old Library CSS references left after the Resources rename.
 
-- Fixed project View behaviour so the detail card opens directly beneath the selected project.
-- Added close buttons to project and customer detail cards.
-- Updated customer detail behaviour to match the project detail pattern.
-- Updated version to v0.1.2a – Projects Detail Fix.
+### Notes
+- Dashboard and account details are still static placeholders until customer authentication and permissions are connected.
+- This release prepares the dashboard to become data-driven later.
 
-## v0.1.2 – Projects
+## v0.1.8 – Resources
+**Date:** 08 July 2026
 
-- Added project management screen.
-- Added searchable project table.
-- Added status filters for All, Planning, Active, Completed and Archived.
-- Added sample project records.
-- Added project detail panel.
-- Added placeholder New Project dialog.
-- Updated dashboard project metric from project sample data.
-- Updated version to v0.1.2 – Projects.
+### Added
+- Replaced the old Library placeholder with a proper **Resources** page.
+- Added customer-friendly resource sections:
+  - Recently Added
+  - Training Guides
+  - Project Documents
+  - Useful Links
+- Added instant resource search.
+- Added data-driven resource cards in `js/main.js`.
+- Added resource cards with icons, descriptions, update text, type labels and action buttons.
+- Added useful link cards for ChatGPT, Claude and Barely Artificial.
+- Added Coming Soon placeholders for Video Library and Customer Uploads.
 
+### Changed
+- Renamed **Library** to **Resources** in the navigation and dashboard.
+- Updated the displayed portal version to **v0.1.8 – Resources**.
+- Added CSS for resource search, resource cards and responsive layouts.
 
-## v0.1.3 – Resources
-- Added Resources management screen.
-- Added resource search and filters.
-- Added resource detail panel with close control.
-- Added placeholder New Resource dialog.
-- Updated dashboard resource metric.
+### Notes
+- Document resources currently use placeholder links. Real file URLs can be added later without changing the page layout.
+- The Resources structure is ready to be connected to Firebase or another content source later.
 
+## v0.1.7 – Book a Session
+**Date:** 08 July 2026
 
-## v0.1.5
-- Reports screen enhanced.
+### Added
+- Added a proper **Book a Session** page.
+- Added three customer-facing session cards:
+  - Training Session
+  - AI Advice
+  - Project / Strategy Session
+- All session cards currently open the same free Calendly booking URL.
+- Added data-driven session configuration in `js/main.js`, so separate Calendly URLs can be added later.
+- Added a basic Support page card that links customers to the booking page.
+- Added a simple My Account placeholder for future account details.
+
+### Changed
+- Updated the displayed portal version to **v0.1.7 – Book a Session**.
+- Improved card grid styling for dashboard, support and booking sections.
+
+### Notes
+- Calendly Free currently supports one booking type, so all visible session types point to the same booking calendar.
+
+## v0.2.1 – Firebase Authentication (13 July 2026)
+- Replaced the demonstration access button with real Firebase email/password authentication.
+- Added remembered sign-in sessions and Firebase sign-out.
+- Protected portal content using Firebase authentication state.
+- Added clear, customer-friendly login error messages.
+- Added the signed-in email address to My Account.
+- Removed decorative dashboard icons while keeping navigation and meaningful resource icons.
