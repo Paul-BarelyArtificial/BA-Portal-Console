@@ -1,10 +1,10 @@
 :root {
-  --bg: #0f1117;
-  --panel: #171a23;
-  --panel-soft: #1f2430;
+  --bg: #071426;
+  --panel: #10243a;
+  --panel-soft: #17314d;
   --text: #f5f6fa;
-  --muted: #a8afc2;
-  --line: #2a3040;
+  --muted: #aebdd0;
+  --line: #29445f;
   --accent: #b7ff3c;
   --accent-soft: rgba(183, 255, 60, 0.12);
   --danger: #ffb4a8;
@@ -26,7 +26,7 @@ button { font: inherit; }
 .app-shell { display: flex; min-height: 100vh; }
 .sidebar {
   width: 280px;
-  background: rgba(15,17,23,.92);
+  background: rgba(5, 17, 34, .96);
   border-right: 1px solid var(--line);
   padding: 24px;
   display: flex;
@@ -68,7 +68,7 @@ h3 { margin-bottom: 8px; }
 .page { display: none; }
 .active-page { display: block; }
 .hero-panel, .panel, .table-card, .simple-card, .empty-state, .settings-list {
-  background: rgba(23,26,35,.82);
+  background: rgba(14, 32, 53, .92);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -154,16 +154,27 @@ tr:last-child td { border-bottom: 0; }
 .form-preview input,
 .form-preview select {
   width: 100%;
+  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
   color: var(--text);
-  padding: 12px 14px;
+  padding: 13px 16px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.35;
   outline: none;
 }
-.search-box input:focus {
+.search-box input:focus,
+.form-preview input:focus,
+.form-preview select:focus,
+.form-preview textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.form-preview select {
+  cursor: pointer;
+  padding-right: 44px;
 }
 .filter-group {
   display: flex;
@@ -202,7 +213,7 @@ tr:last-child td { border-bottom: 0; }
 }
 .detail-panel {
   margin-top: 18px;
-  background: rgba(23,26,35,.82);
+  background: rgba(14, 32, 53, .92);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -241,7 +252,7 @@ tr:last-child td { border-bottom: 0; }
   margin-top: 16px;
 }
 .modal {
-  width: min(520px, calc(100% - 32px));
+  width: min(640px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
@@ -270,12 +281,12 @@ tr:last-child td { border-bottom: 0; }
 }
 .form-preview {
   display: grid;
-  gap: 12px;
-  margin: 16px 0;
+  gap: 18px;
+  margin: 20px 0;
 }
 .form-preview label {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;
@@ -334,7 +345,7 @@ select:disabled {
   gap: 16px;
 }
 .settings-panel {
-  background: rgba(23,26,35,.82);
+  background: rgba(14, 32, 53, .92);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -346,7 +357,7 @@ select:disabled {
 }
 .settings-form label {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;
@@ -435,8 +446,12 @@ select:disabled {
   border-radius: 12px;
   background: var(--bg);
   color: var(--text);
-  padding: 12px 14px;
+  min-height: 104px;
+  padding: 13px 16px;
   font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  outline: none;
 }
 .form-preview .full-width { grid-column: 1 / -1; }
 .form-message { min-height: 20px; color: var(--muted); margin: 12px 0 0; }
@@ -488,5 +503,4 @@ select:disabled {
 .checkbox-option input { width: auto; margin: 0; }
 @media (max-width: 700px) { .checkbox-grid { grid-template-columns: 1fr; } }
 
-/* v0.2.5 form polish */
-select,input,textarea{min-height:46px;padding:12px 14px;}label{display:block;margin-bottom:8px;}
+/* Console identity and form spacing — v0.2.5 */

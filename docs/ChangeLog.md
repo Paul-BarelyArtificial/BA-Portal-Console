@@ -114,7 +114,7 @@ Initial Console foundation release.
 - Added live customer counts and filtering.
 - Added loading and error states.
 
-## v0.2.5 — Identity & Library Foundations
+## v0.2.4 — Identity & Library Foundations
 
 - Replaced the project-bound Resources workflow with an independent Library model.
 - Added visibility for Internal, All Customers and Selected Customers.
@@ -122,3 +122,10 @@ Initial Console foundation release.
 - Moved new uploads to Library item-based Storage paths.
 - Added living project documentation and architectural decision records.
 - Left existing `resources` data untouched for deliberate migration in v0.2.5.
+
+## v0.2.5 — Console Identity & Library Polish
+- Changed the Admin Console background and panels to a clearly blue-toned dark navy theme.
+- Increased the New Library Item dialog width.
+- Increased dropdown, input and textarea height and padding.
+- Increased spacing between form fields.
+- No Firebase schema or functional changes.
