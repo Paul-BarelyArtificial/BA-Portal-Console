@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.8a – Library Collections
+**Current version:** v0.2.8b – Customer Upload Management
 
 ## Current features
 
@@ -17,6 +17,7 @@ Internal management application for the Barely Artificial Customer Portal.
 - Library Collections — tag related items (e.g. all parts of a training course) so they're grouped together in the Portal, with autocomplete suggestions from existing collection names
 - Internal, All Customers and Selected Customers visibility
 - Live Bookings — an admin-maintained log (create/edit/delete) of sessions arranged in Calendly or another way; not yet auto-synced from Calendly itself
+- Customer document uploads — customers submit files from the Portal (20 MB/file, 500 MB/customer, enforced in Firestore and Storage rules); they land as Draft/Internal Library items for review, and each customer's usage is shown on their detail panel. Deleting an upload frees their quota back
 - Placeholder Reports and Settings
 
 ## Technology

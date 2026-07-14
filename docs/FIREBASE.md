@@ -29,8 +29,24 @@ Collection: `library`
 | `size` | number | Uploaded file size in bytes |
 | `contentType` | string | Uploaded MIME type |
 | `owner` | string | Console user display identity |
+| `collection` | string | Optional free-text tag grouping related items (e.g. every part of a course) |
+| `uploadedByCustomerId` | string | Set only on customer uploads — the customer document ID that submitted it, permanent even if `customerIds`/visibility change later |
 | `createdAt` | timestamp | Creation time |
 | `updatedAt` | timestamp | Last update time |
+
+Customer-submitted uploads (`source: "Customer"`) are always created with `status: "Draft"` and `visibility: "Internal"`, enforced by the Firestore rules — a customer cannot publish their own upload or change its visibility. An admin reviews and republishes it like any other Library item.
+
+## Customer document fields (upload quota)
+
+| Field | Type | Purpose |
+|---|---|---|
+| `uploadStorageUsedBytes` | number | Running total of bytes this customer has uploaded via the Portal. Customers may only increase this by at most one file's worth (20 MB) per write, via a narrowly-scoped Firestore rule — they cannot decrease it or touch any other field. Admins decrease it automatically when deleting a customer-uploaded Library item. |
+
+## Customer upload limits
+
+- 20 MB per file, 500 MB total per customer, enforced in both Firestore rules (`library` create) and Storage rules (`customerUploads/{customerId}/...` write) — not just client-side validation.
+- Storage path: `customerUploads/{customerId}/{libraryItemId}/{fileName}`, separate from the admin-managed `library/{libraryItemId}/{fileName}` path.
+- See `docs/firestore.rules.txt` and `docs/storage.rules.txt` for the exact rules.
 
 ## Legacy Resources
 

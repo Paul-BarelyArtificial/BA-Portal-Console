@@ -12,6 +12,16 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    function callerCustomerId() {
+      return get(/databases/$(database)/documents/customerAccess/$(request.auth.token.email)).data.customerId;
+    }
+
+    // Maximum bytes a customer may add to their upload quota in a single update —
+    // matches the 20 MB per-file limit enforced in Storage rules.
+    function maxUploadIncrement() {
+      return 20 * 1024 * 1024;
+    }
+
     match /admins/{adminId} {
       allow read: if isSignedIn() && request.auth.uid == adminId;
       allow write: if false;
@@ -26,19 +36,48 @@ service cloud.firestore {
       allow write: if isAdmin();
       allow read: if isAdmin() || (
         isSignedIn()
-        && resource.data.status == "Published"
         && (
-          resource.data.visibility == "All Customers"
-          || (
-            resource.data.visibility == "Selected Customers"
-            && get(/databases/$(database)/documents/customerAccess/$(request.auth.token.email)).data.customerId in resource.data.customerIds
+          (
+            resource.data.status == "Published"
+            && (
+              resource.data.visibility == "All Customers"
+              || (
+                resource.data.visibility == "Selected Customers"
+                && callerCustomerId() in resource.data.customerIds
+              )
+            )
           )
+          || resource.data.get("uploadedByCustomerId", "") == callerCustomerId()
         )
       );
+
+      // A customer may create their own upload: forced Draft/Internal, tagged with
+      // exactly their own customerId, and nothing else. They cannot publish, edit,
+      // or delete it themselves — only an admin can (via the isAdmin() write above).
+      allow create: if isSignedIn()
+        && request.resource.data.source == "Customer"
+        && request.resource.data.status == "Draft"
+        && request.resource.data.visibility == "Internal"
+        && request.resource.data.itemType == "File"
+        && request.resource.data.uploadedByCustomerId == callerCustomerId()
+        && request.resource.data.customerIds == [callerCustomerId()]
+        && request.resource.data.title is string && request.resource.data.title.size() > 0
+        && request.resource.data.description is string && request.resource.data.description.size() > 0
+        && request.resource.data.size is number && request.resource.data.size <= maxUploadIncrement();
     }
 
     match /customers/{customerId} {
       allow read, write: if isAdmin();
+
+      // A customer may top up their own upload-storage counter, and nothing else —
+      // it can only increase, and by at most one file's worth at a time. This is how
+      // the client records a successful upload; it cannot be used to reclaim quota.
+      allow update: if isSignedIn()
+        && customerId == callerCustomerId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["uploadStorageUsedBytes"])
+        && request.resource.data.uploadStorageUsedBytes is number
+        && request.resource.data.uploadStorageUsedBytes > resource.data.get("uploadStorageUsedBytes", 0)
+        && request.resource.data.uploadStorageUsedBytes <= resource.data.get("uploadStorageUsedBytes", 0) + maxUploadIncrement();
     }
 
     match /projects/{projectId} {

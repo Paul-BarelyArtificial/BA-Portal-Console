@@ -207,3 +207,13 @@ Initial Console foundation release.
 - The field autocompletes from collection names already in use, to keep naming consistent and reduce typos that would silently break a grouping.
 - Console: shown as a small pill next to the item title in the Library table, and as a field in the detail panel. Included in search matching.
 - Portal: items sharing a Collection now cluster together under a labelled sub-heading within their Category section (the same way Category already groups the page), and each card shows a "Part of {collection}" tag. Items with no Collection are completely unaffected — they display exactly as before.
+
+## v0.2.8b — Customer Upload Management
+- New customer document uploads (Portal v0.2.7): customers can now submit a file, a title and a summary from the Portal. This is the Console-side half of that release.
+- Uploads land as ordinary `library` items with `source: "Customer"`, forced to `status: "Draft"` and `visibility: "Internal"` by the Firestore rules — invisible to any customer, including the uploader, until an admin reviews and republishes them. Find them by searching "Customer" in the Library search box.
+- Storage and cost protection: 20 MB per file, 500 MB total per customer, enforced in both the Firestore rules (creating the record) and the Storage rules (the actual file write) — not just client-side checks, so it can't be bypassed by going around the app.
+- New `customers/{customerId}.uploadStorageUsedBytes` field tracks each customer's running total. Customers get a narrowly-scoped permission to increase only this one field, by at most one file's worth at a time — they cannot decrease it or touch anything else on their own record.
+- The customer detail panel now shows "Uploads used: X MB of 500 MB".
+- Deleting a customer-uploaded Library item (using the existing Delete action — no new UI needed there) now also refunds that customer's quota automatically.
+- Renamed the Library detail panel's file action from "Open file" to "Download file" for clarity — the underlying link was already the way to get a local copy.
+- **Requires both a Firestore rules update and a new Storage rules addition.** See `docs/firestore.rules.txt` and the new `docs/storage.rules.txt` — both must be published in the Firebase Console before customer uploads will work. Nothing else in the Console needs the Storage rules change; your existing admin file management is unaffected.

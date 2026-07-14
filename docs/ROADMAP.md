@@ -26,20 +26,19 @@
 - **Console v0.2.8a** — Library Collections
 - **Portal v0.2.6d** — Library Collections (grouping and card tag)
 - **Portal v0.2.6e** — Collection Boundary Fix (bordered box around each collection group)
+- **Portal v0.2.6f** — Collection Box Colour
+- **Portal v0.2.6g** — Collection Box Colour Revert
+- **Portal v0.2.7** — Customer Uploads
+- **Console v0.2.8b** — Customer Upload Management
 
 ## Backlog (not yet scheduled)
 
 - Improve Library/Customer/Project search and filtering beyond basic text match
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
 - Calendly webhook + Cloud Function to auto-sync real bookings into the `bookings` collection, instead of the current admin-maintained manual log — a backend infrastructure decision, deliberately deferred
+- Visually flag "internal preview" customer records (e.g. Paul's own account, added as a customer so he can preview the Portal with his existing login) so they're clearly distinct from real customers in the Console table
 
 ## Next releases
-
-### Portal v0.2.7 — Customer Uploads
-
-- Controlled customer uploads
-- Customer source marker
-- Internal review state
 
 ### Platform v0.2.9 — UI Polish
 

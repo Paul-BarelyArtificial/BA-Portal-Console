@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /resources/{customerId}/{projectId}/{fileName} {
+      allow read, write: if request.auth != null
+        && firestore.exists(
+          /databases/(default)/documents/admins/$(request.auth.uid)
+        );
+    }
+
+    match /library/{libraryItemId}/{fileName} {
+      allow read, write: if request.auth != null
+        && firestore.exists(
+          /databases/(default)/documents/admins/$(request.auth.uid)
+        );
+    }
+
+    match /customerUploads/{customerId}/{uploadId}/{fileName} {
+      allow read, write: if request.auth != null
+        && firestore.exists(
+          /databases/(default)/documents/admins/$(request.auth.uid)
+        );
+
+      // A customer may upload into their own folder only, one file at a time,
+      // each file 20 MB or smaller, and only while their running total (tracked
+      // in their customers/{customerId} record) would stay at or under 500 MB.
+      allow write: if request.auth != null
+        && customerId == firestore.get(
+             /databases/(default)/documents/customerAccess/$(request.auth.token.email)
+           ).data.customerId
+        && request.resource.size <= 20 * 1024 * 1024
+        && (
+          firestore.get(/databases/(default)/documents/customers/$(customerId)).data.uploadStorageUsedBytes != null
+            ? firestore.get(/databases/(default)/documents/customers/$(customerId)).data.uploadStorageUsedBytes
+            : 0
+        ) + request.resource.size <= 500 * 1024 * 1024;
+
+      // A customer may read back their own uploaded files (e.g. from their
+      // Your Uploads list in the Portal).
+      allow read: if request.auth != null
+        && customerId == firestore.get(
+             /databases/(default)/documents/customerAccess/$(request.auth.token.email)
+           ).data.customerId;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

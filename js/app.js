@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8a – Library Collections";
+const APP_VERSION = "v0.2.8b – Customer Upload Management";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -87,8 +87,16 @@ function normaliseCustomer(document) {
     contactName: data.contactName || "",
     contactEmail: data.contactEmail || "",
     portalAccountCreated: Boolean(data.portalAccountCreated),
-    portalInviteSentAt: data.portalInviteSentAt ? formatFirestoreDate(data.portalInviteSentAt) : ""
+    portalInviteSentAt: data.portalInviteSentAt ? formatFirestoreDate(data.portalInviteSentAt) : "",
+    uploadStorageUsedBytes: Number(data.uploadStorageUsedBytes || 0)
   };
+}
+
+const UPLOAD_QUOTA_BYTES = 500 * 1024 * 1024;
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 MB";
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 
@@ -252,6 +260,7 @@ async function createCustomer(event) {
         owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
         projects: 0,
         users: 0,
+        uploadStorageUsedBytes: 0,
         createdAt: now
       });
       message.textContent = "Customer created.";
@@ -474,7 +483,8 @@ function normaliseLibraryItem(documentSnapshot) {
     downloadUrl: data.downloadUrl || "",
     externalUrl: data.externalUrl || "",
     size: Number(data.size || 0),
-    contentType: data.contentType || ""
+    contentType: data.contentType || "",
+    uploadedByCustomerId: data.uploadedByCustomerId || ""
   };
 }
 
@@ -926,7 +936,23 @@ async function deleteLibraryItem(item) {
       try { await firebase.storage().ref(item.filePath).delete(); }
       catch (error) { if (error.code !== "storage/object-not-found") throw error; }
     }
-    await firebase.firestore().collection("library").doc(item.id).delete();
+
+    const database = firebase.firestore();
+    if (item.source === "Customer" && item.uploadedByCustomerId && item.size) {
+      const customerRef = database.collection("customers").doc(item.uploadedByCustomerId);
+      try {
+        await database.runTransaction(async (transaction) => {
+          const customerSnapshot = await transaction.get(customerRef);
+          if (!customerSnapshot.exists) return;
+          const current = Number(customerSnapshot.data().uploadStorageUsedBytes || 0);
+          transaction.update(customerRef, { uploadStorageUsedBytes: Math.max(0, current - item.size) });
+        });
+      } catch (error) {
+        console.warn("Could not refund customer upload quota", error);
+      }
+    }
+
+    await database.collection("library").doc(item.id).delete();
     if (selectedLibraryItemId === item.id) selectedLibraryItemId = null;
   } catch (error) {
     console.error("Could not delete library item", error);
@@ -1451,6 +1477,7 @@ function getCustomerDetailMarkup(customer) {
         <div><span>Contact name</span><strong>${escapeHtml(customer.contactName || "Not set")}</strong></div>
         <div><span>Contact email</span><strong>${escapeHtml(customer.contactEmail || "Not set")}</strong></div>
         <div><span>Portal login</span><strong>${customer.portalAccountCreated ? "Invite sent" : "Not set up"}</strong></div>
+        <div><span>Uploads used</span><strong>${formatBytes(customer.uploadStorageUsedBytes)} of ${formatBytes(UPLOAD_QUOTA_BYTES)}</strong></div>
       </div>
       ${customer.status === "Archived" ? `<p class="muted">This customer is archived. They can still sign in to the Portal, but their Library will show no items until reactivated.</p>` : ""}
       <p>${escapeHtml(customer.notes)}</p>
@@ -1511,7 +1538,7 @@ function getLibraryDetailMarkup(item) {
     ? (item.customerNames.join(", ") || "No customers selected")
     : item.visibility;
   const destination = item.itemType === "Link" ? item.externalUrl : item.downloadUrl;
-  const actionLabel = item.itemType === "Link" ? "Open link" : "Open file";
+  const actionLabel = item.itemType === "Link" ? "Open link" : "Download file";
   return `
     <div class="inline-detail">
       <div class="detail-heading">
