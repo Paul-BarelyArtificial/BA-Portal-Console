@@ -151,3 +151,8 @@ Initial Console foundation release.
 - Clarified and implemented what "Archive customer" actually does: the customer keeps their Portal login (there is no way to disable a Firebase Authentication account from client-side code without adding backend/Admin SDK infrastructure), but their `customerAccess` mapping is now removed while archived, so the Portal shows them an empty Library — both "All Customers" and "Selected Customers" items disappear, not just the ones assigned specifically to them.
 - Reactivating a customer automatically restores their `customerAccess` mapping and Library visibility on the next Console sync — no separate action needed.
 - The customer detail panel now shows a note when a customer is archived, explaining they can still sign in but see no Library content.
+
+## v0.2.6d — Project Edit and Archive
+- Added a working "Edit project" action that reopens the New Project dialog pre-filled, and saves changes to the existing record instead of creating a new one.
+- The customer a project belongs to cannot be changed via Edit — the customer field is shown but locked, since reassigning a project would need to adjust project counts on two different customer records. Create a new project if a project needs to move to a different customer.
+- Added an "Archive project" / "Reactivate project" action with a confirmation prompt, using the Archived status Projects already had. Library items are never tied to projects (see decision 001), so archiving a project has no effect on Library visibility.

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6c – Archived Customers Lose Library Access";
+const APP_VERSION = "v0.2.6d – Project Edit and Archive";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -85,6 +85,7 @@ let currentBookingSearch = "";
 let selectedCustomerId = null;
 let editingCustomerId = null;
 let selectedProjectId = null;
+let editingProjectId = null;
 let selectedLibraryItemId = null;
 let selectedBookingId = null;
 
@@ -369,6 +370,39 @@ function loadLiveProjects() {
   });
 }
 
+function resetProjectDialogToCreateMode() {
+  editingProjectId = null;
+  document.getElementById("project-form")?.reset();
+  const title = document.getElementById("project-dialog-title");
+  const saveButton = document.getElementById("save-project-button");
+  const customerSelect = document.getElementById("project-customer");
+  if (title) title.textContent = "New Project";
+  if (saveButton) saveButton.textContent = "Create Project";
+  if (customerSelect) customerSelect.disabled = false;
+}
+
+function openProjectDialogForEdit(project) {
+  const form = document.getElementById("project-form");
+  const dialog = document.getElementById("project-dialog");
+  const title = document.getElementById("project-dialog-title");
+  const saveButton = document.getElementById("save-project-button");
+  const customerSelect = document.getElementById("project-customer");
+  if (!form || !dialog) return;
+
+  editingProjectId = project.id;
+  form.elements.namedItem("name").value = project.name;
+  form.elements.namedItem("status").value = project.status;
+  form.elements.namedItem("type").value = project.type;
+  form.elements.namedItem("description").value = project.description === "No description added." ? "" : project.description;
+  if (customerSelect) {
+    customerSelect.value = project.customerId;
+    customerSelect.disabled = true;
+  }
+  if (title) title.textContent = "Edit Project";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
 async function createProject(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -376,53 +410,85 @@ async function createProject(event) {
   const message = document.getElementById("project-form-message");
   const formData = new FormData(form);
   const name = String(formData.get("name") || "").trim();
-  const customerId = String(formData.get("customerId") || "").trim();
-  const customer = customers.find((item) => item.id === customerId);
 
-  if (!name || !customer) {
-    message.textContent = "Enter a project name and select a customer.";
+  if (!name) {
+    message.textContent = "Enter a project name.";
     return;
   }
 
   saveButton.disabled = true;
-  message.textContent = "Saving project…";
 
   try {
     const database = firebase.firestore();
     const now = firebase.firestore.FieldValue.serverTimestamp();
-    const projectRef = database.collection("projects").doc();
-    const customerRef = database.collection("customers").doc(customerId);
 
-    await database.runTransaction(async (transaction) => {
-      const customerSnapshot = await transaction.get(customerRef);
-      if (!customerSnapshot.exists) throw new Error("Customer no longer exists");
-      const currentProjects = Number(customerSnapshot.data().projects || 0);
-      transaction.set(projectRef, {
+    if (editingProjectId) {
+      message.textContent = "Saving changes…";
+      await database.collection("projects").doc(editingProjectId).set({
         name,
-        customerId,
-        customerName: customer.company,
         status: formData.get("status") || "Planning",
         type: formData.get("type") || "Consulting",
         description: String(formData.get("description") || "").trim(),
-        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
-        resources: 0,
-        createdAt: now,
         updatedAt: now
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      const customerId = String(formData.get("customerId") || "").trim();
+      const customer = customers.find((item) => item.id === customerId);
+      if (!customer) {
+        message.textContent = "Enter a project name and select a customer.";
+        saveButton.disabled = false;
+        return;
+      }
+
+      message.textContent = "Saving project…";
+      const projectRef = database.collection("projects").doc();
+      const customerRef = database.collection("customers").doc(customerId);
+
+      await database.runTransaction(async (transaction) => {
+        const customerSnapshot = await transaction.get(customerRef);
+        if (!customerSnapshot.exists) throw new Error("Customer no longer exists");
+        const currentProjects = Number(customerSnapshot.data().projects || 0);
+        transaction.set(projectRef, {
+          name,
+          customerId,
+          customerName: customer.company,
+          status: formData.get("status") || "Planning",
+          type: formData.get("type") || "Consulting",
+          description: String(formData.get("description") || "").trim(),
+          owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+          resources: 0,
+          createdAt: now,
+          updatedAt: now
+        });
+        transaction.update(customerRef, { projects: currentProjects + 1, updatedAt: now });
       });
-      transaction.update(customerRef, { projects: currentProjects + 1, updatedAt: now });
-    });
+      message.textContent = "Project created.";
+    }
 
     form.reset();
-    message.textContent = "Project created.";
     setTimeout(() => {
       document.getElementById("project-dialog")?.close();
+      resetProjectDialogToCreateMode();
       message.textContent = "";
     }, 500);
   } catch (error) {
-    console.error("Could not create project", error);
+    console.error("Could not save project", error);
     message.textContent = "Project could not be saved. Please try again.";
   } finally {
     saveButton.disabled = false;
+  }
+}
+
+async function setProjectStatus(project, status) {
+  try {
+    await firebase.firestore().collection("projects").doc(project.id).set({
+      status,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Could not update project status", error);
+    alert("This project's status could not be updated. Please try again.");
   }
 }
 
@@ -781,6 +847,24 @@ function renderProjectTable() {
     });
   });
 
+  document.querySelectorAll("[data-edit-project]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const project = projects.find((item) => item.id === button.dataset.editProject);
+      if (project) openProjectDialogForEdit(project);
+    });
+  });
+
+  document.querySelectorAll("[data-archive-project]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const project = projects.find((item) => item.id === button.dataset.archiveProject);
+      if (!project) return;
+      const archiving = project.status !== "Archived";
+      const verb = archiving ? "archive" : "reactivate";
+      if (!confirm(`Are you sure you want to ${verb} ${project.name}?`)) return;
+      setProjectStatus(project, archiving ? "Archived" : "Planning");
+    });
+  });
+
   document.querySelectorAll("[data-page-link]").forEach((item) => {
     item.addEventListener("click", () => showPage(item.dataset.pageLink));
   });
@@ -955,8 +1039,11 @@ function getProjectDetailMarkup(project) {
       </div>
       <p>${escapeHtml(project.description)}</p>
       <div class="detail-actions">
-        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button" data-edit-project="${project.id}">Edit project</button>
         <button class="secondary-button" data-page-link="library">Open Library</button>
+        <button class="secondary-button" data-archive-project="${project.id}">
+          ${project.status === "Archived" ? "Reactivate project" : "Archive project"}
+        </button>
       </div>
     </div>
   `;
@@ -1169,6 +1256,9 @@ function initialiseApp() {
   document.getElementById("close-dialog-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
   document.getElementById("customer-form")?.addEventListener("submit", createCustomer);
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
+  document.getElementById("new-project-button")?.addEventListener("click", resetProjectDialogToCreateMode);
+  document.getElementById("cancel-project-dialog-button")?.addEventListener("click", resetProjectDialogToCreateMode);
+  document.getElementById("close-project-dialog-button")?.addEventListener("click", resetProjectDialogToCreateMode);
   document.getElementById("project-form")?.addEventListener("submit", createProject);
   setupDialog("library-dialog", "new-library-button", "close-library-dialog-button", "cancel-library-dialog-button");
   document.getElementById("library-form")?.addEventListener("submit", createLibraryItem);
