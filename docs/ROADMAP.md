@@ -16,6 +16,8 @@
 - **Console v0.2.6d** — Project Edit and Archive
 - **Console v0.2.6e** — Library Edit, Archive and Delete
 - **Console v0.2.6f** — Dialog Dropdown Padding Fix
+- **Console v0.2.6g** — File/Link Field Toggle Fix
+- **Console v0.2.6h** — Retire Link as a Category
 
 ## Backlog (not yet scheduled)
 

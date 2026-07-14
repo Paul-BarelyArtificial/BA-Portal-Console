@@ -298,6 +298,9 @@ tr:last-child td { border-bottom: 0; }
   font-size: 13px;
   font-weight: 650;
 }
+.form-preview label[hidden] {
+  display: none;
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6f – Dialog Dropdown Padding Fix";
+const APP_VERSION = "v0.2.6h – Retire Link as a Category";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -599,6 +599,8 @@ function resetLibraryDialogToCreateMode() {
   if (saveButton) saveButton.textContent = "Create Library Item";
   if (itemType) itemType.disabled = false;
   if (note) note.hidden = true;
+  document.getElementById("library-form")?.elements.namedItem("category")
+    ?.querySelectorAll("option[data-legacy-option]").forEach((option) => option.remove());
   updateLibraryVisibilityMode();
   updateLibraryInputMode();
 }
@@ -616,7 +618,18 @@ function openLibraryDialogForEdit(item) {
 
   editingLibraryItemId = item.id;
   form.elements.namedItem("title").value = item.title;
-  form.elements.namedItem("category").value = item.category;
+  const categorySelect = form.elements.namedItem("category");
+  categorySelect.querySelectorAll("option[data-legacy-option]").forEach((option) => option.remove());
+  categorySelect.value = item.category;
+  if (categorySelect.value !== item.category) {
+    // Preserve an older category value (e.g. "Link", retired in v0.2.6h) that's no longer offered as a new choice.
+    const legacyOption = document.createElement("option");
+    legacyOption.value = item.category;
+    legacyOption.textContent = `${item.category} (retired category)`;
+    legacyOption.dataset.legacyOption = "true";
+    categorySelect.appendChild(legacyOption);
+    categorySelect.value = item.category;
+  }
   form.elements.namedItem("source").value = item.source;
   form.elements.namedItem("itemType").value = item.itemType;
   form.elements.namedItem("visibility").value = item.visibility;
@@ -823,7 +836,8 @@ function getFilteredProjects() {
 
 function getFilteredLibraryItems() {
   return libraryItems.filter((item) => {
-    const matchesFilter = currentLibraryFilter === "all" || item.category === currentLibraryFilter;
+    const matchesFilter = currentLibraryFilter === "all"
+      || (currentLibraryFilter === "Link" ? item.itemType === "Link" : item.category === currentLibraryFilter);
     const searchTarget = `${item.title} ${item.category} ${item.status} ${item.visibility} ${item.source} ${item.customerNames.join(" ")} ${item.owner} ${item.description}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentLibrarySearch.toLowerCase());
     return matchesFilter && matchesSearch;

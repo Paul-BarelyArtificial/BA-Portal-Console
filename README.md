@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.6f – Dialog Dropdown Padding Fix
+**Current version:** v0.2.6h – Retire Link as a Category
 
 ## Current features
 

@@ -166,3 +166,13 @@ Initial Console foundation release.
 ## v0.2.6f — Dialog Dropdown Padding Fix
 - Fixed cramped-looking padding on every dropdown (`<select>`) across all four dialogs (New Customer, New Project, New/Edit Library Item, New Booking). The dropdowns already had the same declared padding as the text fields next to them, but browsers ignore custom padding on `<select>` elements by default and fall back to native OS rendering unless `appearance: none` is set — which it wasn't, so selects always looked tighter than inputs even though the CSS was identical.
 - Replaced the native dropdown arrow with a custom SVG chevron matching the Console's colour palette, since removing native styling also removes the native arrow.
+
+## v0.2.6g — File/Link Field Toggle Fix
+- Fixed a longstanding bug (present since the original v0.2.4 Library build, not introduced by recent changes) where switching the New/Edit Library Item "Item type" between File and Link did not actually hide the field that no longer applied — both the File upload field and the Website address field stayed visible together regardless of which was selected.
+- Root cause: `.form-preview label { display: grid; }` in the stylesheet unconditionally forced both label-wrapped fields to display, silently overriding the JavaScript's use of the `hidden` attribute to toggle them (a plain CSS rule always wins over the browser's default `hidden` behaviour unless the CSS accounts for it). Added `.form-preview label[hidden] { display: none; }` to fix it.
+- The "Selected customers" checkbox group was not affected — it uses a `<fieldset>`, not a `<label>`, so it was already toggling correctly.
+
+## v0.2.6h — Retire Link as a Category
+- Removed "Link" as a Library Category option. Category (Training/Document/Template/Download) and Item Type (File/Link) were overlapping in a confusing way — Item Type already fully captures whether something is delivered as a file or a link, so Category didn't need its own separate "Link" value duplicating that.
+- The Console's "Links" filter button still works exactly as before — it now matches on Item Type instead of Category, so it continues to show every link-delivered item regardless of what Category they're filed under. This is a small improvement: a Training resource delivered as a link can now show under both "Training" and "Links" at once, instead of being forced to choose one or the other.
+- Added a safety net for any existing item that was already saved with Category "Link": editing it still shows and preserves that value (labelled "Link (retired category)") rather than silently changing it to "Training" on save. New items simply don't offer "Link" as a choice going forward.
