@@ -833,6 +833,8 @@ function getCustomerDetailMarkup(customer) {
         <div><span>Users</span><strong>${customer.users}</strong></div>
         <div><span>Owner</span><strong>${escapeHtml(customer.owner)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(customer.lastUpdated)}</strong></div>
+        <div><span>Contact name</span><strong>${escapeHtml(customer.contactName || "Not set")}</strong></div>
+        <div><span>Contact email</span><strong>${escapeHtml(customer.contactEmail || "Not set")}</strong></div>
         <div><span>Portal login</span><strong>${customer.portalAccountCreated ? "Invite sent" : "Not set up"}</strong></div>
       </div>
       <p>${escapeHtml(customer.notes)}</p>
