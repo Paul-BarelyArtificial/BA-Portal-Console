@@ -156,3 +156,9 @@ Initial Console foundation release.
 - Added a working "Edit project" action that reopens the New Project dialog pre-filled, and saves changes to the existing record instead of creating a new one.
 - The customer a project belongs to cannot be changed via Edit — the customer field is shown but locked, since reassigning a project would need to adjust project counts on two different customer records. Create a new project if a project needs to move to a different customer.
 - Added an "Archive project" / "Reactivate project" action with a confirmation prompt, using the Archived status Projects already had. Library items are never tied to projects (see decision 001), so archiving a project has no effect on Library visibility.
+
+## v0.2.6e — Library Edit, Archive and Delete
+- Added a working "Edit item" action that reopens the New Library Item dialog pre-filled with the item's metadata (title, description, source, category, version, status, visibility, selected customers). Saving updates the existing record.
+- The uploaded file or link itself is locked during edit — the dialog shows the current file name or link as read-only text. Replacing the actual file/link requires delete-and-recreate rather than in-place edit, to avoid the added complexity of cleaning up a replaced Storage file mid-edit.
+- Added "Archive item" / "Reactivate item", reusing the Archived status Library already had.
+- Added a genuine, permanent "Delete permanently" action — unlike Customers and Projects, Library items aren't referenced by any other collection (decision 001), so a hard delete is safe. It removes both the Firestore record and, for File items, the uploaded file in Firebase Storage, so it actually frees up storage space. Requires confirmation; cannot be undone.

@@ -14,22 +14,15 @@
 - **Console v0.2.6b** — Customer Edit and Archive
 - **Console v0.2.6c** — Archived Customers Lose Library Access
 - **Console v0.2.6d** — Project Edit and Archive
+- **Console v0.2.6e** — Library Edit, Archive and Delete
+
+## Backlog (not yet scheduled)
+
+- Improve Library/Customer/Project search and filtering beyond basic text match
+- Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
+- Make Bookings a real, live Firestore feature (currently sample data only) — needed before Bookings can get its own Edit/Archive/Delete
 
 ## Next releases
-
-### Console v0.2.5 — Live Library
-
-- Edit Library items
-- Archive Library items
-- Improve search and filtering
-- Confirm migration of any useful v0.2.3 Resource records
-
-### Platform v0.2.6 — Customer Portal reads Library
-
-- Read published Library items
-- Apply All Customers and Selected Customers permissions
-- Separate Training and Your Library views
-- Open files and links
 
 ### Portal v0.2.7 — Customer Uploads
 

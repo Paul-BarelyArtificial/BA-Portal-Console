@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.6d" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.6e" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.6d – Project Edit and Archive</div>
+        <div id="version-label">v0.2.6e – Library Edit, Archive and Delete</div>
       </div>
     </aside>
 
@@ -386,7 +386,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.6d – Project Edit and Archive</span></div>
+              <div><strong>Console version</strong><span>v0.2.6e – Library Edit, Archive and Delete</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -443,7 +443,7 @@
   <dialog id="library-dialog" class="modal">
     <form id="library-form">
       <div class="modal-heading">
-        <div><p class="eyebrow">Library</p><h2>New Library Item</h2></div>
+        <div><p class="eyebrow">Library</p><h2 id="library-dialog-title">New Library Item</h2></div>
         <button class="icon-button" id="close-library-dialog-button" type="button" aria-label="Close dialog">×</button>
       </div>
       <p>Create one item and choose who can see it. Library items are not tied to projects.</p>
@@ -457,6 +457,7 @@
         <label>Version<input name="version" value="1.0" /></label>
         <label id="library-file-group">File<input id="library-file" name="file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.zip" /></label>
         <label id="library-link-group" hidden>Website address<input id="library-link" name="externalUrl" type="url" placeholder="https://example.com" /></label>
+        <p id="library-current-file-note" class="muted full-width" hidden></p>
         <fieldset id="library-customer-group" class="full-width checkbox-fieldset" hidden>
           <legend>Selected customers</legend>
           <div id="library-customers" class="checkbox-grid"></div>
@@ -494,8 +495,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.6d"></script>
-  <script src="js/app.js?v=0.2.6d"></script>
-  <script src="js/auth.js?v=0.2.6d"></script>
+  <script src="js/firebase-config.js?v=0.2.6e"></script>
+  <script src="js/app.js?v=0.2.6e"></script>
+  <script src="js/auth.js?v=0.2.6e"></script>
 </body>
 </html>

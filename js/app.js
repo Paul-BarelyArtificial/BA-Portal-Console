@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6d – Project Edit and Archive";
+const APP_VERSION = "v0.2.6e – Library Edit, Archive and Delete";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -87,6 +87,7 @@ let editingCustomerId = null;
 let selectedProjectId = null;
 let editingProjectId = null;
 let selectedLibraryItemId = null;
+let editingLibraryItemId = null;
 let selectedBookingId = null;
 
 function showPage(pageId) {
@@ -587,6 +588,67 @@ function validateLibraryFile(file) {
   return "";
 }
 
+function resetLibraryDialogToCreateMode() {
+  editingLibraryItemId = null;
+  document.getElementById("library-form")?.reset();
+  const title = document.getElementById("library-dialog-title");
+  const saveButton = document.getElementById("save-library-button");
+  const itemType = document.getElementById("library-item-type");
+  const note = document.getElementById("library-current-file-note");
+  if (title) title.textContent = "New Library Item";
+  if (saveButton) saveButton.textContent = "Create Library Item";
+  if (itemType) itemType.disabled = false;
+  if (note) note.hidden = true;
+  updateLibraryVisibilityMode();
+  updateLibraryInputMode();
+}
+
+function openLibraryDialogForEdit(item) {
+  const form = document.getElementById("library-form");
+  const dialog = document.getElementById("library-dialog");
+  const title = document.getElementById("library-dialog-title");
+  const saveButton = document.getElementById("save-library-button");
+  const itemType = document.getElementById("library-item-type");
+  const fileGroup = document.getElementById("library-file-group");
+  const linkGroup = document.getElementById("library-link-group");
+  const note = document.getElementById("library-current-file-note");
+  if (!form || !dialog) return;
+
+  editingLibraryItemId = item.id;
+  form.elements.namedItem("title").value = item.title;
+  form.elements.namedItem("category").value = item.category;
+  form.elements.namedItem("source").value = item.source;
+  form.elements.namedItem("itemType").value = item.itemType;
+  form.elements.namedItem("visibility").value = item.visibility;
+  form.elements.namedItem("status").value = item.status;
+  form.elements.namedItem("version").value = item.version;
+  form.elements.namedItem("description").value = item.description === "No description added." ? "" : item.description;
+
+  updateLibraryVisibilityMode();
+  form.querySelectorAll('input[name="customerIds"]').forEach((checkbox) => {
+    checkbox.checked = item.customerIds.includes(checkbox.value);
+  });
+
+  // The uploaded file or link cannot be changed here — delete and re-create to replace it.
+  if (itemType) itemType.disabled = true;
+  if (fileGroup) fileGroup.hidden = true;
+  if (linkGroup) linkGroup.hidden = true;
+  const fileInput = document.getElementById("library-file");
+  const linkInput = document.getElementById("library-link");
+  if (fileInput) fileInput.required = false;
+  if (linkInput) linkInput.required = false;
+  if (note) {
+    note.hidden = false;
+    note.textContent = item.itemType === "Link"
+      ? `Current link: ${item.externalUrl}. Delete and re-create this item to change it.`
+      : `Current file: ${item.fileName || "uploaded file"}. Delete and re-create this item to replace it.`;
+  }
+
+  if (title) title.textContent = "Edit Library Item";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
 async function createLibraryItem(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -595,7 +657,6 @@ async function createLibraryItem(event) {
   const progress = document.getElementById("library-upload-progress");
   const formData = new FormData(form);
   const title = String(formData.get("title") || "").trim();
-  const itemType = String(formData.get("itemType") || "File");
   const visibility = String(formData.get("visibility") || "Internal");
   const customerIds = formData.getAll("customerIds").map(String);
   const selectedCustomers = customers.filter((customer) => customerIds.includes(customer.id));
@@ -609,6 +670,42 @@ async function createLibraryItem(event) {
     return;
   }
 
+  const sharedFields = {
+    title,
+    description: String(formData.get("description") || "").trim(),
+    source: formData.get("source") || "Barely Artificial",
+    visibility,
+    customerIds: visibility === "Selected Customers" ? customerIds : [],
+    customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
+    category: formData.get("category") || "Document",
+    version: String(formData.get("version") || "1.0").trim() || "1.0",
+    status: formData.get("status") || "Draft"
+  };
+
+  if (editingLibraryItemId) {
+    saveButton.disabled = true;
+    message.textContent = "Saving changes…";
+    try {
+      await firebase.firestore().collection("library").doc(editingLibraryItemId).set({
+        ...sharedFields,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+      setTimeout(() => {
+        document.getElementById("library-dialog")?.close();
+        resetLibraryDialogToCreateMode();
+        message.textContent = "";
+      }, 500);
+    } catch (error) {
+      console.error("Could not save library item", error);
+      message.textContent = "Library item could not be saved. Please try again.";
+    } finally {
+      saveButton.disabled = false;
+    }
+    return;
+  }
+
+  const itemType = String(formData.get("itemType") || "File");
   const file = formData.get("file");
   const externalUrl = String(formData.get("externalUrl") || "").trim();
   if (itemType === "Link") {
@@ -646,15 +743,7 @@ async function createLibraryItem(event) {
 
     const now = firebase.firestore.FieldValue.serverTimestamp();
     await firebase.firestore().collection("library").doc(libraryId).set({
-      title,
-      description: String(formData.get("description") || "").trim(),
-      source: formData.get("source") || "Barely Artificial",
-      visibility,
-      customerIds: visibility === "Selected Customers" ? customerIds : [],
-      customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
-      category: formData.get("category") || "Document",
-      version: String(formData.get("version") || "1.0").trim() || "1.0",
-      status: formData.get("status") || "Draft",
+      ...sharedFields,
       itemType,
       owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
       ...fileDetails,
@@ -680,6 +769,37 @@ async function createLibraryItem(event) {
   } finally {
     saveButton.disabled = false;
     progress.hidden = true;
+  }
+}
+
+async function setLibraryStatus(item, status) {
+  try {
+    await firebase.firestore().collection("library").doc(item.id).set({
+      status,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Could not update library item status", error);
+    alert("This item's status could not be updated. Please try again.");
+  }
+}
+
+async function deleteLibraryItem(item) {
+  const warning = item.itemType === "File"
+    ? `Delete "${item.title}" permanently? This removes the uploaded file and cannot be undone.`
+    : `Delete "${item.title}" permanently? This cannot be undone.`;
+  if (!confirm(warning)) return;
+
+  try {
+    if (item.itemType === "File" && item.filePath) {
+      try { await firebase.storage().ref(item.filePath).delete(); }
+      catch (error) { if (error.code !== "storage/object-not-found") throw error; }
+    }
+    await firebase.firestore().collection("library").doc(item.id).delete();
+    if (selectedLibraryItemId === item.id) selectedLibraryItemId = null;
+  } catch (error) {
+    console.error("Could not delete library item", error);
+    alert("This item could not be deleted. Please try again.");
   }
 }
 
@@ -921,6 +1041,31 @@ function renderLibraryTable() {
       renderLibraryTable();
     });
   });
+
+  document.querySelectorAll("[data-edit-library]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = libraryItems.find((entry) => entry.id === button.dataset.editLibrary);
+      if (item) openLibraryDialogForEdit(item);
+    });
+  });
+
+  document.querySelectorAll("[data-archive-library]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = libraryItems.find((entry) => entry.id === button.dataset.archiveLibrary);
+      if (!item) return;
+      const archiving = item.status !== "Archived";
+      const verb = archiving ? "archive" : "reactivate";
+      if (!confirm(`Are you sure you want to ${verb} "${item.title}"?`)) return;
+      setLibraryStatus(item, archiving ? "Archived" : "Draft");
+    });
+  });
+
+  document.querySelectorAll("[data-delete-library]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = libraryItems.find((entry) => entry.id === button.dataset.deleteLibrary);
+      if (item) deleteLibraryItem(item);
+    });
+  });
 }
 
 function renderBookingTable() {
@@ -1074,7 +1219,11 @@ function getLibraryDetailMarkup(item) {
       <p>${escapeHtml(item.description)}</p>
       <div class="detail-actions">
         ${destination ? `<a class="secondary-button button-link" href="${escapeHtml(destination)}" target="_blank" rel="noopener">${actionLabel}</a>` : ""}
-        <button class="secondary-button" disabled>Edit in v0.2.5</button>
+        <button class="secondary-button" data-edit-library="${item.id}">Edit item</button>
+        <button class="secondary-button" data-archive-library="${item.id}">
+          ${item.status === "Archived" ? "Reactivate item" : "Archive item"}
+        </button>
+        <button class="secondary-button danger-button" data-delete-library="${item.id}">Delete permanently</button>
       </div>
     </div>
   `;
@@ -1261,6 +1410,9 @@ function initialiseApp() {
   document.getElementById("close-project-dialog-button")?.addEventListener("click", resetProjectDialogToCreateMode);
   document.getElementById("project-form")?.addEventListener("submit", createProject);
   setupDialog("library-dialog", "new-library-button", "close-library-dialog-button", "cancel-library-dialog-button");
+  document.getElementById("new-library-button")?.addEventListener("click", resetLibraryDialogToCreateMode);
+  document.getElementById("cancel-library-dialog-button")?.addEventListener("click", resetLibraryDialogToCreateMode);
+  document.getElementById("close-library-dialog-button")?.addEventListener("click", resetLibraryDialogToCreateMode);
   document.getElementById("library-form")?.addEventListener("submit", createLibraryItem);
   updateLibraryInputMode();
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
