@@ -162,3 +162,7 @@ Initial Console foundation release.
 - The uploaded file or link itself is locked during edit — the dialog shows the current file name or link as read-only text. Replacing the actual file/link requires delete-and-recreate rather than in-place edit, to avoid the added complexity of cleaning up a replaced Storage file mid-edit.
 - Added "Archive item" / "Reactivate item", reusing the Archived status Library already had.
 - Added a genuine, permanent "Delete permanently" action — unlike Customers and Projects, Library items aren't referenced by any other collection (decision 001), so a hard delete is safe. It removes both the Firestore record and, for File items, the uploaded file in Firebase Storage, so it actually frees up storage space. Requires confirmation; cannot be undone.
+
+## v0.2.6f — Dialog Dropdown Padding Fix
+- Fixed cramped-looking padding on every dropdown (`<select>`) across all four dialogs (New Customer, New Project, New/Edit Library Item, New Booking). The dropdowns already had the same declared padding as the text fields next to them, but browsers ignore custom padding on `<select>` elements by default and fall back to native OS rendering unless `appearance: none` is set — which it wasn't, so selects always looked tighter than inputs even though the CSS was identical.
+- Replaced the native dropdown arrow with a custom SVG chevron matching the Console's colour palette, since removing native styling also removes the native arrow.

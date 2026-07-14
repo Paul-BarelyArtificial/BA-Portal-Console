@@ -15,6 +15,7 @@
 - **Console v0.2.6c** — Archived Customers Lose Library Access
 - **Console v0.2.6d** — Project Edit and Archive
 - **Console v0.2.6e** — Library Edit, Archive and Delete
+- **Console v0.2.6f** — Dialog Dropdown Padding Fix
 
 ## Backlog (not yet scheduled)
 
