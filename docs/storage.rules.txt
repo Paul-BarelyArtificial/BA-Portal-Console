@@ -23,19 +23,21 @@ service firebase.storage {
           /databases/(default)/documents/admins/$(request.auth.uid)
         );
 
-      // A customer may upload into their own folder only, one file at a time,
-      // each file 20 MB or smaller, and only while their running total (tracked
-      // in their customers/{customerId} record) would stay at or under 500 MB.
+      // A customer may create (not overwrite or delete) a file in their own
+      // folder, one file at a time, each 20 MB or smaller, and only while their
+      // running total (tracked in their customers/{customerId} record) would
+      // stay at or under 500 MB. `.get(key, 0)` treats a customer who has never
+      // uploaded before (no uploadStorageUsedBytes field yet) as having used 0
+      // bytes, rather than erroring — a rule evaluation error is always denied,
+      // which otherwise blocked every upload for any customer missing the field.
       allow write: if request.auth != null
+        && resource == null
         && customerId == firestore.get(
              /databases/(default)/documents/customerAccess/$(request.auth.token.email)
            ).data.customerId
         && request.resource.size <= 20 * 1024 * 1024
-        && (
-          firestore.get(/databases/(default)/documents/customers/$(customerId)).data.uploadStorageUsedBytes != null
-            ? firestore.get(/databases/(default)/documents/customers/$(customerId)).data.uploadStorageUsedBytes
-            : 0
-        ) + request.resource.size <= 500 * 1024 * 1024;
+        && firestore.get(/databases/(default)/documents/customers/$(customerId)).data.get("uploadStorageUsedBytes", 0)
+           + request.resource.size <= 500 * 1024 * 1024;
 
       // A customer may read back their own uploaded files (e.g. from their
       // Your Uploads list in the Portal).

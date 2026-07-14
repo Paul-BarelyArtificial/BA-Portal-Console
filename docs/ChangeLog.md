@@ -217,3 +217,9 @@ Initial Console foundation release.
 - Deleting a customer-uploaded Library item (using the existing Delete action — no new UI needed there) now also refunds that customer's quota automatically.
 - Renamed the Library detail panel's file action from "Open file" to "Download file" for clarity — the underlying link was already the way to get a local copy.
 - **Requires both a Firestore rules update and a new Storage rules addition.** See `docs/firestore.rules.txt` and the new `docs/storage.rules.txt` — both must be published in the Firebase Console before customer uploads will work. Nothing else in the Console needs the Storage rules change; your existing admin file management is unaffected.
+
+## v0.2.8c — Storage Rules Quota Fix
+- Fixed a bug found during first real-world testing: uploading any file at all failed with `storage/unauthorized`, even a 21 KB file nowhere near either limit. The Storage rule's quota check read a customer's `uploadStorageUsedBytes` field directly; for any customer who had never uploaded before (so the field didn't exist yet), that read throws an evaluation error rather than treating it as zero — and a rule error is always treated as denied, regardless of the real file size.
+- Fixed by using `.get("uploadStorageUsedBytes", 0)` instead of direct field access, so a first-time uploader is correctly treated as having used 0 bytes.
+- Also closed a related gap found while fixing this: the customer's write permission didn't distinguish between creating a new upload and overwriting/deleting an existing one. Added `resource == null` so customers can only ever create new uploads, never overwrite or delete a file they already submitted (matches the one-way review workflow — only an admin can remove an upload).
+- Only `docs/storage.rules.txt` changed. **You must re-publish this corrected version in Firebase Console → Storage → Rules** — the version you may have already published from v0.2.8b has this bug.

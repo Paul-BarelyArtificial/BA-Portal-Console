@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8b – Customer Upload Management";
+const APP_VERSION = "v0.2.8c – Storage Rules Quota Fix";
 
 const pageTitles = {
   dashboard: "Dashboard",
