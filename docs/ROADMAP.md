@@ -25,6 +25,7 @@
 - **Console v0.2.8** — Library Bulk Upload
 - **Console v0.2.8a** — Library Collections
 - **Portal v0.2.6d** — Library Collections (grouping and card tag)
+- **Portal v0.2.6e** — Collection Boundary Fix (bordered box around each collection group)
 
 ## Backlog (not yet scheduled)
 
