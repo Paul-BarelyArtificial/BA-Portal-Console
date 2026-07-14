@@ -21,6 +21,7 @@
 - **Console v0.2.6i** — Console Bookings Goes Live
 - **Portal v0.2.6a** — Updated Booking Link
 - **Portal v0.2.6b** — My Meetings
+- **Portal v0.2.6c** — Personalised Navigation Labels
 
 ## Backlog (not yet scheduled)
 
