@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.6e – Library Edit, Archive and Delete
+**Current version:** v0.2.6f – Dialog Dropdown Padding Fix
 
 ## Current features
 

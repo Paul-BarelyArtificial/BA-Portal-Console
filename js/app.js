@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6e – Library Edit, Archive and Delete";
+const APP_VERSION = "v0.2.6f – Dialog Dropdown Padding Fix";
 
 const pageTitles = {
   dashboard: "Dashboard",
