@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.5 – Console Identity & Library Polish";
+const APP_VERSION = "v0.2.6 – Portal Library Connection";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -130,6 +130,24 @@ function normaliseCustomer(document) {
   };
 }
 
+
+async function syncCustomerAccessMappings(customerList) {
+  const database = firebase.firestore();
+  const writes = customerList
+    .filter((customer) => customer.contactEmail)
+    .map((customer) => {
+      const email = customer.contactEmail.trim().toLowerCase();
+      return database.collection("customerAccess").doc(email).set({
+        customerId: customer.id,
+        customerName: customer.company,
+        email,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    });
+  try { await Promise.all(writes); }
+  catch (error) { console.warn("Customer access mappings could not be synchronised", error); }
+}
+
 function loadLiveCustomers() {
   if (unsubscribeCustomers) unsubscribeCustomers();
   const database = firebase.firestore();
@@ -138,6 +156,7 @@ function loadLiveCustomers() {
 
   unsubscribeCustomers = database.collection("customers").orderBy("company").onSnapshot((snapshot) => {
     customers = snapshot.docs.map(normaliseCustomer);
+    syncCustomerAccessMappings(customers);
     selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
     renderCustomerTable();
     populateProjectCustomerOptions();

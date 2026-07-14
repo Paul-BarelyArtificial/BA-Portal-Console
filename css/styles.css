@@ -154,12 +154,12 @@ tr:last-child td { border-bottom: 0; }
 .form-preview input,
 .form-preview select {
   width: 100%;
-  min-height: 48px;
+  min-height: 54px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
   color: var(--text);
-  padding: 13px 16px;
+  padding: 16px 18px;
   font: inherit;
   font-size: 15px;
   line-height: 1.35;
@@ -252,7 +252,7 @@ tr:last-child td { border-bottom: 0; }
   margin-top: 16px;
 }
 .modal {
-  width: min(640px, calc(100% - 32px));
+  width: min(720px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
@@ -281,12 +281,12 @@ tr:last-child td { border-bottom: 0; }
 }
 .form-preview {
   display: grid;
-  gap: 18px;
-  margin: 20px 0;
+  gap: 24px;
+  margin: 24px 0;
 }
 .form-preview label {
   display: grid;
-  gap: 9px;
+  gap: 12px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;

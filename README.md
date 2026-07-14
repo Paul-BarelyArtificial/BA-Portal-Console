@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.5 — Console Identity & Library Polish
+**Current version:** v0.2.6 – Portal Library Connection
 
 ## Current features
 
