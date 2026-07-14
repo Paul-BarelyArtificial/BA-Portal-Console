@@ -23,6 +23,8 @@
 - **Portal v0.2.6b** — My Meetings
 - **Portal v0.2.6c** — Personalised Navigation Labels
 - **Console v0.2.8** — Library Bulk Upload
+- **Console v0.2.8a** — Library Collections
+- **Portal v0.2.6d** — Library Collections (grouping and card tag)
 
 ## Backlog (not yet scheduled)
 

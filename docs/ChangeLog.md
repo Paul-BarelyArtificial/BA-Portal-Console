@@ -201,3 +201,9 @@ Initial Console foundation release.
 - Files are uploaded one at a time with live progress ("Uploading 2 of 5: filename.pdf"), so a slow connection or a large batch doesn't look stuck.
 - If some files fail (wrong type, over the 50 MB limit, or an upload error), the rest of the batch still completes — the summary message names exactly which files failed and why, rather than the whole batch aborting on one bad file.
 - Bulk Upload only creates File items (not Links), matching the roadmap's "add multiple files efficiently" scope. Use "New Library Item" for a single Link.
+
+## v0.2.8a — Library Collections
+- Added a "Collection" field to Library items (New, Edit, and Bulk Upload), for tagging items that belong together — e.g. every part of a training course — while still letting each one be used individually.
+- The field autocompletes from collection names already in use, to keep naming consistent and reduce typos that would silently break a grouping.
+- Console: shown as a small pill next to the item title in the Library table, and as a field in the detail panel. Included in search matching.
+- Portal: items sharing a Collection now cluster together under a labelled sub-heading within their Category section (the same way Category already groups the page), and each card shows a "Part of {collection}" tag. Items with no Collection are completely unaffected — they display exactly as before.

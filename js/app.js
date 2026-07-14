@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8 – Library Bulk Upload";
+const APP_VERSION = "v0.2.8a – Library Collections";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -464,6 +464,7 @@ function normaliseLibraryItem(documentSnapshot) {
     customerNames: Array.isArray(data.customerNames) ? data.customerNames : (data.customerName ? [data.customerName] : []),
     category: data.category || data.type || "Document",
     version: data.version || "1.0",
+    collection: data.collection || "",
     status: data.status || "Draft",
     itemType: data.itemType || (data.externalUrl ? "Link" : "File"),
     owner: data.owner || "Paul O’Brien",
@@ -500,6 +501,13 @@ function updateLibraryVisibilityMode() {
   });
 }
 
+function updateCollectionOptions() {
+  const datalist = document.getElementById("collection-options");
+  if (!datalist) return;
+  const names = [...new Set(libraryItems.map((item) => item.collection).filter(Boolean))].sort();
+  datalist.innerHTML = names.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("");
+}
+
 function updateLibraryInputMode() {
   const itemType = document.getElementById("library-item-type");
   const fileGroup = document.getElementById("library-file-group");
@@ -523,6 +531,7 @@ function loadLiveLibrary() {
     libraryItems = snapshot.docs.map(normaliseLibraryItem);
     selectedLibraryItemId = libraryItems.some((item) => item.id === selectedLibraryItemId) ? selectedLibraryItemId : null;
     renderLibraryTable();
+    updateCollectionOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load library", error);
@@ -624,6 +633,7 @@ async function createBulkLibraryItems(event) {
     customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
     category: formData.get("category") || "Document",
     version: String(formData.get("version") || "1.0").trim() || "1.0",
+    collection: String(formData.get("collection") || "").trim(),
     status: formData.get("status") || "Draft"
   };
 
@@ -741,6 +751,7 @@ function openLibraryDialogForEdit(item) {
   form.elements.namedItem("visibility").value = item.visibility;
   form.elements.namedItem("status").value = item.status;
   form.elements.namedItem("version").value = item.version;
+  form.elements.namedItem("collection").value = item.collection || "";
   form.elements.namedItem("description").value = item.description === "No description added." ? "" : item.description;
 
   updateLibraryVisibilityMode();
@@ -798,6 +809,7 @@ async function createLibraryItem(event) {
     customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
     category: formData.get("category") || "Document",
     version: String(formData.get("version") || "1.0").trim() || "1.0",
+    collection: String(formData.get("collection") || "").trim(),
     status: formData.get("status") || "Draft"
   };
 
@@ -944,7 +956,7 @@ function getFilteredLibraryItems() {
   return libraryItems.filter((item) => {
     const matchesFilter = currentLibraryFilter === "all"
       || (currentLibraryFilter === "Link" ? item.itemType === "Link" : item.category === currentLibraryFilter);
-    const searchTarget = `${item.title} ${item.category} ${item.status} ${item.visibility} ${item.source} ${item.customerNames.join(" ")} ${item.owner} ${item.description}`.toLowerCase();
+    const searchTarget = `${item.title} ${item.category} ${item.status} ${item.visibility} ${item.source} ${item.customerNames.join(" ")} ${item.owner} ${item.description} ${item.collection}`.toLowerCase();
     const matchesSearch = searchTarget.includes(currentLibrarySearch.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -1293,7 +1305,7 @@ function renderLibraryTable() {
         : item.visibility;
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(item.title)}</strong><span class="table-subtext">${escapeHtml(item.description)}</span></td>
+        <td><strong>${escapeHtml(item.title)}</strong>${item.collection ? `<span class="collection-pill">📚 ${escapeHtml(item.collection)}</span>` : ""}<span class="table-subtext">${escapeHtml(item.description)}</span></td>
         <td>${escapeHtml(item.category)}</td>
         <td>${escapeHtml(item.source)}</td>
         <td>${escapeHtml(audience)}</td>
@@ -1512,6 +1524,7 @@ function getLibraryDetailMarkup(item) {
         <div><span>Visibility</span><strong>${escapeHtml(audience)}</strong></div>
         <div><span>Status</span><strong>${escapeHtml(item.status)}</strong></div>
         <div><span>Version</span><strong>${escapeHtml(item.version)}</strong></div>
+        <div><span>Collection</span><strong>${item.collection ? escapeHtml(item.collection) : "Not set"}</strong></div>
         <div><span>Type</span><strong>${escapeHtml(item.itemType)}</strong></div>
         <div><span>Owner</span><strong>${escapeHtml(item.owner)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(item.lastUpdated)}</strong></div>
