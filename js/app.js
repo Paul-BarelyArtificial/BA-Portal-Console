@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6a – Customer Portal Invites";
+const APP_VERSION = "v0.2.6b – Customer Edit and Archive";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -83,6 +83,7 @@ let currentLibrarySearch = "";
 let currentBookingFilter = "all";
 let currentBookingSearch = "";
 let selectedCustomerId = null;
+let editingCustomerId = null;
 let selectedProjectId = null;
 let selectedLibraryItemId = null;
 let selectedBookingId = null;
@@ -227,6 +228,33 @@ function loadLiveCustomers() {
   });
 }
 
+function resetCustomerDialogToCreateMode() {
+  editingCustomerId = null;
+  document.getElementById("customer-form")?.reset();
+  const title = document.getElementById("customer-dialog-title");
+  const saveButton = document.getElementById("save-customer-button");
+  if (title) title.textContent = "New Customer";
+  if (saveButton) saveButton.textContent = "Create Customer";
+}
+
+function openCustomerDialogForEdit(customer) {
+  const form = document.getElementById("customer-form");
+  const dialog = document.getElementById("customer-dialog");
+  const title = document.getElementById("customer-dialog-title");
+  const saveButton = document.getElementById("save-customer-button");
+  if (!form || !dialog) return;
+
+  editingCustomerId = customer.id;
+  form.elements.namedItem("company").value = customer.company;
+  form.elements.namedItem("status").value = customer.status;
+  form.elements.namedItem("contactName").value = customer.contactName;
+  form.elements.namedItem("contactEmail").value = customer.contactEmail;
+  form.elements.namedItem("notes").value = customer.notes === "No notes added." ? "" : customer.notes;
+  if (title) title.textContent = "Edit Customer";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
 async function createCustomer(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -237,32 +265,54 @@ async function createCustomer(event) {
   if (!company) return;
 
   saveButton.disabled = true;
-  message.textContent = "Saving customer…";
+  message.textContent = editingCustomerId ? "Saving changes…" : "Saving customer…";
   try {
     const now = firebase.firestore.FieldValue.serverTimestamp();
-    await firebase.firestore().collection("customers").add({
+    const record = {
       company,
       status: formData.get("status") || "Trial",
       contactName: String(formData.get("contactName") || "").trim(),
       contactEmail: String(formData.get("contactEmail") || "").trim(),
       notes: String(formData.get("notes") || "").trim(),
-      owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
-      projects: 0,
-      users: 0,
-      createdAt: now,
       updatedAt: now
-    });
-    form.reset();
-    message.textContent = "Customer created.";
+    };
+
+    if (editingCustomerId) {
+      await firebase.firestore().collection("customers").doc(editingCustomerId).set(record, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      await firebase.firestore().collection("customers").add({
+        ...record,
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        projects: 0,
+        users: 0,
+        createdAt: now
+      });
+      message.textContent = "Customer created.";
+    }
+
     setTimeout(() => {
       document.getElementById("customer-dialog")?.close();
+      resetCustomerDialogToCreateMode();
       message.textContent = "";
     }, 500);
   } catch (error) {
-    console.error("Could not create customer", error);
+    console.error("Could not save customer", error);
     message.textContent = "Customer could not be saved. Please try again.";
   } finally {
     saveButton.disabled = false;
+  }
+}
+
+async function setCustomerStatus(customer, status) {
+  try {
+    await firebase.firestore().collection("customers").doc(customer.id).set({
+      status,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Could not update customer status", error);
+    alert("This customer's status could not be updated. Please try again.");
   }
 }
 
@@ -646,6 +696,24 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-edit-customer]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customer = customers.find((item) => item.id === button.dataset.editCustomer);
+      if (customer) openCustomerDialogForEdit(customer);
+    });
+  });
+
+  document.querySelectorAll("[data-archive-customer]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customer = customers.find((item) => item.id === button.dataset.archiveCustomer);
+      if (!customer) return;
+      const archiving = customer.status !== "Archived";
+      const verb = archiving ? "archive" : "reactivate";
+      if (!confirm(`Are you sure you want to ${verb} ${customer.company}?`)) return;
+      setCustomerStatus(customer, archiving ? "Archived" : "Active");
+    });
+  });
+
   document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
@@ -839,10 +907,13 @@ function getCustomerDetailMarkup(customer) {
       </div>
       <p>${escapeHtml(customer.notes)}</p>
       <div class="detail-actions">
-        <button class="secondary-button">Edit later</button>
+        <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>
         <button class="secondary-button" data-send-invite="${customer.id}" ${customer.contactEmail ? "" : "disabled"}>
           ${customer.portalAccountCreated ? "Resend Portal invite" : "Send Portal invite"}
+        </button>
+        <button class="secondary-button" data-archive-customer="${customer.id}">
+          ${customer.status === "Archived" ? "Reactivate customer" : "Archive customer"}
         </button>
       </div>
       <p class="muted" data-invite-status="${customer.id}">${
@@ -1086,6 +1157,9 @@ function initialiseApp() {
   setupBookingControls();
   setupSettingsControls();
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
+  document.getElementById("new-customer-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
+  document.getElementById("cancel-dialog-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
+  document.getElementById("close-dialog-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
   document.getElementById("customer-form")?.addEventListener("submit", createCustomer);
   setupDialog("project-dialog", "new-project-button", "close-project-dialog-button", "cancel-project-dialog-button");
   document.getElementById("project-form")?.addEventListener("submit", createProject);

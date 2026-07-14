@@ -11,6 +11,7 @@
 - **Console v0.2.5** — Console Identity & Library Polish
 - **Console v0.2.6** — Portal Library Connection
 - **Console v0.2.6a** — Customer Portal Invites
+- **Console v0.2.6b** — Customer Edit and Archive
 
 ## Next releases
 

@@ -140,3 +140,9 @@ Initial Console foundation release.
 - Added `portalAccountCreated` and `portalInviteSentAt` fields to `customers` records, and the invite status is shown in the customer detail panel.
 - Added the customer's contact name and contact email to the customer detail panel — previously neither was shown there.
 - Fixed stale `?v=0.2.5`/`?v=0.2.3` cache-busting query strings on `css/styles.css`, `js/firebase-config.js`, `js/app.js` and `js/auth.js` that meant browsers with a previously cached Console could keep serving pre-v0.2.6 code after the v0.2.6 release.
+
+## v0.2.6b — Customer Edit and Archive
+- Added a working "Edit customer" action that reopens the New Customer dialog pre-filled, and saves changes to the existing record instead of creating a new one.
+- Added an "Archive customer" / "Reactivate customer" action (with a confirmation prompt) that sets the customer's status to Archived instead of permanently deleting the record — Projects and Library items already assigned to that customer are unaffected.
+- Added "Archived" as a customer status option and filter.
+- First of three planned releases (Customers, then Projects, then Library) adding Edit and Archive to the Console's core record types. Bookings is deliberately excluded — it is still sample data, not a live Firestore feature yet.
