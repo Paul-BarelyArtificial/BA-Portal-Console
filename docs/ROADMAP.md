@@ -18,14 +18,21 @@
 - **Console v0.2.6f** — Dialog Dropdown Padding Fix
 - **Console v0.2.6g** — File/Link Field Toggle Fix
 - **Console v0.2.6h** — Retire Link as a Category
+- **Console v0.2.6i** — Console Bookings Goes Live
 
 ## Backlog (not yet scheduled)
 
 - Improve Library/Customer/Project search and filtering beyond basic text match
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
-- Make Bookings a real, live Firestore feature (currently sample data only) — needed before Bookings can get its own Edit/Archive/Delete
+- Calendly webhook + Cloud Function to auto-sync real bookings into the `bookings` collection, instead of the current admin-maintained manual log — a backend infrastructure decision, deliberately deferred
 
 ## Next releases
+
+### Portal v0.2.6j — My Meetings
+
+- Customers see their own bookings (read-only, matched via `customerAccess`)
+- Customers can add/edit their own notes on a booking, visible to the admin in the Console
+- Firestore rules update required (customer read access to `bookings`, field-scoped write for notes only)
 
 ### Portal v0.2.7 — Customer Uploads
 

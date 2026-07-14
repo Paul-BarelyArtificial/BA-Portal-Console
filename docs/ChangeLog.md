@@ -176,3 +176,13 @@ Initial Console foundation release.
 - Removed "Link" as a Library Category option. Category (Training/Document/Template/Download) and Item Type (File/Link) were overlapping in a confusing way — Item Type already fully captures whether something is delivered as a file or a link, so Category didn't need its own separate "Link" value duplicating that.
 - The Console's "Links" filter button still works exactly as before — it now matches on Item Type instead of Category, so it continues to show every link-delivered item regardless of what Category they're filed under. This is a small improvement: a Training resource delivered as a link can now show under both "Training" and "Links" at once, instead of being forced to choose one or the other.
 - Added a safety net for any existing item that was already saved with Category "Link": editing it still shows and preserves that value (labelled "Link (retired category)") rather than silently changing it to "Training" on save. New items simply don't offer "Link" as a choice going forward.
+
+## v0.2.6i — Console Bookings Goes Live
+- Bookings is no longer sample data. The Console now reads and writes a live `bookings` Firestore collection, matching how Customers, Projects and Library already work.
+- Added a real "New Booking" form (title, customer, type, status, date, time, duration, internal notes), replacing the non-functional placeholder dialog.
+- Added "Edit booking" and a genuine permanent "Delete booking" (bookings aren't referenced by any other collection, so a hard delete is safe, same reasoning as Library).
+- The customer a booking belongs to is locked during Edit, for the same reason as Projects — reassigning it would need extra bookkeeping this release doesn't attempt.
+- Date is now a real date field (not free text), so bookings sort chronologically instead of alphabetically; it's displayed to the admin in a friendly format (e.g. "21 Jul 2026") while stored in a sortable form underneath.
+- Added a `customerNotes` field to the booking record — not yet writable from anywhere (the Portal doesn't have a "My Meetings" view yet), but the Console detail panel already displays it if present, ready for the next release.
+- This is a deliberately manual, admin-maintained log for now: creating a booking here does not create or modify anything in Calendly, and Calendly bookings don't appear here automatically. Automatic two-way sync would require adding backend infrastructure (a Calendly webhook + Cloud Function) — a bigger decision, not part of this release.
+- Fixed stale "Sample data" labels on the Dashboard for Projects and Library, which have actually been live since earlier releases.

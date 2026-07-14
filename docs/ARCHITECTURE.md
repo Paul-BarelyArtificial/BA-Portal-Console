@@ -21,7 +21,7 @@ Both applications use one Firebase project.
 - `customers`
 - `projects`
 - `library`
-- `bookings` — planned live implementation
+- `bookings` — live, admin-maintained log (not yet auto-synced from Calendly)
 - `settings` — planned live implementation
 
 The previous `resources` collection belongs to the v0.2.3 model. It is not deleted automatically by v0.2.4.

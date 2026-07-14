@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.6h" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.6i" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.6h – Retire Link as a Category</div>
+        <div id="version-label">v0.2.6i – Console Bookings Goes Live</div>
       </div>
     </aside>
 
@@ -82,10 +82,10 @@
         </div>
 
         <div class="metric-grid">
-          <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Library items</span><strong id="metric-library">0</strong><small>Sample data</small></article>
-          <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Sample data</small></article>
+          <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Live data</small></article>
+          <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Live data</small></article>
+          <article class="metric-card"><span class="metric-label">Library items</span><strong id="metric-library">0</strong><small>Live data</small></article>
+          <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Live data</small></article>
         </div>
 
         <div class="content-grid two-column">
@@ -252,7 +252,7 @@
           <div>
             <p class="eyebrow">Bookings</p>
             <h2>Booking management</h2>
-            <p>Review training sessions, AI advice calls and project meetings. This release uses sample data only.</p>
+            <p>Review training sessions, AI advice calls and project meetings. Add a booking here once it's arranged in Calendly (or another way) to keep a record.</p>
           </div>
           <button class="primary-button" id="new-booking-button">+ New Booking</button>
         </div>
@@ -270,7 +270,7 @@
           </div>
         </div>
 
-        <div class="summary-row" id="booking-summary">Showing sample bookings</div>
+        <div class="summary-row" id="booking-summary">Loading bookings…</div>
 
         <div class="table-card">
           <table>
@@ -350,7 +350,7 @@
               <span class="badge">Calendly</span>
             </div>
             <div class="settings-form">
-              <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/new-meeting" disabled /></label>
+              <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/meet-with-barely-artificial" disabled /></label>
               <label>Default session length<input type="text" value="30 minutes" disabled /></label>
               <label>Time zone<input type="text" value="Europe/London" disabled /></label>
             </div>
@@ -386,7 +386,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.6h – Retire Link as a Category</span></div>
+              <div><strong>Console version</strong><span>v0.2.6i – Console Bookings Goes Live</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -474,20 +474,28 @@
   </dialog>
 
   <dialog id="booking-dialog" class="modal">
-    <div class="modal-header">
-      <h3>New Booking</h3>
-      <button class="icon-button" id="close-booking-dialog-button" aria-label="Close dialog">×</button>
-    </div>
-    <p>This is a placeholder for the future booking creation or Calendly import flow.</p>
-    <div class="form-preview">
-      <label>Booking title<input type="text" placeholder="Training Session" disabled /></label>
-      <label>Customer<input type="text" placeholder="Customer organisation" disabled /></label>
-      <label>Status<select disabled><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></label>
-    </div>
-    <div class="modal-actions">
-      <button class="secondary-button" id="cancel-booking-dialog-button">Close</button>
-      <button class="primary-button" disabled>Create later</button>
-    </div>
+    <form id="booking-form">
+      <div class="modal-header">
+        <h3 id="booking-dialog-title">New Booking</h3>
+        <button class="icon-button" id="close-booking-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Log a booking after it's arranged in Calendly (or another way). This does not create a Calendly event.</p>
+      <div class="form-preview">
+        <label>Booking title<input name="title" type="text" placeholder="Training Session" required /></label>
+        <label>Customer<select id="booking-customer" name="customerId" required><option value="">Select a customer</option></select></label>
+        <label>Type<select name="type"><option>Training</option><option>AI Advice</option><option>Project</option><option>Strategy</option></select></label>
+        <label>Status<select name="status"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></label>
+        <label>Date<input name="date" type="date" required /></label>
+        <label>Time<input name="time" type="time" /></label>
+        <label>Duration<input name="duration" type="text" placeholder="e.g. 30 minutes" /></label>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Internal notes about this booking"></textarea></label>
+      </div>
+      <p id="booking-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-booking-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-booking-button" type="submit">Create Booking</button>
+      </div>
+    </form>
   </dialog>
 
 
@@ -495,8 +503,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.6h"></script>
-  <script src="js/app.js?v=0.2.6h"></script>
-  <script src="js/auth.js?v=0.2.6h"></script>
+  <script src="js/firebase-config.js?v=0.2.6i"></script>
+  <script src="js/app.js?v=0.2.6i"></script>
+  <script src="js/auth.js?v=0.2.6i"></script>
 </body>
 </html>

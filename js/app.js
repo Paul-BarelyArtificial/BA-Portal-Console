@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6h – Retire Link as a Category";
+const APP_VERSION = "v0.2.6i – Console Bookings Goes Live";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -19,60 +19,9 @@ let unsubscribeProjects = null;
 let libraryItems = [];
 let unsubscribeLibrary = null;
 
-const bookings = [
-  {
-    id: "curzon-training",
-    title: "Training Session",
-    customer: "Curzon Outsourcing",
-    type: "Training",
-    status: "Upcoming",
-    date: "Tomorrow",
-    time: "10:00",
-    duration: "30 minutes",
-    owner: "Paul O’Brien",
-    source: "Calendly",
-    notes: "Portal walkthrough and resource library review."
-  },
-  {
-    id: "hospitality-ai-advice",
-    title: "AI Advice Call",
-    customer: "Hospitality Group",
-    type: "AI Advice",
-    status: "Upcoming",
-    date: "This week",
-    time: "14:30",
-    duration: "30 minutes",
-    owner: "Paul O’Brien",
-    source: "Calendly",
-    notes: "Discuss practical AI use cases for hospitality teams."
-  },
-  {
-    id: "restaurant-demo-review",
-    title: "Project Review",
-    customer: "Restaurant Demo Co",
-    type: "Project",
-    status: "Completed",
-    date: "Last week",
-    time: "11:00",
-    duration: "45 minutes",
-    owner: "Paul O’Brien",
-    source: "Manual",
-    notes: "Review completed demo portal and resource structure."
-  },
-  {
-    id: "example-cancelled",
-    title: "Strategy Session",
-    customer: "Example Customer",
-    type: "Strategy",
-    status: "Cancelled",
-    date: "Last month",
-    time: "16:00",
-    duration: "30 minutes",
-    owner: "Paul O’Brien",
-    source: "Manual",
-    notes: "Cancelled sample booking used for status filtering."
-  }
-];
+let bookings = [];
+let unsubscribeBookings = null;
+let editingBookingId = null;
 
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
@@ -115,6 +64,13 @@ function escapeHtml(value = "") {
 function formatFirestoreDate(timestamp) {
   if (!timestamp || typeof timestamp.toDate !== "function") return "Just now";
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(timestamp.toDate());
+}
+
+function formatBookingDateDisplay(isoDate) {
+  if (!isoDate) return "No date set";
+  const parsed = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return isoDate;
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(parsed);
 }
 
 function normaliseCustomer(document) {
@@ -227,6 +183,7 @@ function loadLiveCustomers() {
     renderCustomerTable();
     populateProjectCustomerOptions();
     populateLibraryCustomerOptions();
+    populateBookingCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -844,6 +801,172 @@ function getFilteredLibraryItems() {
   });
 }
 
+function normaliseBooking(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    title: data.title || "Untitled booking",
+    customerId: data.customerId || "",
+    customer: data.customerName || "Unassigned customer",
+    type: data.type || "Training",
+    status: data.status || "Upcoming",
+    date: data.date || "",
+    time: data.time || "",
+    duration: data.duration || "",
+    owner: data.owner || "Paul O’Brien",
+    source: data.source || "Manual",
+    notes: data.notes || "",
+    customerNotes: data.customerNotes || ""
+  };
+}
+
+function populateBookingCustomerOptions() {
+  const select = document.getElementById("booking-customer");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">Select a customer</option>' + customers
+    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
+    .join("");
+  if (customers.some((customer) => customer.id === selected)) select.value = selected;
+}
+
+function loadLiveBookings() {
+  if (unsubscribeBookings) unsubscribeBookings();
+  const summary = document.getElementById("booking-summary");
+  if (summary) summary.textContent = "Loading bookings…";
+
+  unsubscribeBookings = firebase.firestore().collection("bookings").orderBy("date").onSnapshot((snapshot) => {
+    bookings = snapshot.docs.map(normaliseBooking);
+    selectedBookingId = bookings.some((booking) => booking.id === selectedBookingId) ? selectedBookingId : null;
+    renderBookingTable();
+    updateDashboardMetrics();
+  }, (error) => {
+    console.error("Could not load bookings", error);
+    bookings = [];
+    renderBookingTable();
+    if (summary) summary.textContent = "Bookings could not be loaded. Check Firestore access.";
+  });
+}
+
+function resetBookingDialogToCreateMode() {
+  editingBookingId = null;
+  document.getElementById("booking-form")?.reset();
+  const title = document.getElementById("booking-dialog-title");
+  const saveButton = document.getElementById("save-booking-button");
+  const customerSelect = document.getElementById("booking-customer");
+  if (title) title.textContent = "New Booking";
+  if (saveButton) saveButton.textContent = "Create Booking";
+  if (customerSelect) customerSelect.disabled = false;
+}
+
+function openBookingDialogForEdit(booking) {
+  const form = document.getElementById("booking-form");
+  const dialog = document.getElementById("booking-dialog");
+  const title = document.getElementById("booking-dialog-title");
+  const saveButton = document.getElementById("save-booking-button");
+  const customerSelect = document.getElementById("booking-customer");
+  if (!form || !dialog) return;
+
+  editingBookingId = booking.id;
+  form.elements.namedItem("title").value = booking.title;
+  form.elements.namedItem("type").value = booking.type;
+  form.elements.namedItem("status").value = booking.status;
+  form.elements.namedItem("date").value = booking.date;
+  form.elements.namedItem("time").value = booking.time;
+  form.elements.namedItem("duration").value = booking.duration;
+  form.elements.namedItem("notes").value = booking.notes;
+  if (customerSelect) {
+    customerSelect.value = booking.customerId;
+    customerSelect.disabled = true;
+  }
+  if (title) title.textContent = "Edit Booking";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
+async function createBooking(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-booking-button");
+  const message = document.getElementById("booking-form-message");
+  const formData = new FormData(form);
+  const title = String(formData.get("title") || "").trim();
+
+  if (!title) {
+    message.textContent = "Enter a booking title.";
+    return;
+  }
+
+  const sharedFields = {
+    title,
+    type: formData.get("type") || "Training",
+    status: formData.get("status") || "Upcoming",
+    date: String(formData.get("date") || "").trim(),
+    time: String(formData.get("time") || "").trim(),
+    duration: String(formData.get("duration") || "").trim(),
+    notes: String(formData.get("notes") || "").trim()
+  };
+
+  saveButton.disabled = true;
+
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+
+    if (editingBookingId) {
+      message.textContent = "Saving changes…";
+      await firebase.firestore().collection("bookings").doc(editingBookingId).set({
+        ...sharedFields,
+        updatedAt: now
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      const customerId = String(formData.get("customerId") || "").trim();
+      const customer = customers.find((item) => item.id === customerId);
+      if (!customer) {
+        message.textContent = "Select a customer.";
+        saveButton.disabled = false;
+        return;
+      }
+
+      message.textContent = "Saving booking…";
+      await firebase.firestore().collection("bookings").add({
+        ...sharedFields,
+        customerId,
+        customerName: customer.company,
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        source: "Manual",
+        customerNotes: "",
+        createdAt: now,
+        updatedAt: now
+      });
+      message.textContent = "Booking created.";
+    }
+
+    form.reset();
+    setTimeout(() => {
+      document.getElementById("booking-dialog")?.close();
+      resetBookingDialogToCreateMode();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not save booking", error);
+    message.textContent = "Booking could not be saved. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function deleteBooking(booking) {
+  if (!confirm(`Delete the booking "${booking.title}" for ${booking.customer}? This cannot be undone.`)) return;
+  try {
+    await firebase.firestore().collection("bookings").doc(booking.id).delete();
+    if (selectedBookingId === booking.id) selectedBookingId = null;
+  } catch (error) {
+    console.error("Could not delete booking", error);
+    alert("This booking could not be deleted. Please try again.");
+  }
+}
+
 function getFilteredBookings() {
   return bookings.filter((booking) => {
     const matchesFilter = currentBookingFilter === "all" || booking.status === currentBookingFilter;
@@ -1096,12 +1219,12 @@ function renderBookingTable() {
     filteredBookings.forEach((booking) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${booking.title}</strong><span class="table-subtext">${booking.notes}</span></td>
-        <td>${booking.customer}</td>
-        <td>${booking.type}</td>
-        <td><span class="status ${getStatusClass(booking.status)}">${booking.status}</span></td>
-        <td>${booking.date}</td>
-        <td>${booking.time}</td>
+        <td><strong>${escapeHtml(booking.title)}</strong><span class="table-subtext">${escapeHtml(booking.notes)}</span></td>
+        <td>${escapeHtml(booking.customer)}</td>
+        <td>${escapeHtml(booking.type)}</td>
+        <td><span class="status ${getStatusClass(booking.status)}">${escapeHtml(booking.status)}</span></td>
+        <td>${escapeHtml(formatBookingDateDisplay(booking.date))}</td>
+        <td>${escapeHtml(booking.time)}</td>
         <td><button class="secondary-button compact" data-booking-id="${booking.id}">View</button></td>
       `;
       tableBody.appendChild(row);
@@ -1115,7 +1238,7 @@ function renderBookingTable() {
     });
   }
 
-  summary.textContent = `Showing ${filteredBookings.length} of ${bookings.length} sample bookings`;
+  summary.textContent = `Showing ${filteredBookings.length} of ${bookings.length} live bookings`;
 
   document.querySelectorAll("[data-booking-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1128,6 +1251,20 @@ function renderBookingTable() {
     button.addEventListener("click", () => {
       selectedBookingId = null;
       renderBookingTable();
+    });
+  });
+
+  document.querySelectorAll("[data-edit-booking]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const booking = bookings.find((item) => item.id === button.dataset.editBooking);
+      if (booking) openBookingDialogForEdit(booking);
+    });
+  });
+
+  document.querySelectorAll("[data-delete-booking]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const booking = bookings.find((item) => item.id === button.dataset.deleteBooking);
+      if (booking) deleteBooking(booking);
     });
   });
 }
@@ -1249,26 +1386,27 @@ function getBookingDetailMarkup(booking) {
       <div class="detail-header">
         <div>
           <p class="eyebrow">Booking record</p>
-          <h3>${booking.title}</h3>
+          <h3>${escapeHtml(booking.title)}</h3>
         </div>
         <div class="detail-header-actions">
-          <span class="status ${getStatusClass(booking.status)}">${booking.status}</span>
+          <span class="status ${getStatusClass(booking.status)}">${escapeHtml(booking.status)}</span>
           <button class="icon-button" data-close-booking-detail aria-label="Close booking detail">×</button>
         </div>
       </div>
       <div class="detail-grid">
-        <div><span>Customer</span><strong>${booking.customer}</strong></div>
-        <div><span>Type</span><strong>${booking.type}</strong></div>
-        <div><span>Date</span><strong>${booking.date}</strong></div>
-        <div><span>Time</span><strong>${booking.time}</strong></div>
-        <div><span>Duration</span><strong>${booking.duration}</strong></div>
-        <div><span>Source</span><strong>${booking.source}</strong></div>
-        <div><span>Owner</span><strong>${booking.owner}</strong></div>
+        <div><span>Customer</span><strong>${escapeHtml(booking.customer)}</strong></div>
+        <div><span>Type</span><strong>${escapeHtml(booking.type)}</strong></div>
+        <div><span>Date</span><strong>${escapeHtml(formatBookingDateDisplay(booking.date))}</strong></div>
+        <div><span>Time</span><strong>${escapeHtml(booking.time)}</strong></div>
+        <div><span>Duration</span><strong>${escapeHtml(booking.duration)}</strong></div>
+        <div><span>Source</span><strong>${escapeHtml(booking.source)}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(booking.owner)}</strong></div>
       </div>
-      <p>${booking.notes}</p>
+      <p>${escapeHtml(booking.notes || "No notes added.")}</p>
+      ${booking.customerNotes ? `<p class="muted"><strong>Customer's notes:</strong> ${escapeHtml(booking.customerNotes)}</p>` : ""}
       <div class="detail-actions">
-        <button class="secondary-button">Edit later</button>
-        <button class="secondary-button">Open calendar later</button>
+        <button class="secondary-button" data-edit-booking="${booking.id}">Edit booking</button>
+        <button class="secondary-button danger-button" data-delete-booking="${booking.id}">Delete booking</button>
       </div>
     </div>
   `;
@@ -1430,6 +1568,10 @@ function initialiseApp() {
   document.getElementById("library-form")?.addEventListener("submit", createLibraryItem);
   updateLibraryInputMode();
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
+  document.getElementById("new-booking-button")?.addEventListener("click", resetBookingDialogToCreateMode);
+  document.getElementById("cancel-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
+  document.getElementById("close-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
+  document.getElementById("booking-form")?.addEventListener("submit", createBooking);
   renderCustomerTable();
   renderProjectTable();
   renderLibraryTable();
@@ -1444,4 +1586,5 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveCustomers();
   loadLiveProjects();
   loadLiveLibrary();
+  loadLiveBookings();
 });

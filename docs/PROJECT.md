@@ -22,7 +22,7 @@ The Barely Artificial Admin Console is the operational side of the BA Platform. 
 - Live customers
 - Live projects
 - Live Library foundations
-- Sample bookings
+- Live bookings (admin-maintained log)
 - Placeholder reports and settings
 
 ## Related application
