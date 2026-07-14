@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8c – Storage Rules Quota Fix";
+const APP_VERSION = "v0.2.8d – Backfill Upload Quota Field";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -123,6 +123,16 @@ async function syncCustomerAccessMappings(customerList) {
   catch (error) { console.warn("Customer access mappings could not be synchronised", error); }
 }
 
+async function backfillUploadQuotaField(customerDocs) {
+  const database = firebase.firestore();
+  const writes = customerDocs
+    .filter((doc) => typeof (doc.data() || {}).uploadStorageUsedBytes !== "number")
+    .map((doc) => database.collection("customers").doc(doc.id).set({ uploadStorageUsedBytes: 0 }, { merge: true }));
+  if (!writes.length) return;
+  try { await Promise.all(writes); }
+  catch (error) { console.warn("Could not backfill upload quota field", error); }
+}
+
 function generateTempPassword() {
   const bytes = new Uint8Array(18);
   crypto.getRandomValues(bytes);
@@ -187,6 +197,7 @@ function loadLiveCustomers() {
   unsubscribeCustomers = database.collection("customers").orderBy("company").onSnapshot((snapshot) => {
     customers = snapshot.docs.map(normaliseCustomer);
     syncCustomerAccessMappings(customers);
+    backfillUploadQuotaField(snapshot.docs);
     selectedCustomerId = customers.some((customer) => customer.id === selectedCustomerId) ? selectedCustomerId : null;
     renderCustomerTable();
     populateProjectCustomerOptions();
