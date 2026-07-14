@@ -50,7 +50,14 @@ service cloud.firestore {
     }
 
     match /bookings/{bookingId} {
-      allow read, write: if isAdmin();
+      allow write: if isAdmin();
+      allow read: if isAdmin() || (
+        isSignedIn()
+        && resource.data.customerId == get(/databases/$(database)/documents/customerAccess/$(request.auth.token.email)).data.customerId
+      );
+      allow update: if isSignedIn()
+        && resource.data.customerId == get(/databases/$(database)/documents/customerAccess/$(request.auth.token.email)).data.customerId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["customerNotes", "updatedAt"]);
     }
 
     match /settings/{settingId} {

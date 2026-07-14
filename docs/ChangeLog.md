@@ -186,3 +186,11 @@ Initial Console foundation release.
 - Added a `customerNotes` field to the booking record — not yet writable from anywhere (the Portal doesn't have a "My Meetings" view yet), but the Console detail panel already displays it if present, ready for the next release.
 - This is a deliberately manual, admin-maintained log for now: creating a booking here does not create or modify anything in Calendly, and Calendly bookings don't appear here automatically. Automatic two-way sync would require adding backend infrastructure (a Calendly webhook + Cloud Function) — a bigger decision, not part of this release.
 - Fixed stale "Sample data" labels on the Dashboard for Projects and Library, which have actually been live since earlier releases.
+
+## Portal v0.2.6a — Updated Booking Link
+- Updated the Calendly booking link across the Portal (session cards and the Training page button) to the current real link.
+- Updated the same URL in the Console's Settings page placeholder field for consistency (display only, no functional change, so the Console version was not bumped for this).
+
+## Portal v0.2.6b — My Meetings
+- Added a "Your Meetings" section to the Portal's Book a Session page: customers now see their own bookings (Upcoming and Past), and can add notes visible to the admin in the Console's booking detail panel.
+- **Requires a Firestore rules update.** Updated `docs/firestore.rules.txt` — the `bookings` section now allows a signed-in customer to read their own bookings (matched via `customerAccess`, same pattern as Library) and to update only the `customerNotes` field, nothing else. This must be pasted into the Firebase Console's Firestore Rules editor and published before the Portal feature will work; until then customers will see a permissions error trying to load their meetings.

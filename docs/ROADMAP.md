@@ -19,6 +19,8 @@
 - **Console v0.2.6g** — File/Link Field Toggle Fix
 - **Console v0.2.6h** — Retire Link as a Category
 - **Console v0.2.6i** — Console Bookings Goes Live
+- **Portal v0.2.6a** — Updated Booking Link
+- **Portal v0.2.6b** — My Meetings
 
 ## Backlog (not yet scheduled)
 
@@ -27,12 +29,6 @@
 - Calendly webhook + Cloud Function to auto-sync real bookings into the `bookings` collection, instead of the current admin-maintained manual log — a backend infrastructure decision, deliberately deferred
 
 ## Next releases
-
-### Portal v0.2.6j — My Meetings
-
-- Customers see their own bookings (read-only, matched via `customerAccess`)
-- Customers can add/edit their own notes on a booking, visible to the admin in the Console
-- Firestore rules update required (customer read access to `bookings`, field-scoped write for notes only)
 
 ### Portal v0.2.7 — Customer Uploads
 
