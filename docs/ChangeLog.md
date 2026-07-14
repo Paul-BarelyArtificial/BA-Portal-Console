@@ -129,3 +129,13 @@ Initial Console foundation release.
 - Increased dropdown, input and textarea height and padding.
 - Increased spacing between form fields.
 - No Firebase schema or functional changes.
+
+## v0.2.6 — Portal Library Connection
+- Automatically maintains `customerAccess` mappings from customer contact email addresses, so a Portal sign-in email can be resolved to a Console customer record.
+- Prepares customer identity for Portal permissions ahead of Library visibility checks.
+
+## v0.2.6a — Customer Portal Invites
+- Added a "Send Portal Invite" action to the customer detail panel in the Console.
+- The Console creates the customer's Firebase Authentication account (via a secondary, isolated Firebase app instance so the signed-in administrator's session is unaffected) and Firebase emails the customer a link to set their own password.
+- Added `portalAccountCreated` and `portalInviteSentAt` fields to `customers` records, and the invite status is shown in the customer detail panel.
+- Fixed stale `?v=0.2.5`/`?v=0.2.3` cache-busting query strings on `css/styles.css`, `js/firebase-config.js`, `js/app.js` and `js/auth.js` that meant browsers with a previously cached Console could keep serving pre-v0.2.6 code after the v0.2.6 release.

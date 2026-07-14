@@ -9,6 +9,8 @@
 - **Console v0.2.3** — Live Resources
 - **Console v0.2.4** — Identity & Library Foundations
 - **Console v0.2.5** — Console Identity & Library Polish
+- **Console v0.2.6** — Portal Library Connection
+- **Console v0.2.6a** — Customer Portal Invites
 
 ## Next releases
 

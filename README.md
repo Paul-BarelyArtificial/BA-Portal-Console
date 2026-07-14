@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.6 – Portal Library Connection
+**Current version:** v0.2.6a – Customer Portal Invites
 
 ## Current features
 
@@ -10,6 +10,7 @@ Internal management application for the Barely Artificial Customer Portal.
 - Administrator authorisation using the Firestore `admins` collection
 - Live Dashboard metrics
 - Live Customers
+- Send Portal invites to customers, creating their Firebase Authentication account and emailing them a password-set link
 - Live Projects
 - Live Library foundations with file uploads and useful links
 - Internal, All Customers and Selected Customers visibility

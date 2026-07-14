@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6 – Portal Library Connection";
+const APP_VERSION = "v0.2.6a – Customer Portal Invites";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -126,7 +126,9 @@ function normaliseCustomer(document) {
     lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
     notes: data.notes || "No notes added.",
     contactName: data.contactName || "",
-    contactEmail: data.contactEmail || ""
+    contactEmail: data.contactEmail || "",
+    portalAccountCreated: Boolean(data.portalAccountCreated),
+    portalInviteSentAt: data.portalInviteSentAt ? formatFirestoreDate(data.portalInviteSentAt) : ""
   };
 }
 
@@ -146,6 +148,61 @@ async function syncCustomerAccessMappings(customerList) {
     });
   try { await Promise.all(writes); }
   catch (error) { console.warn("Customer access mappings could not be synchronised", error); }
+}
+
+function generateTempPassword() {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  return `${Array.from(bytes, (byte) => byte.toString(36)).join("").slice(0, 20)}Aa1!`;
+}
+
+function friendlyInviteError(error) {
+  const messages = {
+    "auth/invalid-email": "That contact email address is not valid.",
+    "auth/network-request-failed": "Could not reach Firebase. Check your connection and try again."
+  };
+  return messages[error?.code] || "Could not send the Portal invite. Try again.";
+}
+
+async function sendPortalInvite(customer) {
+  const email = (customer.contactEmail || "").trim().toLowerCase();
+  if (!email) return;
+
+  const statusEl = document.querySelector(`[data-invite-status="${customer.id}"]`);
+  const button = document.querySelector(`[data-send-invite="${customer.id}"]`);
+  if (button) button.disabled = true;
+  if (statusEl) statusEl.textContent = "Sending invite…";
+
+  try {
+    if (!customer.portalAccountCreated) {
+      let secondaryApp;
+      try { secondaryApp = firebase.app("PortalInvite"); }
+      catch (error) { secondaryApp = firebase.initializeApp(firebaseConfig, "PortalInvite"); }
+
+      try {
+        await secondaryApp.auth().createUserWithEmailAndPassword(email, generateTempPassword());
+      } catch (error) {
+        if (error.code !== "auth/email-already-in-use") throw error;
+      } finally {
+        await secondaryApp.auth().signOut().catch(() => {});
+        await secondaryApp.delete();
+      }
+    }
+
+    await auth.sendPasswordResetEmail(email);
+
+    await firebase.firestore().collection("customers").doc(customer.id).set({
+      portalAccountCreated: true,
+      portalInviteSentAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    if (statusEl) statusEl.textContent = `Invite sent to ${email}.`;
+  } catch (error) {
+    console.error("Could not send Portal invite", error);
+    if (statusEl) statusEl.textContent = friendlyInviteError(error);
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 function loadLiveCustomers() {
@@ -582,6 +639,13 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-send-invite]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customer = customers.find((item) => item.id === button.dataset.sendInvite);
+      if (customer) sendPortalInvite(customer);
+    });
+  });
+
   document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
@@ -769,12 +833,21 @@ function getCustomerDetailMarkup(customer) {
         <div><span>Users</span><strong>${customer.users}</strong></div>
         <div><span>Owner</span><strong>${escapeHtml(customer.owner)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(customer.lastUpdated)}</strong></div>
+        <div><span>Portal login</span><strong>${customer.portalAccountCreated ? "Invite sent" : "Not set up"}</strong></div>
       </div>
       <p>${escapeHtml(customer.notes)}</p>
       <div class="detail-actions">
         <button class="secondary-button">Edit later</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>
+        <button class="secondary-button" data-send-invite="${customer.id}" ${customer.contactEmail ? "" : "disabled"}>
+          ${customer.portalAccountCreated ? "Resend Portal invite" : "Send Portal invite"}
+        </button>
       </div>
+      <p class="muted" data-invite-status="${customer.id}">${
+        customer.contactEmail
+          ? (customer.portalInviteSentAt ? `Last invite sent ${escapeHtml(customer.portalInviteSentAt)}.` : "No invite sent yet.")
+          : "Add a contact email to this customer to send a Portal invite."
+      }</p>
     </div>
   `;
 }
