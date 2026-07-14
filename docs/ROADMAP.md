@@ -22,6 +22,7 @@
 - **Portal v0.2.6a** — Updated Booking Link
 - **Portal v0.2.6b** — My Meetings
 - **Portal v0.2.6c** — Personalised Navigation Labels
+- **Console v0.2.8** — Library Bulk Upload
 
 ## Backlog (not yet scheduled)
 
@@ -36,11 +37,6 @@
 - Controlled customer uploads
 - Customer source marker
 - Internal review state
-
-### Console v0.2.8 — Bulk Upload
-
-- Add multiple files efficiently
-- Apply shared metadata and visibility
 
 ### Platform v0.2.9 — UI Polish
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.6i" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.8" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.6i – Console Bookings Goes Live</div>
+        <div id="version-label">v0.2.8 – Library Bulk Upload</div>
       </div>
     </aside>
 
@@ -209,7 +209,10 @@
             <h2>Library management</h2>
             <p>Upload a file or add a useful link once, then control whether it is internal, available to every customer, or shared with selected customers.</p>
           </div>
-          <button class="primary-button" id="new-library-button">+ New Library Item</button>
+          <div class="console-header-actions">
+            <button class="secondary-button" id="bulk-upload-button">+ Bulk Upload</button>
+            <button class="primary-button" id="new-library-button">+ New Library Item</button>
+          </div>
         </div>
 
         <div class="toolbar">
@@ -386,7 +389,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.6i – Console Bookings Goes Live</span></div>
+              <div><strong>Console version</strong><span>v0.2.8 – Library Bulk Upload</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -473,6 +476,35 @@
     </form>
   </dialog>
 
+  <dialog id="bulk-upload-dialog" class="modal">
+    <form id="bulk-upload-form">
+      <div class="modal-heading">
+        <div><p class="eyebrow">Library</p><h2>Bulk Upload</h2></div>
+        <button class="icon-button" id="close-bulk-upload-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Upload several files at once. The settings below apply to every file — titles are taken from each filename.</p>
+      <div class="form-preview">
+        <label class="full-width">Files<input id="bulk-files" name="files" type="file" multiple required accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.zip" /></label>
+        <p id="bulk-file-list" class="muted full-width"></p>
+        <label>Category<select name="category"><option>Training</option><option>Document</option><option>Template</option><option>Download</option></select></label>
+        <label>Source<select name="source"><option>Barely Artificial</option><option>Customer</option></select></label>
+        <label>Visibility<select id="bulk-visibility" name="visibility"><option>Internal</option><option>All Customers</option><option>Selected Customers</option></select></label>
+        <label>Status<select name="status"><option>Draft</option><option>Published</option><option>Archived</option></select></label>
+        <label>Version<input name="version" value="1.0" /></label>
+        <fieldset id="bulk-customer-group" class="full-width checkbox-fieldset" hidden>
+          <legend>Selected customers</legend>
+          <div id="bulk-customers" class="checkbox-grid"></div>
+        </fieldset>
+      </div>
+      <progress id="bulk-upload-progress" class="upload-progress" value="0" max="100" hidden></progress>
+      <p id="bulk-upload-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-bulk-upload-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-bulk-upload-button" type="submit">Upload Files</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="booking-dialog" class="modal">
     <form id="booking-form">
       <div class="modal-header">
@@ -503,8 +535,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.6i"></script>
-  <script src="js/app.js?v=0.2.6i"></script>
-  <script src="js/auth.js?v=0.2.6i"></script>
+  <script src="js/firebase-config.js?v=0.2.8"></script>
+  <script src="js/app.js?v=0.2.8"></script>
+  <script src="js/auth.js?v=0.2.8"></script>
 </body>
 </html>

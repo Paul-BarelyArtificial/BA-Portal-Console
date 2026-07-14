@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.6i – Console Bookings Goes Live
+**Current version:** v0.2.8 – Library Bulk Upload
 
 ## Current features
 
@@ -13,6 +13,7 @@ Internal management application for the Barely Artificial Customer Portal.
 - Send Portal invites to customers, creating their Firebase Authentication account and emailing them a password-set link
 - Live Projects, with edit and archive/reactivate
 - Live Library, with metadata edit, archive/reactivate, and permanent delete (removes the uploaded file from Storage too)
+- Library bulk upload — add several files at once with shared category, source, visibility and status; each item's title is taken from its filename
 - Internal, All Customers and Selected Customers visibility
 - Live Bookings — an admin-maintained log (create/edit/delete) of sessions arranged in Calendly or another way; not yet auto-synced from Calendly itself
 - Placeholder Reports and Settings

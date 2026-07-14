@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6i – Console Bookings Goes Live";
+const APP_VERSION = "v0.2.8 – Library Bulk Upload";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -183,6 +183,7 @@ function loadLiveCustomers() {
     renderCustomerTable();
     populateProjectCustomerOptions();
     populateLibraryCustomerOptions();
+    populateBulkCustomerOptions();
     populateBookingCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
@@ -543,6 +544,154 @@ function validateLibraryFile(file) {
   if (file.size > maxBytes) return "Files must be 50 MB or smaller.";
   if (!allowedExtensions.includes(extension)) return "That file type is not supported yet.";
   return "";
+}
+
+function populateBulkCustomerOptions() {
+  const container = document.getElementById("bulk-customers");
+  if (!container) return;
+  container.innerHTML = customers.length
+    ? customers.map((customer) => `
+      <label class="checkbox-option">
+        <input type="checkbox" name="customerIds" value="${escapeHtml(customer.id)}">
+        <span>${escapeHtml(customer.company)}</span>
+      </label>`).join("")
+    : '<p class="muted">Create a customer before assigning selected-customer access.</p>';
+  updateBulkVisibilityMode();
+}
+
+function updateBulkVisibilityMode() {
+  const visibility = document.getElementById("bulk-visibility");
+  const customerGroup = document.getElementById("bulk-customer-group");
+  if (!visibility || !customerGroup) return;
+  customerGroup.hidden = visibility.value !== "Selected Customers";
+  customerGroup.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    input.disabled = customerGroup.hidden;
+  });
+}
+
+function titleFromFileName(fileName) {
+  const withoutExtension = fileName.includes(".") ? fileName.slice(0, fileName.lastIndexOf(".")) : fileName;
+  return withoutExtension.replace(/[_-]+/g, " ").trim() || fileName;
+}
+
+function updateBulkFileList() {
+  const fileInput = document.getElementById("bulk-files");
+  const fileList = document.getElementById("bulk-file-list");
+  if (!fileInput || !fileList) return;
+  const files = Array.from(fileInput.files || []);
+  fileList.textContent = files.length
+    ? `${files.length} file${files.length === 1 ? "" : "s"} selected: ${files.map((file) => file.name).join(", ")}`
+    : "";
+}
+
+function resetBulkUploadDialog() {
+  document.getElementById("bulk-upload-form")?.reset();
+  const message = document.getElementById("bulk-upload-message");
+  const progress = document.getElementById("bulk-upload-progress");
+  if (message) message.textContent = "";
+  if (progress) { progress.hidden = true; progress.value = 0; }
+  updateBulkFileList();
+  updateBulkVisibilityMode();
+}
+
+async function createBulkLibraryItems(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-bulk-upload-button");
+  const message = document.getElementById("bulk-upload-message");
+  const progress = document.getElementById("bulk-upload-progress");
+  const formData = new FormData(form);
+  const fileInput = document.getElementById("bulk-files");
+  const files = Array.from(fileInput?.files || []);
+  const visibility = String(formData.get("visibility") || "Internal");
+  const customerIds = formData.getAll("customerIds").map(String);
+  const selectedCustomers = customers.filter((customer) => customerIds.includes(customer.id));
+
+  if (!files.length) {
+    message.textContent = "Choose at least one file.";
+    return;
+  }
+  if (visibility === "Selected Customers" && customerIds.length === 0) {
+    message.textContent = "Select at least one customer, or choose a different visibility option.";
+    return;
+  }
+
+  const sharedFields = {
+    description: "",
+    source: formData.get("source") || "Barely Artificial",
+    visibility,
+    customerIds: visibility === "Selected Customers" ? customerIds : [],
+    customerNames: visibility === "Selected Customers" ? selectedCustomers.map((customer) => customer.company) : [],
+    category: formData.get("category") || "Document",
+    version: String(formData.get("version") || "1.0").trim() || "1.0",
+    status: formData.get("status") || "Draft"
+  };
+
+  saveButton.disabled = true;
+  progress.hidden = false;
+  progress.value = 0;
+
+  const succeeded = [];
+  const failed = [];
+
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    message.textContent = `Uploading ${index + 1} of ${files.length}: ${file.name}`;
+    const validationMessage = validateLibraryFile(file);
+    if (validationMessage) {
+      failed.push(`${file.name} (${validationMessage})`);
+      progress.value = Math.round(((index + 1) / files.length) * 100);
+      continue;
+    }
+
+    let uploadedRef = null;
+    try {
+      const libraryId = firebase.firestore().collection("library").doc().id;
+      const filePath = `library/${libraryId}/${safeStorageName(file.name)}`;
+      uploadedRef = firebase.storage().ref(filePath);
+      await new Promise((resolve, reject) => {
+        const uploadTask = uploadedRef.put(file, { contentType: file.type || "application/octet-stream" });
+        uploadTask.on("state_changed", () => {}, reject, resolve);
+      });
+      const downloadUrl = await uploadedRef.getDownloadURL();
+      const now = firebase.firestore.FieldValue.serverTimestamp();
+      await firebase.firestore().collection("library").doc(libraryId).set({
+        title: titleFromFileName(file.name),
+        ...sharedFields,
+        itemType: "File",
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        fileName: file.name,
+        filePath,
+        downloadUrl,
+        externalUrl: "",
+        size: file.size,
+        contentType: file.type || "application/octet-stream",
+        createdAt: now,
+        updatedAt: now
+      });
+      succeeded.push(file.name);
+    } catch (error) {
+      console.error("Could not upload file", file.name, error);
+      if (uploadedRef) {
+        try { await uploadedRef.delete(); } catch (cleanupError) { console.warn("Could not remove incomplete upload", cleanupError); }
+      }
+      failed.push(`${file.name} (upload failed)`);
+    }
+
+    progress.value = Math.round(((index + 1) / files.length) * 100);
+  }
+
+  saveButton.disabled = false;
+
+  if (failed.length === 0) {
+    message.textContent = `${succeeded.length} file${succeeded.length === 1 ? "" : "s"} uploaded.`;
+    setTimeout(() => {
+      document.getElementById("bulk-upload-dialog")?.close();
+      resetBulkUploadDialog();
+    }, 800);
+  } else {
+    message.textContent = `${succeeded.length} uploaded, ${failed.length} failed: ${failed.join(", ")}`;
+  }
 }
 
 function resetLibraryDialogToCreateMode() {
@@ -1567,6 +1716,13 @@ function initialiseApp() {
   document.getElementById("close-library-dialog-button")?.addEventListener("click", resetLibraryDialogToCreateMode);
   document.getElementById("library-form")?.addEventListener("submit", createLibraryItem);
   updateLibraryInputMode();
+  setupDialog("bulk-upload-dialog", "bulk-upload-button", "close-bulk-upload-dialog-button", "cancel-bulk-upload-dialog-button");
+  document.getElementById("bulk-upload-button")?.addEventListener("click", resetBulkUploadDialog);
+  document.getElementById("cancel-bulk-upload-dialog-button")?.addEventListener("click", resetBulkUploadDialog);
+  document.getElementById("close-bulk-upload-dialog-button")?.addEventListener("click", resetBulkUploadDialog);
+  document.getElementById("bulk-upload-form")?.addEventListener("submit", createBulkLibraryItems);
+  document.getElementById("bulk-visibility")?.addEventListener("change", updateBulkVisibilityMode);
+  document.getElementById("bulk-files")?.addEventListener("change", updateBulkFileList);
   setupDialog("booking-dialog", "new-booking-button", "close-booking-dialog-button", "cancel-booking-dialog-button");
   document.getElementById("new-booking-button")?.addEventListener("click", resetBookingDialogToCreateMode);
   document.getElementById("cancel-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);

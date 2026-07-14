@@ -194,3 +194,10 @@ Initial Console foundation release.
 ## Portal v0.2.6b — My Meetings
 - Added a "Your Meetings" section to the Portal's Book a Session page: customers now see their own bookings (Upcoming and Past), and can add notes visible to the admin in the Console's booking detail panel.
 - **Requires a Firestore rules update.** Updated `docs/firestore.rules.txt` — the `bookings` section now allows a signed-in customer to read their own bookings (matched via `customerAccess`, same pattern as Library) and to update only the `customerNotes` field, nothing else. This must be pasted into the Firebase Console's Firestore Rules editor and published before the Portal feature will work; until then customers will see a permissions error trying to load their meetings.
+
+## v0.2.8 — Library Bulk Upload
+- Added a "Bulk Upload" action next to "New Library Item" on the Library page. Lets you select multiple files at once and apply shared Category, Source, Visibility, Status and Version to all of them in one go, instead of repeating the New Library Item form per file.
+- Each uploaded item's title is taken automatically from its filename (extension removed, underscores/dashes turned into spaces) — there's no per-file title field, to keep the flow fast for genuinely bulk uploads.
+- Files are uploaded one at a time with live progress ("Uploading 2 of 5: filename.pdf"), so a slow connection or a large batch doesn't look stuck.
+- If some files fail (wrong type, over the 50 MB limit, or an upload error), the rest of the batch still completes — the summary message names exactly which files failed and why, rather than the whole batch aborting on one bad file.
+- Bulk Upload only creates File items (not Links), matching the roadmap's "add multiple files efficiently" scope. Use "New Library Item" for a single Link.
