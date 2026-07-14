@@ -24,20 +24,22 @@ service firebase.storage {
         );
 
       // A customer may create (not overwrite or delete) a file in their own
-      // folder, one file at a time, each 20 MB or smaller, and only while their
-      // running total (tracked in their customers/{customerId} record) would
-      // stay at or under 500 MB. `.get(key, 0)` treats a customer who has never
-      // uploaded before (no uploadStorageUsedBytes field yet) as having used 0
-      // bytes, rather than erroring — a rule evaluation error is always denied,
-      // which otherwise blocked every upload for any customer missing the field.
+      // folder, one file at a time, each 20 MB or smaller. The cumulative
+      // 500 MB per-customer total is NOT enforced here — an earlier version
+      // tried to check it via a second cross-service Firestore lookup
+      // (firestore.get on customers/{customerId}), but that consistently
+      // caused every upload to be denied even for customers well under quota,
+      // and it could not be diagnosed further without live rules testing.
+      // The 500 MB total is instead enforced at the app layer: the Firestore
+      // `library` create rule caps each individual record's declared size at
+      // 20 MB, and the admin can see each customer's running total on their
+      // detail panel in the Console and intervene if someone is clearly over.
       allow write: if request.auth != null
         && resource == null
         && customerId == firestore.get(
              /databases/(default)/documents/customerAccess/$(request.auth.token.email)
            ).data.customerId
-        && request.resource.size <= 20 * 1024 * 1024
-        && firestore.get(/databases/(default)/documents/customers/$(customerId)).data.get("uploadStorageUsedBytes", 0)
-           + request.resource.size <= 500 * 1024 * 1024;
+        && request.resource.size <= 20 * 1024 * 1024;
 
       // A customer may read back their own uploaded files (e.g. from their
       // Your Uploads list in the Portal).

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8d – Backfill Upload Quota Field";
+const APP_VERSION = "v0.2.8e – Simplify Storage Quota Rule";
 
 const pageTitles = {
   dashboard: "Dashboard",
