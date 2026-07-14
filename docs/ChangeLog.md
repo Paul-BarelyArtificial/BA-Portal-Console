@@ -146,3 +146,8 @@ Initial Console foundation release.
 - Added an "Archive customer" / "Reactivate customer" action (with a confirmation prompt) that sets the customer's status to Archived instead of permanently deleting the record — Projects and Library items already assigned to that customer are unaffected.
 - Added "Archived" as a customer status option and filter.
 - First of three planned releases (Customers, then Projects, then Library) adding Edit and Archive to the Console's core record types. Bookings is deliberately excluded — it is still sample data, not a live Firestore feature yet.
+
+## v0.2.6c — Archived Customers Lose Library Access
+- Clarified and implemented what "Archive customer" actually does: the customer keeps their Portal login (there is no way to disable a Firebase Authentication account from client-side code without adding backend/Admin SDK infrastructure), but their `customerAccess` mapping is now removed while archived, so the Portal shows them an empty Library — both "All Customers" and "Selected Customers" items disappear, not just the ones assigned specifically to them.
+- Reactivating a customer automatically restores their `customerAccess` mapping and Library visibility on the next Console sync — no separate action needed.
+- The customer detail panel now shows a note when a customer is archived, explaining they can still sign in but see no Library content.

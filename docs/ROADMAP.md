@@ -12,6 +12,7 @@
 - **Console v0.2.6** — Portal Library Connection
 - **Console v0.2.6a** — Customer Portal Invites
 - **Console v0.2.6b** — Customer Edit and Archive
+- **Console v0.2.6c** — Archived Customers Lose Library Access
 
 ## Next releases
 

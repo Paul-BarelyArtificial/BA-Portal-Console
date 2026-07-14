@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.6b – Customer Edit and Archive";
+const APP_VERSION = "v0.2.6c – Archived Customers Lose Library Access";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -140,7 +140,13 @@ async function syncCustomerAccessMappings(customerList) {
     .filter((customer) => customer.contactEmail)
     .map((customer) => {
       const email = customer.contactEmail.trim().toLowerCase();
-      return database.collection("customerAccess").doc(email).set({
+      const ref = database.collection("customerAccess").doc(email);
+      if (customer.status === "Archived") {
+        // Archived customers keep their Portal login but lose Library access:
+        // removing this mapping makes the Portal treat them as unlinked.
+        return ref.delete();
+      }
+      return ref.set({
         customerId: customer.id,
         customerName: customer.company,
         email,
@@ -905,6 +911,7 @@ function getCustomerDetailMarkup(customer) {
         <div><span>Contact email</span><strong>${escapeHtml(customer.contactEmail || "Not set")}</strong></div>
         <div><span>Portal login</span><strong>${customer.portalAccountCreated ? "Invite sent" : "Not set up"}</strong></div>
       </div>
+      ${customer.status === "Archived" ? `<p class="muted">This customer is archived. They can still sign in to the Portal, but their Library will show no items until reactivated.</p>` : ""}
       <p>${escapeHtml(customer.notes)}</p>
       <div class="detail-actions">
         <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>

@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.6b – Customer Edit and Archive
+**Current version:** v0.2.6c – Archived Customers Lose Library Access
 
 ## Current features
 
