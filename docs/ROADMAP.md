@@ -30,6 +30,11 @@
 - **Portal v0.2.6g** — Collection Box Colour Revert
 - **Portal v0.2.7** — Customer Uploads
 - **Console v0.2.8b** — Customer Upload Management
+- **Console v0.2.8c** — Storage Rules Quota Fix
+- **Console v0.2.8d** — Backfill Upload Quota Field
+- **Console v0.2.8e** — Simplify Storage Quota Rule
+- **Portal v0.2.7a** — Storage SDK Fix
+- **Portal v0.2.7b** — Quota Increment Fix
 
 ## Backlog (not yet scheduled)
 
@@ -37,6 +42,10 @@
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
 - Calendly webhook + Cloud Function to auto-sync real bookings into the `bookings` collection, instead of the current admin-maintained manual log — a backend infrastructure decision, deliberately deferred
 - Visually flag "internal preview" customer records (e.g. Paul's own account, added as a customer so he can preview the Portal with his existing login) so they're clearly distinct from real customers in the Console table
+- Restore a hard, Storage-rules-enforced 500 MB per-customer total limit (currently only tracked/visible, not blocked — see v0.2.8e) — likely needs Firebase's Rules Playground to diagnose properly
+- Console: a Library filter/tab for "Uploaded Docs" so customer submissions awaiting review are easy to find at a glance, instead of relying on typing "Customer" into search
+- Email alert (e.g. via EmailJS or similar client-side email service, to avoid needing a backend) when a customer uploads a document
+- Per-customer toggle to enable/disable the Customer Upload feature — on by default for new customers, with an admin switch to turn it off for a specific customer if needed
 
 ## Next releases
 

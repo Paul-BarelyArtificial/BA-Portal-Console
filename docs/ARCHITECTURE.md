@@ -22,6 +22,7 @@ Both applications use one Firebase project.
 - `projects`
 - `library`
 - `bookings` — live, admin-maintained log (not yet auto-synced from Calendly)
+- `timeSessions` — admin-only time-tracking entries against existing customers/projects (in progress, v0.2.10+)
 - `settings` — planned live implementation
 
 The previous `resources` collection belongs to the v0.2.3 model. It is not deleted automatically by v0.2.4.

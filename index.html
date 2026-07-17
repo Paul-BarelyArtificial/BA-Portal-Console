@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.8e" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.10" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -55,7 +55,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.8e – Simplify Storage Quota Rule</div>
+        <div id="version-label">v0.2.10 – Time Tracker Foundations</div>
       </div>
     </aside>
 
@@ -389,7 +389,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.8e – Simplify Storage Quota Rule</span></div>
+              <div><strong>Console version</strong><span>v0.2.10 – Time Tracker Foundations</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -433,6 +433,7 @@
         <label>Customer<select id="project-customer" name="customerId" required><option value="">Select a customer</option></select></label>
         <label>Status<select name="status"><option>Planning</option><option>Active</option><option>Completed</option><option>Archived</option></select></label>
         <label>Type<select name="type"><option>Consulting</option><option>Training</option><option>Portal</option><option>Internal Product</option><option>Other</option></select></label>
+        <label>Budgeted hours<input name="budgetHours" type="number" min="0" step="0.25" placeholder="Leave blank if unknown" /></label>
         <label class="full-width">Description<textarea name="description" rows="3" placeholder="What will this project deliver?"></textarea></label>
       </div>
       <p id="project-form-message" class="form-message" aria-live="polite"></p>
@@ -539,8 +540,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.8e"></script>
-  <script src="js/app.js?v=0.2.8e"></script>
-  <script src="js/auth.js?v=0.2.8e"></script>
+  <script src="js/firebase-config.js?v=0.2.10"></script>
+  <script src="js/app.js?v=0.2.10"></script>
+  <script src="js/auth.js?v=0.2.10"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.8e – Simplify Storage Quota Rule";
+const APP_VERSION = "v0.2.10 – Time Tracker Foundations";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -316,7 +316,8 @@ function normaliseProject(documentSnapshot) {
     owner: data.owner || "Paul O’Brien",
     created: formatFirestoreDate(data.createdAt),
     lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
-    description: data.description || "No description added."
+    description: data.description || "No description added.",
+    budgetHours: data.budgetHours === undefined || data.budgetHours === null ? null : Number(data.budgetHours)
   };
 }
 
@@ -372,6 +373,7 @@ function openProjectDialogForEdit(project) {
   form.elements.namedItem("name").value = project.name;
   form.elements.namedItem("status").value = project.status;
   form.elements.namedItem("type").value = project.type;
+  form.elements.namedItem("budgetHours").value = project.budgetHours === null ? "" : project.budgetHours;
   form.elements.namedItem("description").value = project.description === "No description added." ? "" : project.description;
   if (customerSelect) {
     customerSelect.value = project.customerId;
@@ -395,6 +397,13 @@ async function createProject(event) {
     return;
   }
 
+  const budgetHoursRaw = String(formData.get("budgetHours") || "").trim();
+  const budgetHours = budgetHoursRaw === "" ? null : Number(budgetHoursRaw);
+  if (budgetHours !== null && (Number.isNaN(budgetHours) || budgetHours < 0)) {
+    message.textContent = "Enter a valid budgeted hours value, or leave it blank.";
+    return;
+  }
+
   saveButton.disabled = true;
 
   try {
@@ -407,6 +416,7 @@ async function createProject(event) {
         name,
         status: formData.get("status") || "Planning",
         type: formData.get("type") || "Consulting",
+        budgetHours,
         description: String(formData.get("description") || "").trim(),
         updatedAt: now
       }, { merge: true });
@@ -434,6 +444,7 @@ async function createProject(event) {
           customerName: customer.company,
           status: formData.get("status") || "Planning",
           type: formData.get("type") || "Consulting",
+          budgetHours,
           description: String(formData.get("description") || "").trim(),
           owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
           resources: 0,
@@ -1531,6 +1542,7 @@ function getProjectDetailMarkup(project) {
         <div><span>Owner</span><strong>${escapeHtml(project.owner)}</strong></div>
         <div><span>Created</span><strong>${escapeHtml(project.created)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(project.lastUpdated)}</strong></div>
+        <div><span>Budgeted hours</span><strong>${project.budgetHours === null ? "Not set" : project.budgetHours}</strong></div>
       </div>
       <p>${escapeHtml(project.description)}</p>
       <div class="detail-actions">

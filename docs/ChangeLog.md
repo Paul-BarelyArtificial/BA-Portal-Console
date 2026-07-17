@@ -234,3 +234,10 @@ Initial Console foundation release.
 - The Storage rule now only checks: signed in, uploading to your own customer folder, creating (not overwriting/deleting), and 20 MB or smaller per file — all patterns already proven working elsewhere in this project's rules.
 - The 500 MB per-customer running total is still tracked (via the existing, already-proven Firestore-native rule that lets a customer increase only their own `uploadStorageUsedBytes` field, by at most one file's worth at a time) and still shown on the customer detail panel — it's just no longer a hard block enforced by Storage itself. Practically: a single upload still can't exceed 20 MB, and you can see and act on a customer's running total in the Console if it's getting large. A determined customer could technically exceed the 500 MB total by repeated uploads without being auto-blocked; an accidental one won't, since single files stay capped.
 - If you want the hard per-customer total limit enforced by Storage itself restored later, that likely needs Firebase's Rules Playground (Firebase Console → Storage → Rules → Rules Playground) to get a specific, testable reason for denial — something I can't access directly.
+
+## v0.2.10 — Time Tracker Foundations
+- First piece of the new Time Tracker feature: data model foundations, no new UI section yet.
+- Added an optional "Budgeted hours" field to the existing New/Edit Project form and detail panel — reuses the existing live `projects` collection, no duplicate data.
+- Added the new `timeSessions` Firestore collection (admin-only) that upcoming Time Tracker releases will log against, tied to existing Customers and Projects rather than duplicating them.
+- **Requires a Firestore rules update** (`timeSessions` is admin-only, same pattern as `projects`/`resources`) — see `docs/firestore.rules.txt`.
+- No Time Tracker page yet — that's next.
