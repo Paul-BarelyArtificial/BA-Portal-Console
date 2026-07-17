@@ -241,3 +241,9 @@ Initial Console foundation release.
 - Added the new `timeSessions` Firestore collection (admin-only) that upcoming Time Tracker releases will log against, tied to existing Customers and Projects rather than duplicating them.
 - **Requires a Firestore rules update** (`timeSessions` is admin-only, same pattern as `projects`/`resources`) — see `docs/firestore.rules.txt`.
 - No Time Tracker page yet — that's next.
+
+## v0.2.10a — Project Time Totals
+- Added a "Time" column to the Projects table showing hours logged (in both hours and billable days), plus budget/remaining or over-budget, or "No budget set" — computed live from the `timeSessions` collection, which is still empty until the Log Session feature ships, so every project currently shows 0h logged.
+- The Console now keeps a live listener on `timeSessions`, ready for Step 2 (Log Session) to write to.
+- The Project detail panel now shows Time logged, Budgeted hours, and Remaining/Over budget as three separate rows.
+- "Hours per billing day" defaults to 8 for now — the Time Tracker page will make this configurable in a later step.

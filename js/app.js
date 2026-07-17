@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.10 – Time Tracker Foundations";
+const APP_VERSION = "v0.2.10a – Project Time Totals";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -22,6 +22,10 @@ let unsubscribeLibrary = null;
 let bookings = [];
 let unsubscribeBookings = null;
 let editingBookingId = null;
+
+let timeSessions = [];
+let unsubscribeTimeSessions = null;
+let hoursPerDay = 8;
 
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
@@ -348,6 +352,52 @@ function loadLiveProjects() {
     renderProjectTable();
     if (summary) summary.textContent = "Projects could not be loaded. Check Firestore access.";
   });
+}
+
+function loadLiveTimeSessions() {
+  if (unsubscribeTimeSessions) unsubscribeTimeSessions();
+
+  unsubscribeTimeSessions = firebase.firestore().collection("timeSessions").onSnapshot((snapshot) => {
+    timeSessions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    renderProjectTable();
+  }, (error) => {
+    console.error("Could not load time sessions", error);
+    timeSessions = [];
+  });
+}
+
+function getProjectHoursUsed(projectId) {
+  return timeSessions
+    .filter((session) => session.projectId === projectId)
+    .reduce((total, session) => total + (Number(session.hours) || 0), 0);
+}
+
+function formatHoursAndDays(hours) {
+  const days = hours / (hoursPerDay || 8);
+  return `${hours.toFixed(2)}h (${days.toFixed(2)}d)`;
+}
+
+function getProjectTimeSummary(project) {
+  const used = getProjectHoursUsed(project.id);
+  if (project.budgetHours === null) {
+    return { used, budget: null, remaining: null };
+  }
+  return { used, budget: project.budgetHours, remaining: project.budgetHours - used };
+}
+
+function getProjectTimeCellMarkup(project) {
+  const summary = getProjectTimeSummary(project);
+  if (summary.budget === null) {
+    return `<span class="table-subtext">${formatHoursAndDays(summary.used)} logged</span><span class="table-subtext">No budget set</span>`;
+  }
+  const overBudget = summary.remaining < 0;
+  const remainingLabel = overBudget
+    ? `${formatHoursAndDays(Math.abs(summary.remaining))} over budget`
+    : `${formatHoursAndDays(summary.remaining)} remaining`;
+  return `
+    <span class="table-subtext">${formatHoursAndDays(summary.used)} of ${formatHoursAndDays(summary.budget)}</span>
+    <span class="table-subtext ${overBudget ? "over-budget-text" : ""}">${remainingLabel}</span>
+  `;
 }
 
 function resetProjectDialogToCreateMode() {
@@ -1273,7 +1323,7 @@ function renderProjectTable() {
   tableBody.innerHTML = "";
 
   if (filteredProjects.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No projects match your search.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="8" class="empty-table">No projects match your search.</td></tr>`;
   } else {
     filteredProjects.forEach((project) => {
       const row = document.createElement("tr");
@@ -1283,6 +1333,7 @@ function renderProjectTable() {
         <td><span class="status ${getStatusClass(project.status)}">${escapeHtml(project.status)}</span></td>
         <td>${escapeHtml(project.type)}</td>
         <td>${project.resources}</td>
+        <td>${getProjectTimeCellMarkup(project)}</td>
         <td>${escapeHtml(project.lastUpdated)}</td>
         <td><button class="secondary-button compact" data-project-id="${project.id}">View</button></td>
       `;
@@ -1291,7 +1342,7 @@ function renderProjectTable() {
       if (selectedProjectId === project.id) {
         const detailRow = document.createElement("tr");
         detailRow.className = "inline-detail-row";
-        detailRow.innerHTML = `<td colspan="7">${getProjectDetailMarkup(project)}</td>`;
+        detailRow.innerHTML = `<td colspan="8">${getProjectDetailMarkup(project)}</td>`;
         tableBody.appendChild(detailRow);
       }
     });
@@ -1523,6 +1574,7 @@ function getCustomerDetailMarkup(customer) {
 }
 
 function getProjectDetailMarkup(project) {
+  const timeSummary = getProjectTimeSummary(project);
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
       <div class="detail-header">
@@ -1542,7 +1594,9 @@ function getProjectDetailMarkup(project) {
         <div><span>Owner</span><strong>${escapeHtml(project.owner)}</strong></div>
         <div><span>Created</span><strong>${escapeHtml(project.created)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(project.lastUpdated)}</strong></div>
-        <div><span>Budgeted hours</span><strong>${project.budgetHours === null ? "Not set" : project.budgetHours}</strong></div>
+        <div><span>Time logged</span><strong>${formatHoursAndDays(timeSummary.used)}</strong></div>
+        <div><span>Budgeted hours</span><strong>${timeSummary.budget === null ? "Not set" : formatHoursAndDays(timeSummary.budget)}</strong></div>
+        ${timeSummary.budget !== null ? `<div><span>${timeSummary.remaining < 0 ? "Over budget by" : "Remaining"}</span><strong class="${timeSummary.remaining < 0 ? "over-budget-text" : ""}">${formatHoursAndDays(Math.abs(timeSummary.remaining))}</strong></div>` : ""}
       </div>
       <p>${escapeHtml(project.description)}</p>
       <div class="detail-actions">
@@ -1806,4 +1860,5 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveProjects();
   loadLiveLibrary();
   loadLiveBookings();
+  loadLiveTimeSessions();
 });
