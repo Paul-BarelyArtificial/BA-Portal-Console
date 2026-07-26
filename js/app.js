@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.10a – Project Time Totals";
+const APP_VERSION = "v0.2.10b – Time Tracker: Log Session";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -6,6 +6,7 @@ const pageTitles = {
   projects: "Projects",
   library: "Library",
   bookings: "Bookings",
+  timeTracker: "Time Tracker",
   reports: "Reports",
   settings: "Settings"
 };
@@ -208,6 +209,7 @@ function loadLiveCustomers() {
     populateLibraryCustomerOptions();
     populateBulkCustomerOptions();
     populateBookingCustomerOptions();
+    populateTimeSessionCustomerOptions();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -1089,6 +1091,112 @@ function populateBookingCustomerOptions() {
   if (customers.some((customer) => customer.id === selected)) select.value = selected;
 }
 
+function populateTimeSessionCustomerOptions() {
+  const select = document.getElementById("time-session-customer");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">Select a customer</option>' + customers
+    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
+    .join("");
+  if (customers.some((customer) => customer.id === selected)) select.value = selected;
+}
+
+function populateTimeSessionProjectOptions(customerId) {
+  const select = document.getElementById("time-session-project");
+  if (!select) return;
+  const selected = select.value;
+
+  if (!customerId) {
+    select.innerHTML = '<option value="">Select a customer first</option>';
+    select.disabled = true;
+    return;
+  }
+
+  const customerProjects = projects.filter((project) => project.customerId === customerId);
+  if (customerProjects.length === 0) {
+    select.innerHTML = '<option value="">No projects for this customer yet</option>';
+    select.disabled = true;
+    return;
+  }
+
+  select.innerHTML = '<option value="">Select a project</option>' + customerProjects
+    .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`)
+    .join("");
+  select.disabled = false;
+  if (customerProjects.some((project) => project.id === selected)) select.value = selected;
+}
+
+function nextSessionNumber(projectId) {
+  return timeSessions.filter((session) => session.projectId === projectId).length + 1;
+}
+
+function resetTimeSessionDialog() {
+  document.getElementById("time-session-form")?.reset();
+  const message = document.getElementById("time-session-form-message");
+  const title = document.getElementById("time-session-dialog-title");
+  const saveButton = document.getElementById("save-time-session-button");
+  if (message) message.textContent = "";
+  if (title) title.textContent = "Log Session";
+  if (saveButton) saveButton.textContent = "Save Session";
+  populateTimeSessionProjectOptions("");
+  const dateInput = document.querySelector('#time-session-form [name="date"]');
+  if (dateInput) dateInput.valueAsDate = new Date();
+}
+
+async function createTimeSession(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-time-session-button");
+  const message = document.getElementById("time-session-form-message");
+  const formData = new FormData(form);
+
+  const customerId = String(formData.get("customerId") || "").trim();
+  const projectId = String(formData.get("projectId") || "").trim();
+  const sessionNumber = Number(formData.get("sessionNumber"));
+  const date = String(formData.get("date") || "").trim();
+  const hours = Number(formData.get("hours"));
+  const reason = String(formData.get("reason") || "").trim();
+
+  const customer = customers.find((item) => item.id === customerId);
+  const project = projects.find((item) => item.id === projectId);
+
+  if (!customer || !project || !date || !reason || Number.isNaN(hours) || Number.isNaN(sessionNumber)) {
+    message.textContent = "Please fill in all fields.";
+    return;
+  }
+
+  saveButton.disabled = true;
+  message.textContent = "Saving session…";
+
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    await firebase.firestore().collection("timeSessions").add({
+      customerId,
+      customerName: customer.company,
+      projectId,
+      projectName: project.name,
+      sessionNumber,
+      date,
+      hours,
+      reason,
+      userName: document.getElementById("admin-profile")?.textContent || "Admin",
+      createdAt: now,
+      updatedAt: now
+    });
+    message.textContent = "Session saved.";
+    setTimeout(() => {
+      document.getElementById("time-session-dialog")?.close();
+      resetTimeSessionDialog();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not save time session", error);
+    message.textContent = "Could not save the session. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
 function loadLiveBookings() {
   if (unsubscribeBookings) unsubscribeBookings();
   const summary = document.getElementById("booking-summary");
@@ -1845,6 +1953,18 @@ function initialiseApp() {
   document.getElementById("cancel-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
   document.getElementById("close-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
   document.getElementById("booking-form")?.addEventListener("submit", createBooking);
+  setupDialog("time-session-dialog", "new-time-session-button", "close-time-session-dialog-button", "cancel-time-session-dialog-button");
+  document.getElementById("new-time-session-button")?.addEventListener("click", resetTimeSessionDialog);
+  document.getElementById("cancel-time-session-dialog-button")?.addEventListener("click", resetTimeSessionDialog);
+  document.getElementById("close-time-session-dialog-button")?.addEventListener("click", resetTimeSessionDialog);
+  document.getElementById("time-session-form")?.addEventListener("submit", createTimeSession);
+  document.getElementById("time-session-customer")?.addEventListener("change", (event) => {
+    populateTimeSessionProjectOptions(event.target.value);
+    document.getElementById("time-session-number").value = "";
+  });
+  document.getElementById("time-session-project")?.addEventListener("change", (event) => {
+    document.getElementById("time-session-number").value = event.target.value ? nextSessionNumber(event.target.value) : "";
+  });
   renderCustomerTable();
   renderProjectTable();
   renderLibraryTable();

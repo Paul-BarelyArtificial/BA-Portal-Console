@@ -247,3 +247,10 @@ Initial Console foundation release.
 - The Console now keeps a live listener on `timeSessions`, ready for Step 2 (Log Session) to write to.
 - The Project detail panel now shows Time logged, Budgeted hours, and Remaining/Over budget as three separate rows.
 - "Hours per billing day" defaults to 8 for now — the Time Tracker page will make this configurable in a later step.
+
+## v0.2.10b — Time Tracker: Log Session
+- New "Time Tracker" section in the Console nav, with a "+ Log Session" action.
+- Log Session dialog: pick a Customer, then a Project (filtered to that customer's own projects), a session number that auto-fills to the next number for that project (existing session count + 1) and can still be overridden, Date (defaults to today), Time spent in hours, and a Reason.
+- Sessions save to the `timeSessions` collection, immediately reflected in the Projects page's Time column and detail panel (built in v0.2.10a) since both read from the same live data.
+- No session history view or edit/delete yet — that's the next step. For now, totals on the Projects page are the way to confirm a session was logged.
+- No Firestore rules change needed — the `timeSessions` write rule from v0.2.10 already covers this.

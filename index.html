@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.10a" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.10b" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -50,12 +50,13 @@
         <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
         <button class="nav-item" data-page="library"><span>▤</span>Library</button>
         <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
+        <button class="nav-item" data-page="timeTracker"><span>◔</span>Time Tracker</button>
         <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
         <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.10a – Project Time Totals</div>
+        <div id="version-label">v0.2.10b – Time Tracker: Log Session</div>
       </div>
     </aside>
 
@@ -294,6 +295,17 @@
         </div>
       </section>
 
+      <section id="timeTracker" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Time Tracker</p>
+            <h2>Log time</h2>
+            <p>Log time spent per customer and project. See running totals, budget and remaining time on the Projects page — full session history is coming in the next update.</p>
+          </div>
+          <button class="primary-button" id="new-time-session-button">+ Log Session</button>
+        </div>
+      </section>
+
       <section id="reports" class="page">
 <div class="console-header"><div><p class="eyebrow">Reports</p><h2>Reporting</h2></div></div>
 <div class="metric-grid">
@@ -390,7 +402,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.10a – Project Time Totals</span></div>
+              <div><strong>Console version</strong><span>v0.2.10b – Time Tracker: Log Session</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -536,13 +548,35 @@
     </form>
   </dialog>
 
+  <dialog id="time-session-dialog" class="modal">
+    <form id="time-session-form">
+      <div class="modal-header">
+        <h3 id="time-session-dialog-title">Log Session</h3>
+        <button class="icon-button" id="close-time-session-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Log time spent on a customer's project.</p>
+      <div class="form-preview">
+        <label>Customer<select id="time-session-customer" name="customerId" required><option value="">Select a customer</option></select></label>
+        <label>Project<select id="time-session-project" name="projectId" required disabled><option value="">Select a customer first</option></select></label>
+        <label>Session number<input id="time-session-number" name="sessionNumber" type="number" min="1" step="1" required /></label>
+        <label>Date<input name="date" type="date" required /></label>
+        <label>Time spent (hours)<input name="hours" type="number" min="0" step="0.25" placeholder="e.g. 1.5" required /></label>
+        <label class="full-width">Reason<textarea name="reason" rows="3" placeholder="What did you work on?" required></textarea></label>
+      </div>
+      <p id="time-session-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-time-session-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-time-session-button" type="submit">Save Session</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.10a"></script>
-  <script src="js/app.js?v=0.2.10a"></script>
-  <script src="js/auth.js?v=0.2.10a"></script>
+  <script src="js/firebase-config.js?v=0.2.10b"></script>
+  <script src="js/app.js?v=0.2.10b"></script>
+  <script src="js/auth.js?v=0.2.10b"></script>
 </body>
 </html>

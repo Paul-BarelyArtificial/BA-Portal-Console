@@ -35,8 +35,29 @@
 - **Console v0.2.8e** — Simplify Storage Quota Rule
 - **Portal v0.2.7a** — Storage SDK Fix
 - **Portal v0.2.7b** — Quota Increment Fix
+- **Console v0.2.10** — Time Tracker Foundations (budgetHours field, timeSessions collection)
+- **Console v0.2.10a** — Project Time Totals (Time column + detail panel figures)
+- **Console v0.2.10b** — Time Tracker: Log Session (new nav page + Log Session dialog)
+
+## In progress
+
+### Time Tracker (Console-only, no Portal changes)
+
+Started 2026-07-17. Reference prototype and full requirements are in the conversation history; short version: log time per customer/project (Customer, Session Number, Date, Time Spent, Reason), show logged/budgeted/remaining in both hours and billable days, reusing the existing `customers`/`projects` collections plus the new `timeSessions` collection and `projects.budgetHours` field (both already live as of v0.2.10/v0.2.10a). A new Time Tracker nav page with a working Log Session dialog shipped in v0.2.10b.
+
+Remaining steps, in order:
+- **Step 3:** Time Tracker dashboard view (project totals/budget/remaining, reusing the math already built for the Projects table) + inline session history per project with Edit/Delete
+- **Step 4:** "Hours per billing day" setting, self-contained within the Time Tracker page (confirmed decision — not on the existing Settings page), replacing the current hardcoded default of 8
 
 ## Backlog (not yet scheduled)
+
+- **New: CRM / Leads tracking** (requested 2026-07-17, not yet scoped in detail):
+  - A Leads section in the Console, separate from live Customers/Projects.
+  - Each lead tracked through a status such as Hot/Cold (exact stages TBD).
+  - Shows projected income per lead.
+  - A lead must be associated with either an existing Customer or a new (not-yet-real) prospective one, and similarly either an existing Project or a new prospective one.
+  - When a contract is signed, a prospective Customer/Project on a lead can be "promoted" into a real record in the live `customers`/`projects` collections — needs a clear conversion flow, not a duplicate data entry.
+  - Not yet designed — needs the same kind of scoping conversation as Time Tracker got before building starts.
 
 - Improve Library/Customer/Project search and filtering beyond basic text match
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
@@ -46,6 +67,11 @@
 - Console: a Library filter/tab for "Uploaded Docs" so customer submissions awaiting review are easy to find at a glance, instead of relying on typing "Customer" into search
 - Email alert (e.g. via EmailJS or similar client-side email service, to avoid needing a backend) when a customer uploads a document
 - Per-customer toggle to enable/disable the Customer Upload feature — on by default for new customers, with an admin switch to turn it off for a specific customer if needed
+- **Backup and restore for Firestore/Storage data** (requested 2026-07-17) — real customer, project, library, booking and time-tracking data now lives here, with no backup story yet. Options to weigh when scoping this properly:
+  - Google Cloud's own Firestore export/import (via the Cloud Console or `gcloud` CLI) — covers all Firestore data, no custom code needed, but is a Google Cloud Console task rather than something inside the Console app, and needs the Blaze (pay-as-you-go) billing plan enabled.
+  - A custom "Export data" button in the Console that downloads a JSON snapshot of the Firestore collections — simple, no backend, fits the existing architecture, but Firestore-only (wouldn't include uploaded files in Storage, and a matching "Import/restore" flow needs care to avoid silently overwriting live data).
+  - Uploaded files (Library, customer uploads) live in Storage separately from Firestore and would need their own backup approach regardless of which option above is chosen.
+  - True scheduled/automatic backups likely need a Cloud Function — the same "add a backend" decision already deferred elsewhere on this list.
 
 ## Next releases
 
@@ -54,3 +80,4 @@
 - Final consistency review
 - Mobile and accessibility checks
 - Empty states and helpful messages
+- Imagery/visual polish (requested 2026-07-17) — icons, illustrations, hero images or similar to make the Console and Portal feel more designed rather than purely functional. Not yet scoped: what kind of imagery, which pages, original artwork vs. stock/AI-generated — needs a proper conversation before building, same as everything else on this list.
