@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.10c – Time Tracker: History & Totals";
+const APP_VERSION = "v0.2.10d – Session History Overflow Fix";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -1294,19 +1294,21 @@ function getTimeSessionHistoryMarkup(project) {
         <div><p class="eyebrow">Session history</p><h3>${escapeHtml(project.name)} — ${escapeHtml(project.customer)}</h3></div>
         <button class="icon-button" data-close-time-tracker-detail aria-label="Close detail">×</button>
       </div>
-      <table class="inline-detail-table">
-        <thead>
-          <tr>
-            <th>Session #</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Reason</th>
-            <th>Logged by</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="inline-detail-table-wrap">
+        <table class="inline-detail-table">
+          <thead>
+            <tr>
+              <th>Session #</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Reason</th>
+              <th>Logged by</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     </div>
   `;
 }

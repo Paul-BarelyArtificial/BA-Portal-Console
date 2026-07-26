@@ -262,3 +262,8 @@ Initial Console foundation release.
 - Delete removes a session permanently after a confirmation prompt naming the session number, date and project.
 - No Firestore rules change needed — the existing admin-only `timeSessions` rule already covers update and delete, not just create.
 - This completes the core Time Tracker feature. Only Step 4 remains: making "hours per billing day" configurable (currently a hardcoded default of 8).
+
+## v0.2.10d — Session History Overflow Fix
+- Fixed a real bug in the session history table (not just cosmetic padding): it lives inside `.table-card`, which clips anything wider than the container (`overflow: hidden`). With 6 columns, the table could exceed the available width and silently hide its rightmost columns — Reason, Logged by and the Edit/Delete buttons — with no visual indication anything was missing.
+- Wrapped the table in its own horizontally-scrolling container, so if it's ever too wide for the window, it scrolls instead of hiding data.
+- Tightened the table's own padding and made most columns single-line (except Reason, which wraps normally) so it needs to scroll far less often in practice.
