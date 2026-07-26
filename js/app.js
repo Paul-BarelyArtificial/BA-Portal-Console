@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.10b – Time Tracker: Log Session";
+const APP_VERSION = "v0.2.10c – Time Tracker: History & Totals";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -27,6 +27,9 @@ let editingBookingId = null;
 let timeSessions = [];
 let unsubscribeTimeSessions = null;
 let hoursPerDay = 8;
+let selectedTimeTrackerProjectId = null;
+let editingTimeSessionId = null;
+let currentTimeTrackerSearch = "";
 
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
@@ -346,12 +349,13 @@ function loadLiveProjects() {
     projects = snapshot.docs.map(normaliseProject);
     selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
     renderProjectTable();
-    
+    renderTimeTrackerTable();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load projects", error);
     projects = [];
     renderProjectTable();
+    renderTimeTrackerTable();
     if (summary) summary.textContent = "Projects could not be loaded. Check Firestore access.";
   });
 }
@@ -362,6 +366,7 @@ function loadLiveTimeSessions() {
   unsubscribeTimeSessions = firebase.firestore().collection("timeSessions").onSnapshot((snapshot) => {
     timeSessions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     renderProjectTable();
+    renderTimeTrackerTable();
   }, (error) => {
     console.error("Could not load time sessions", error);
     timeSessions = [];
@@ -1131,16 +1136,46 @@ function nextSessionNumber(projectId) {
 }
 
 function resetTimeSessionDialog() {
+  editingTimeSessionId = null;
   document.getElementById("time-session-form")?.reset();
   const message = document.getElementById("time-session-form-message");
   const title = document.getElementById("time-session-dialog-title");
   const saveButton = document.getElementById("save-time-session-button");
+  const customerSelect = document.getElementById("time-session-customer");
+  const projectSelect = document.getElementById("time-session-project");
   if (message) message.textContent = "";
   if (title) title.textContent = "Log Session";
   if (saveButton) saveButton.textContent = "Save Session";
+  if (customerSelect) customerSelect.disabled = false;
   populateTimeSessionProjectOptions("");
+  if (projectSelect) projectSelect.disabled = true;
   const dateInput = document.querySelector('#time-session-form [name="date"]');
   if (dateInput) dateInput.valueAsDate = new Date();
+}
+
+function openTimeSessionDialogForEdit(session) {
+  const dialog = document.getElementById("time-session-dialog");
+  const form = document.getElementById("time-session-form");
+  const title = document.getElementById("time-session-dialog-title");
+  const saveButton = document.getElementById("save-time-session-button");
+  const customerSelect = document.getElementById("time-session-customer");
+  if (!dialog || !form) return;
+
+  editingTimeSessionId = session.id;
+  customerSelect.value = session.customerId;
+  populateTimeSessionProjectOptions(session.customerId);
+  document.getElementById("time-session-project").value = session.projectId;
+  document.getElementById("time-session-number").value = session.sessionNumber;
+  form.elements.namedItem("date").value = session.date;
+  form.elements.namedItem("hours").value = session.hours;
+  form.elements.namedItem("reason").value = session.reason;
+
+  customerSelect.disabled = true;
+  document.getElementById("time-session-project").disabled = true;
+
+  if (title) title.textContent = "Edit Session";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
 }
 
 async function createTimeSession(event) {
@@ -1150,40 +1185,60 @@ async function createTimeSession(event) {
   const message = document.getElementById("time-session-form-message");
   const formData = new FormData(form);
 
-  const customerId = String(formData.get("customerId") || "").trim();
-  const projectId = String(formData.get("projectId") || "").trim();
   const sessionNumber = Number(formData.get("sessionNumber"));
   const date = String(formData.get("date") || "").trim();
   const hours = Number(formData.get("hours"));
   const reason = String(formData.get("reason") || "").trim();
 
-  const customer = customers.find((item) => item.id === customerId);
-  const project = projects.find((item) => item.id === projectId);
-
-  if (!customer || !project || !date || !reason || Number.isNaN(hours) || Number.isNaN(sessionNumber)) {
+  if (!date || !reason || Number.isNaN(hours) || Number.isNaN(sessionNumber)) {
     message.textContent = "Please fill in all fields.";
     return;
   }
 
   saveButton.disabled = true;
-  message.textContent = "Saving session…";
 
   try {
     const now = firebase.firestore.FieldValue.serverTimestamp();
-    await firebase.firestore().collection("timeSessions").add({
-      customerId,
-      customerName: customer.company,
-      projectId,
-      projectName: project.name,
-      sessionNumber,
-      date,
-      hours,
-      reason,
-      userName: document.getElementById("admin-profile")?.textContent || "Admin",
-      createdAt: now,
-      updatedAt: now
-    });
-    message.textContent = "Session saved.";
+
+    if (editingTimeSessionId) {
+      message.textContent = "Saving changes…";
+      await firebase.firestore().collection("timeSessions").doc(editingTimeSessionId).set({
+        sessionNumber,
+        date,
+        hours,
+        reason,
+        updatedAt: now
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      const customerId = String(formData.get("customerId") || "").trim();
+      const projectId = String(formData.get("projectId") || "").trim();
+      const customer = customers.find((item) => item.id === customerId);
+      const project = projects.find((item) => item.id === projectId);
+
+      if (!customer || !project) {
+        message.textContent = "Select a customer and project.";
+        saveButton.disabled = false;
+        return;
+      }
+
+      message.textContent = "Saving session…";
+      await firebase.firestore().collection("timeSessions").add({
+        customerId,
+        customerName: customer.company,
+        projectId,
+        projectName: project.name,
+        sessionNumber,
+        date,
+        hours,
+        reason,
+        userName: document.getElementById("admin-profile")?.textContent || "Admin",
+        createdAt: now,
+        updatedAt: now
+      });
+      message.textContent = "Session saved.";
+    }
+
     setTimeout(() => {
       document.getElementById("time-session-dialog")?.close();
       resetTimeSessionDialog();
@@ -1195,6 +1250,126 @@ async function createTimeSession(event) {
   } finally {
     saveButton.disabled = false;
   }
+}
+
+async function deleteTimeSession(session) {
+  if (!confirm(`Delete session #${session.sessionNumber} (${session.date}) for ${session.projectName}? This cannot be undone.`)) return;
+  try {
+    await firebase.firestore().collection("timeSessions").doc(session.id).delete();
+  } catch (error) {
+    console.error("Could not delete time session", error);
+    alert("This session could not be deleted. Please try again.");
+  }
+}
+
+function getFilteredTimeTrackerProjects() {
+  const search = currentTimeTrackerSearch.toLowerCase();
+  return projects.filter((project) => `${project.name} ${project.customer}`.toLowerCase().includes(search));
+}
+
+function getTimeSessionHistoryMarkup(project) {
+  const sessions = timeSessions
+    .filter((session) => session.projectId === project.id)
+    .sort((a, b) => (a.sessionNumber || 0) - (b.sessionNumber || 0));
+
+  const rows = sessions.length
+    ? sessions.map((session) => `
+        <tr>
+          <td>${escapeHtml(String(session.sessionNumber ?? ""))}</td>
+          <td>${escapeHtml(session.date || "")}</td>
+          <td>${formatHoursAndDays(Number(session.hours) || 0)}</td>
+          <td>${escapeHtml(session.reason || "")}</td>
+          <td>${escapeHtml(session.userName || "")}</td>
+          <td>
+            <button class="secondary-button compact" data-edit-time-session="${session.id}">Edit</button>
+            <button class="secondary-button compact danger-button" data-delete-time-session="${session.id}">Delete</button>
+          </td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="6" class="empty-table">No sessions logged yet for this project.</td></tr>`;
+
+  return `
+    <div class="inline-detail">
+      <div class="detail-heading">
+        <div><p class="eyebrow">Session history</p><h3>${escapeHtml(project.name)} — ${escapeHtml(project.customer)}</h3></div>
+        <button class="icon-button" data-close-time-tracker-detail aria-label="Close detail">×</button>
+      </div>
+      <table class="inline-detail-table">
+        <thead>
+          <tr>
+            <th>Session #</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Reason</th>
+            <th>Logged by</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderTimeTrackerTable() {
+  const tableBody = document.getElementById("time-tracker-table");
+  const summary = document.getElementById("time-tracker-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredProjects = getFilteredTimeTrackerProjects();
+  tableBody.innerHTML = "";
+
+  if (filteredProjects.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" class="empty-table">No projects match your search.</td></tr>`;
+  } else {
+    filteredProjects.forEach((project) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${escapeHtml(project.name)}</strong></td>
+        <td>${escapeHtml(project.customer)}</td>
+        <td>${getProjectTimeCellMarkup(project)}</td>
+        <td><button class="secondary-button compact" data-time-tracker-project-id="${project.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedTimeTrackerProjectId === project.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="4">${getTimeSessionHistoryMarkup(project)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} projects`;
+
+  document.querySelectorAll("[data-time-tracker-project-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedTimeTrackerProjectId = selectedTimeTrackerProjectId === button.dataset.timeTrackerProjectId ? null : button.dataset.timeTrackerProjectId;
+      renderTimeTrackerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-time-tracker-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedTimeTrackerProjectId = null;
+      renderTimeTrackerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-edit-time-session]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const session = timeSessions.find((item) => item.id === button.dataset.editTimeSession);
+      if (session) openTimeSessionDialogForEdit(session);
+    });
+  });
+
+  document.querySelectorAll("[data-delete-time-session]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const session = timeSessions.find((item) => item.id === button.dataset.deleteTimeSession);
+      if (session) deleteTimeSession(session);
+    });
+  });
 }
 
 function loadLiveBookings() {
@@ -1965,10 +2140,18 @@ function initialiseApp() {
   document.getElementById("time-session-project")?.addEventListener("change", (event) => {
     document.getElementById("time-session-number").value = event.target.value ? nextSessionNumber(event.target.value) : "";
   });
+  const timeTrackerSearchInput = document.getElementById("time-tracker-search");
+  if (timeTrackerSearchInput) {
+    timeTrackerSearchInput.addEventListener("input", (event) => {
+      currentTimeTrackerSearch = event.target.value;
+      renderTimeTrackerTable();
+    });
+  }
   renderCustomerTable();
   renderProjectTable();
   renderLibraryTable();
   renderBookingTable();
+  renderTimeTrackerTable();
   updateDashboardMetrics();
 }
 

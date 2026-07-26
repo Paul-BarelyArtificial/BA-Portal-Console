@@ -254,3 +254,11 @@ Initial Console foundation release.
 - Sessions save to the `timeSessions` collection, immediately reflected in the Projects page's Time column and detail panel (built in v0.2.10a) since both read from the same live data.
 - No session history view or edit/delete yet — that's the next step. For now, totals on the Projects page are the way to confirm a session was logged.
 - No Firestore rules change needed — the `timeSessions` write rule from v0.2.10 already covers this.
+
+## v0.2.10c — Time Tracker: History & Totals
+- The Time Tracker page now has its own project overview table (Project, Customer, Time — reusing the exact same totals/budget/remaining logic already built for the Projects page), with search and a "View" action per project.
+- Clicking "View" expands a full session history for that project: session number, date, time (hours and days), reason, who logged it, and Edit/Delete actions per session — same inline-expand pattern used throughout the rest of the Console.
+- Edit reopens the Log Session dialog pre-filled, with Customer and Project locked (same reasoning as elsewhere: reassigning would need extra bookkeeping this doesn't attempt) — only session number, date, hours and reason can change.
+- Delete removes a session permanently after a confirmation prompt naming the session number, date and project.
+- No Firestore rules change needed — the existing admin-only `timeSessions` rule already covers update and delete, not just create.
+- This completes the core Time Tracker feature. Only Step 4 remains: making "hours per billing day" configurable (currently a hardcoded default of 8).

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.10b" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.10c" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -56,7 +56,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.10b – Time Tracker: Log Session</div>
+        <div id="version-label">v0.2.10c – Time Tracker: History & Totals</div>
       </div>
     </aside>
 
@@ -300,9 +300,32 @@
           <div>
             <p class="eyebrow">Time Tracker</p>
             <h2>Log time</h2>
-            <p>Log time spent per customer and project. See running totals, budget and remaining time on the Projects page — full session history is coming in the next update.</p>
+            <p>Log time spent per customer and project, and see totals, budget and remaining time at a glance. Click a project for its full session history.</p>
           </div>
           <button class="primary-button" id="new-time-session-button">+ Log Session</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="time-tracker-search">
+            <span>Search</span>
+            <input id="time-tracker-search" type="search" placeholder="Search projects or customers..." autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="summary-row" id="time-tracker-summary">Loading projects…</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Customer</th>
+                <th>Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="time-tracker-table"></tbody>
+          </table>
         </div>
       </section>
 
@@ -402,7 +425,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.10b – Time Tracker: Log Session</span></div>
+              <div><strong>Console version</strong><span>v0.2.10c – Time Tracker: History & Totals</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -575,8 +598,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.10b"></script>
-  <script src="js/app.js?v=0.2.10b"></script>
-  <script src="js/auth.js?v=0.2.10b"></script>
+  <script src="js/firebase-config.js?v=0.2.10c"></script>
+  <script src="js/app.js?v=0.2.10c"></script>
+  <script src="js/auth.js?v=0.2.10c"></script>
 </body>
 </html>

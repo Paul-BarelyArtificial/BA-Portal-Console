@@ -97,6 +97,7 @@ h3 { margin-bottom: 8px; }
 time { color: var(--accent); white-space: nowrap; }
 .page-intro { margin-bottom: 20px; max-width: 760px; }
 .table-card { overflow: hidden; }
+.inline-detail-table { margin-top: 16px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 16px 18px; text-align: left; border-bottom: 1px solid var(--line); }
 th { color: var(--muted); font-size: 13px; font-weight: 650; }
