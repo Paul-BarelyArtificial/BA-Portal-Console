@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.10d – Session History Overflow Fix";
+const APP_VERSION = "v0.2.10e – Hours Per Billing Day Setting";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -27,6 +27,7 @@ let editingBookingId = null;
 let timeSessions = [];
 let unsubscribeTimeSessions = null;
 let hoursPerDay = 8;
+let unsubscribeTimeTrackerSettings = null;
 let selectedTimeTrackerProjectId = null;
 let editingTimeSessionId = null;
 let currentTimeTrackerSearch = "";
@@ -371,6 +372,45 @@ function loadLiveTimeSessions() {
     console.error("Could not load time sessions", error);
     timeSessions = [];
   });
+}
+
+function loadTimeTrackerSettings() {
+  if (unsubscribeTimeTrackerSettings) unsubscribeTimeTrackerSettings();
+
+  unsubscribeTimeTrackerSettings = firebase.firestore().collection("settings").doc("timeTracker").onSnapshot((doc) => {
+    hoursPerDay = Number((doc.data() || {}).hoursPerDay) || 8;
+    const input = document.getElementById("hours-per-day-input");
+    if (input && document.activeElement !== input) input.value = hoursPerDay;
+    renderProjectTable();
+    renderTimeTrackerTable();
+  }, (error) => {
+    console.error("Could not load Time Tracker settings", error);
+  });
+}
+
+async function saveTimeTrackerSettings(event) {
+  event.preventDefault();
+  const input = document.getElementById("hours-per-day-input");
+  const message = document.getElementById("time-tracker-settings-message");
+  const value = Number(input.value);
+
+  if (!value || value <= 0) {
+    message.textContent = "Enter a value greater than 0.";
+    return;
+  }
+
+  message.textContent = "Saving…";
+  try {
+    await firebase.firestore().collection("settings").doc("timeTracker").set({
+      hoursPerDay: value,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    message.textContent = "Saved.";
+    setTimeout(() => { message.textContent = ""; }, 2000);
+  } catch (error) {
+    console.error("Could not save Time Tracker settings", error);
+    message.textContent = "Could not save. Please try again.";
+  }
 }
 
 function getProjectHoursUsed(projectId) {
@@ -2149,6 +2189,9 @@ function initialiseApp() {
       renderTimeTrackerTable();
     });
   }
+  document.getElementById("time-tracker-settings-form")?.addEventListener("submit", saveTimeTrackerSettings);
+  const hoursPerDayInput = document.getElementById("hours-per-day-input");
+  if (hoursPerDayInput) hoursPerDayInput.value = hoursPerDay;
   renderCustomerTable();
   renderProjectTable();
   renderLibraryTable();
@@ -2166,4 +2209,5 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveLibrary();
   loadLiveBookings();
   loadLiveTimeSessions();
+  loadTimeTrackerSettings();
 });

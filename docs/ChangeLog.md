@@ -267,3 +267,9 @@ Initial Console foundation release.
 - Fixed a real bug in the session history table (not just cosmetic padding): it lives inside `.table-card`, which clips anything wider than the container (`overflow: hidden`). With 6 columns, the table could exceed the available width and silently hide its rightmost columns — Reason, Logged by and the Edit/Delete buttons — with no visual indication anything was missing.
 - Wrapped the table in its own horizontally-scrolling container, so if it's ever too wide for the window, it scrolls instead of hiding data.
 - Tightened the table's own padding and made most columns single-line (except Reason, which wraps normally) so it needs to scroll far less often in practice.
+
+## v0.2.10e — Hours Per Billing Day Setting
+- Added a "Billing day length" setting directly on the Time Tracker page (self-contained there, as decided — not on the main Settings page), replacing the hardcoded default of 8 hours per day used everywhere hours-to-days conversion happens.
+- Stored in the existing `settings` collection (`settings/timeTracker`, field `hoursPerDay`) — no new collection, and no Firestore rules change needed since `settings/{settingId}` was already admin-only read/write.
+- Changing it live-updates every hours/days figure across the Console immediately (Projects page Time column, Project detail panel, Time Tracker overview and session history) since they all read from the same `hoursPerDay` value.
+- This completes the Time Tracker feature end to end.

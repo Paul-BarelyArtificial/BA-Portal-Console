@@ -39,15 +39,8 @@
 - **Console v0.2.10a** — Project Time Totals (Time column + detail panel figures)
 - **Console v0.2.10b** — Time Tracker: Log Session (new nav page + Log Session dialog)
 - **Console v0.2.10c** — Time Tracker: History & Totals (project overview table + session history with Edit/Delete)
-
-## In progress
-
-### Time Tracker (Console-only, no Portal changes)
-
-Started 2026-07-17. Core feature is functionally complete as of v0.2.10c: log time per customer/project, project overview with logged/budgeted/remaining in both hours and billable days, full session history with edit/delete — all reusing the existing `customers`/`projects` collections plus the new `timeSessions` collection and `projects.budgetHours` field.
-
-Remaining step:
-- **Step 4:** "Hours per billing day" setting, self-contained within the Time Tracker page (confirmed decision — not on the existing Settings page), replacing the current hardcoded default of 8
+- **Console v0.2.10d** — Session History Overflow Fix
+- **Console v0.2.10e** — Hours Per Billing Day Setting (Time Tracker feature complete)
 
 ## Backlog (not yet scheduled)
 
