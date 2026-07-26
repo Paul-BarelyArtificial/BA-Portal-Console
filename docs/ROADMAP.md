@@ -41,16 +41,10 @@
 - **Console v0.2.10c** — Time Tracker: History & Totals (project overview table + session history with Edit/Delete)
 - **Console v0.2.10d** — Session History Overflow Fix
 - **Console v0.2.10e** — Hours Per Billing Day Setting (Time Tracker feature complete)
+- **Console v0.2.10f** — Settings Panel Padding Fix
+- **Console v0.2.11** — Leads Pipeline (Cold/Warm/Hot/Won/Lost, projected income, promote to real Customer/Project)
 
 ## Backlog (not yet scheduled)
-
-- **New: CRM / Leads tracking** (requested 2026-07-17, not yet scoped in detail):
-  - A Leads section in the Console, separate from live Customers/Projects.
-  - Each lead tracked through a status such as Hot/Cold (exact stages TBD).
-  - Shows projected income per lead.
-  - A lead must be associated with either an existing Customer or a new (not-yet-real) prospective one, and similarly either an existing Project or a new prospective one.
-  - When a contract is signed, a prospective Customer/Project on a lead can be "promoted" into a real record in the live `customers`/`projects` collections — needs a clear conversion flow, not a duplicate data entry.
-  - Not yet designed — needs the same kind of scoping conversation as Time Tracker got before building starts.
 
 - Improve Library/Customer/Project search and filtering beyond basic text match
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.2.10e" />
+  <link rel="stylesheet" href="css/styles.css?v=0.2.11" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -46,6 +46,7 @@
 
       <nav class="nav-menu" aria-label="Console navigation">
         <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-page="leads"><span>◎</span>Leads</button>
         <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
         <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
         <button class="nav-item" data-page="library"><span>▤</span>Library</button>
@@ -56,7 +57,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.2.10e – Hours Per Billing Day Setting</div>
+        <div id="version-label">v0.2.11 – Leads Pipeline</div>
       </div>
     </aside>
 
@@ -112,6 +113,50 @@
               <li>Connect the Customer Portal to the live Library in v0.2.6.</li>
             </ol>
           </section>
+        </div>
+      </section>
+
+      <section id="leads" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Leads</p>
+            <h2>Lead pipeline</h2>
+            <p>Track prospects through Cold, Warm and Hot, then promote a Won lead into a real Customer and Project.</p>
+          </div>
+          <button class="primary-button" id="new-lead-button">+ New Lead</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="lead-search">
+            <span>Search</span>
+            <input id="lead-search" type="search" placeholder="Search leads..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Lead status filters">
+            <button class="lead-filter-button filter-button active" data-lead-filter="all">All</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Cold">Cold</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Warm">Warm</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Hot">Hot</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Won">Won</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Lost">Lost</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="lead-summary">Loading leads…</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>Customer</th>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Projected income</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="leads-table"></tbody>
+          </table>
         </div>
       </section>
 
@@ -436,7 +481,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.2.10e – Hours Per Billing Day Setting</span></div>
+              <div><strong>Console version</strong><span>v0.2.11 – Leads Pipeline</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -445,6 +490,36 @@
       </section>
     </main>
   </div>
+
+  <dialog id="lead-dialog" class="modal">
+    <form id="lead-form">
+      <div class="modal-header">
+        <h3 id="lead-dialog-title">New Lead</h3>
+        <button class="icon-button" id="close-lead-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Track a prospect. You can link it to an existing Customer/Project, or describe a new one — either can be promoted to the real thing once the lead is Won.</p>
+      <div class="form-preview">
+        <label class="full-width">Lead name<input name="name" type="text" required placeholder="e.g. Acme Corp — Website Rebuild" /></label>
+
+        <label>Customer<select id="lead-customer-mode" name="customerMode"><option value="existing">Existing customer</option><option value="new">New (prospective) customer</option></select></label>
+        <label id="lead-customer-existing-group">Select customer<select id="lead-existing-customer" name="existingCustomerId"><option value="">Select a customer</option></select></label>
+        <label id="lead-customer-new-group" class="full-width" hidden>New customer name<input id="lead-new-customer-name" name="newCustomerName" type="text" placeholder="Prospective company name" /></label>
+
+        <label>Project<select id="lead-project-mode" name="projectMode"><option value="existing">Existing project</option><option value="new">New (prospective) project</option></select></label>
+        <label id="lead-project-existing-group">Select project<select id="lead-existing-project" name="existingProjectId"><option value="">Select a customer first</option></select></label>
+        <label id="lead-project-new-group" class="full-width" hidden>New project name<input id="lead-new-project-name" name="newProjectName" type="text" placeholder="Prospective project name" /></label>
+
+        <label>Status<select name="status"><option>Cold</option><option>Warm</option><option>Hot</option><option>Won</option><option>Lost</option></select></label>
+        <label>Projected income (£)<input name="projectedIncome" type="number" min="0" step="1" placeholder="e.g. 5000" /></label>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Context, next steps, anything useful"></textarea></label>
+      </div>
+      <p id="lead-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-lead-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-lead-button" type="submit">Create Lead</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="customer-dialog" class="modal">
     <form id="customer-form">
@@ -609,8 +684,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.2.10e"></script>
-  <script src="js/app.js?v=0.2.10e"></script>
-  <script src="js/auth.js?v=0.2.10e"></script>
+  <script src="js/firebase-config.js?v=0.2.11"></script>
+  <script src="js/app.js?v=0.2.11"></script>
+  <script src="js/auth.js?v=0.2.11"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
-const APP_VERSION = "v0.2.10e – Hours Per Billing Day Setting";
+const APP_VERSION = "v0.2.11 – Leads Pipeline";
 
 const pageTitles = {
   dashboard: "Dashboard",
+  leads: "Leads",
   customers: "Customers",
   projects: "Projects",
   library: "Library",
@@ -28,6 +29,13 @@ let timeSessions = [];
 let unsubscribeTimeSessions = null;
 let hoursPerDay = 8;
 let unsubscribeTimeTrackerSettings = null;
+
+let leads = [];
+let unsubscribeLeads = null;
+let selectedLeadId = null;
+let editingLeadId = null;
+let currentLeadFilter = "all";
+let currentLeadSearch = "";
 let selectedTimeTrackerProjectId = null;
 let editingTimeSessionId = null;
 let currentTimeTrackerSearch = "";
@@ -214,6 +222,8 @@ function loadLiveCustomers() {
     populateBulkCustomerOptions();
     populateBookingCustomerOptions();
     populateTimeSessionCustomerOptions();
+    populateLeadCustomerOptions();
+    renderLeadsTable();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load customers", error);
@@ -351,6 +361,7 @@ function loadLiveProjects() {
     selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
     renderProjectTable();
     renderTimeTrackerTable();
+    renderLeadsTable();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load projects", error);
@@ -1414,6 +1425,486 @@ function renderTimeTrackerTable() {
   });
 }
 
+// ---------- Leads ----------
+
+function formatCurrency(value) {
+  const number = Number(value) || 0;
+  return `£${number.toLocaleString("en-GB", { maximumFractionDigits: 0 })}`;
+}
+
+function normaliseLead(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    name: data.name || "Unnamed lead",
+    status: data.status || "Cold",
+    projectedIncome: Number(data.projectedIncome || 0),
+    notes: data.notes || "",
+    owner: data.owner || "Paul O’Brien",
+    isNewCustomer: Boolean(data.isNewCustomer),
+    customerId: data.customerId || "",
+    customerName: data.customerName || "",
+    isNewProject: Boolean(data.isNewProject),
+    projectId: data.projectId || "",
+    projectName: data.projectName || "",
+    convertedCustomerId: data.convertedCustomerId || "",
+    convertedProjectId: data.convertedProjectId || "",
+    lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt)
+  };
+}
+
+function loadLiveLeads() {
+  if (unsubscribeLeads) unsubscribeLeads();
+  const summary = document.getElementById("lead-summary");
+  if (summary) summary.textContent = "Loading leads…";
+
+  unsubscribeLeads = firebase.firestore().collection("leads").orderBy("name").onSnapshot((snapshot) => {
+    leads = snapshot.docs.map(normaliseLead);
+    selectedLeadId = leads.some((lead) => lead.id === selectedLeadId) ? selectedLeadId : null;
+    renderLeadsTable();
+  }, (error) => {
+    console.error("Could not load leads", error);
+    leads = [];
+    renderLeadsTable();
+    if (summary) summary.textContent = "Leads could not be loaded. Check Firestore access.";
+  });
+}
+
+function populateLeadCustomerOptions() {
+  const select = document.getElementById("lead-existing-customer");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">Select a customer</option>' + customers
+    .map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.company)}</option>`)
+    .join("");
+  if (customers.some((customer) => customer.id === selected)) select.value = selected;
+}
+
+function populateLeadProjectOptions(customerId) {
+  const select = document.getElementById("lead-existing-project");
+  if (!select) return;
+
+  if (!customerId) {
+    select.innerHTML = '<option value="">Select a customer first</option>';
+    select.disabled = true;
+    return;
+  }
+
+  const customerProjects = projects.filter((project) => project.customerId === customerId);
+  if (customerProjects.length === 0) {
+    select.innerHTML = '<option value="">No projects for this customer yet</option>';
+    select.disabled = true;
+    return;
+  }
+
+  select.innerHTML = '<option value="">Select a project</option>' + customerProjects
+    .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`)
+    .join("");
+  select.disabled = false;
+}
+
+function updateLeadCustomerMode() {
+  const mode = document.getElementById("lead-customer-mode")?.value;
+  const existingGroup = document.getElementById("lead-customer-existing-group");
+  const newGroup = document.getElementById("lead-customer-new-group");
+  const projectMode = document.getElementById("lead-project-mode");
+  if (!mode || !existingGroup || !newGroup) return;
+
+  const isNew = mode === "new";
+  existingGroup.hidden = isNew;
+  newGroup.hidden = !isNew;
+
+  // A prospective (not-yet-real) customer can't already have a real project,
+  // so force the project side to "new" too and lock it while customer is "new".
+  if (projectMode) {
+    if (isNew) {
+      projectMode.value = "new";
+      projectMode.disabled = true;
+    } else {
+      projectMode.disabled = false;
+    }
+    updateLeadProjectMode();
+  }
+}
+
+function updateLeadProjectMode() {
+  const mode = document.getElementById("lead-project-mode")?.value;
+  const existingGroup = document.getElementById("lead-project-existing-group");
+  const newGroup = document.getElementById("lead-project-new-group");
+  if (!mode || !existingGroup || !newGroup) return;
+
+  const isNew = mode === "new";
+  existingGroup.hidden = isNew;
+  newGroup.hidden = !isNew;
+  if (!isNew) populateLeadProjectOptions(document.getElementById("lead-existing-customer")?.value || "");
+}
+
+function resetLeadDialogToCreateMode() {
+  editingLeadId = null;
+  document.getElementById("lead-form")?.reset();
+  const title = document.getElementById("lead-dialog-title");
+  const saveButton = document.getElementById("save-lead-button");
+  if (title) title.textContent = "New Lead";
+  if (saveButton) saveButton.textContent = "Create Lead";
+
+  ["lead-customer-mode", "lead-existing-customer", "lead-new-customer-name", "lead-project-mode", "lead-existing-project", "lead-new-project-name"].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.disabled = false;
+  });
+
+  populateLeadCustomerOptions();
+  updateLeadCustomerMode();
+}
+
+function openLeadDialogForEdit(lead) {
+  const dialog = document.getElementById("lead-dialog");
+  const form = document.getElementById("lead-form");
+  const title = document.getElementById("lead-dialog-title");
+  const saveButton = document.getElementById("save-lead-button");
+  if (!dialog || !form) return;
+
+  editingLeadId = lead.id;
+  form.elements.namedItem("name").value = lead.name;
+  form.elements.namedItem("status").value = lead.status;
+  form.elements.namedItem("projectedIncome").value = lead.projectedIncome || "";
+  form.elements.namedItem("notes").value = lead.notes;
+
+  document.getElementById("lead-customer-mode").value = lead.isNewCustomer ? "new" : "existing";
+  populateLeadCustomerOptions();
+  if (!lead.isNewCustomer) document.getElementById("lead-existing-customer").value = lead.customerId;
+  document.getElementById("lead-new-customer-name").value = lead.isNewCustomer ? lead.customerName : "";
+  updateLeadCustomerMode();
+
+  document.getElementById("lead-project-mode").value = lead.isNewProject ? "new" : "existing";
+  if (!lead.isNewProject) {
+    populateLeadProjectOptions(lead.customerId);
+    document.getElementById("lead-existing-project").value = lead.projectId;
+  }
+  document.getElementById("lead-new-project-name").value = lead.isNewProject ? lead.projectName : "";
+  updateLeadProjectMode();
+
+  // The customer/project a lead points to is locked once created — reassigning
+  // would need the same kind of extra bookkeeping Projects/Bookings already avoid.
+  ["lead-customer-mode", "lead-existing-customer", "lead-new-customer-name", "lead-project-mode", "lead-existing-project", "lead-new-project-name"].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.disabled = true;
+  });
+
+  if (title) title.textContent = "Edit Lead";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
+async function createLead(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-lead-button");
+  const message = document.getElementById("lead-form-message");
+  const formData = new FormData(form);
+
+  const name = String(formData.get("name") || "").trim();
+  const status = formData.get("status") || "Cold";
+  const projectedIncome = Number(formData.get("projectedIncome")) || 0;
+  const notes = String(formData.get("notes") || "").trim();
+
+  if (!name) {
+    message.textContent = "Enter a lead name.";
+    return;
+  }
+
+  saveButton.disabled = true;
+
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+
+    if (editingLeadId) {
+      message.textContent = "Saving changes…";
+      await firebase.firestore().collection("leads").doc(editingLeadId).set({
+        name,
+        status,
+        projectedIncome,
+        notes,
+        updatedAt: now
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      const customerMode = formData.get("customerMode");
+      const isNewCustomer = customerMode === "new";
+      const projectMode = formData.get("projectMode");
+      const isNewProject = isNewCustomer || projectMode === "new";
+
+      let customerId = "";
+      let customerName = "";
+      if (isNewCustomer) {
+        customerName = String(formData.get("newCustomerName") || "").trim();
+        if (!customerName) {
+          message.textContent = "Enter the prospective customer's name.";
+          saveButton.disabled = false;
+          return;
+        }
+      } else {
+        customerId = String(formData.get("existingCustomerId") || "").trim();
+        const customer = customers.find((item) => item.id === customerId);
+        if (!customer) {
+          message.textContent = "Select a customer, or switch to “New (prospective) customer”.";
+          saveButton.disabled = false;
+          return;
+        }
+        customerName = customer.company;
+      }
+
+      let projectId = "";
+      let projectName = "";
+      if (isNewProject) {
+        projectName = String(formData.get("newProjectName") || "").trim();
+        if (!projectName) {
+          message.textContent = "Enter the prospective project's name.";
+          saveButton.disabled = false;
+          return;
+        }
+      } else {
+        projectId = String(formData.get("existingProjectId") || "").trim();
+        const project = projects.find((item) => item.id === projectId);
+        if (!project) {
+          message.textContent = "Select a project, or switch to “New (prospective) project”.";
+          saveButton.disabled = false;
+          return;
+        }
+        projectName = project.name;
+      }
+
+      message.textContent = "Saving lead…";
+      await firebase.firestore().collection("leads").add({
+        name,
+        status,
+        projectedIncome,
+        notes,
+        isNewCustomer,
+        customerId,
+        customerName,
+        isNewProject,
+        projectId,
+        projectName,
+        convertedCustomerId: "",
+        convertedProjectId: "",
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        createdAt: now,
+        updatedAt: now
+      });
+      message.textContent = "Lead created.";
+    }
+
+    setTimeout(() => {
+      document.getElementById("lead-dialog")?.close();
+      resetLeadDialogToCreateMode();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not save lead", error);
+    message.textContent = "Could not save the lead. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function promoteLead(lead) {
+  if (lead.status !== "Won") {
+    alert("Only a lead marked Won can be promoted.");
+    return;
+  }
+  if (lead.convertedCustomerId || lead.convertedProjectId) {
+    alert("This lead has already been promoted.");
+    return;
+  }
+  if (!confirm(`Promote "${lead.name}"? This creates real Customer/Project records where needed.`)) return;
+
+  try {
+    const database = firebase.firestore();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    let customerId = lead.customerId;
+    let customerCompany = lead.customerName;
+
+    if (lead.isNewCustomer) {
+      const customerRef = await database.collection("customers").add({
+        company: lead.customerName,
+        status: "Trial",
+        contactName: "",
+        contactEmail: "",
+        notes: `Promoted from lead: ${lead.name}`,
+        owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+        projects: 0,
+        users: 0,
+        uploadStorageUsedBytes: 0,
+        createdAt: now,
+        updatedAt: now
+      });
+      customerId = customerRef.id;
+    }
+
+    let projectId = lead.projectId;
+
+    if (lead.isNewProject) {
+      const projectRef = database.collection("projects").doc();
+      const customerRef = database.collection("customers").doc(customerId);
+      await database.runTransaction(async (transaction) => {
+        const customerSnapshot = await transaction.get(customerRef);
+        const currentProjects = Number((customerSnapshot.data() || {}).projects || 0);
+        transaction.set(projectRef, {
+          name: lead.projectName,
+          customerId,
+          customerName: customerCompany,
+          status: "Planning",
+          type: "Consulting",
+          budgetHours: null,
+          description: `Promoted from lead: ${lead.name}`,
+          owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
+          resources: 0,
+          createdAt: now,
+          updatedAt: now
+        });
+        transaction.update(customerRef, { projects: currentProjects + 1, updatedAt: now });
+      });
+      projectId = projectRef.id;
+    }
+
+    await database.collection("leads").doc(lead.id).set({
+      convertedCustomerId: customerId,
+      convertedProjectId: projectId,
+      updatedAt: now
+    }, { merge: true });
+
+    alert("Lead promoted. The Customer and Project are now live.");
+  } catch (error) {
+    console.error("Could not promote lead", error);
+    alert("This lead could not be promoted. Please try again.");
+  }
+}
+
+async function deleteLead(lead) {
+  if (!confirm(`Delete the lead "${lead.name}"? This cannot be undone. Any Customer/Project already promoted from it will not be affected.`)) return;
+  try {
+    await firebase.firestore().collection("leads").doc(lead.id).delete();
+    if (selectedLeadId === lead.id) selectedLeadId = null;
+  } catch (error) {
+    console.error("Could not delete lead", error);
+    alert("This lead could not be deleted. Please try again.");
+  }
+}
+
+function getFilteredLeads() {
+  return leads.filter((lead) => {
+    const matchesFilter = currentLeadFilter === "all" || lead.status === currentLeadFilter;
+    const searchTarget = `${lead.name} ${lead.status} ${lead.customerName} ${lead.projectName} ${lead.notes}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentLeadSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getLeadDetailMarkup(lead) {
+  const canPromote = lead.status === "Won" && !lead.convertedCustomerId && !lead.convertedProjectId;
+  const alreadyPromoted = Boolean(lead.convertedCustomerId || lead.convertedProjectId);
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Lead record</p>
+          <h3>${escapeHtml(lead.name)}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(lead.status)}">${escapeHtml(lead.status)}</span>
+          <button class="icon-button" data-close-lead-detail aria-label="Close lead detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Customer</span><strong>${escapeHtml(lead.customerName)}${lead.isNewCustomer ? " (prospective)" : ""}</strong></div>
+        <div><span>Project</span><strong>${escapeHtml(lead.projectName)}${lead.isNewProject ? " (prospective)" : ""}</strong></div>
+        <div><span>Projected income</span><strong>${formatCurrency(lead.projectedIncome)}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(lead.owner)}</strong></div>
+        <div><span>Last updated</span><strong>${escapeHtml(lead.lastUpdated)}</strong></div>
+        <div><span>Promoted</span><strong>${alreadyPromoted ? "Yes" : "Not yet"}</strong></div>
+      </div>
+      <p>${escapeHtml(lead.notes || "No notes added.")}</p>
+      <div class="detail-actions">
+        <button class="secondary-button" data-edit-lead="${lead.id}">Edit lead</button>
+        <button class="secondary-button" data-promote-lead="${lead.id}" ${canPromote ? "" : "disabled"}>
+          ${alreadyPromoted ? "Already promoted" : "Promote to Customer/Project"}
+        </button>
+        <button class="secondary-button danger-button" data-delete-lead="${lead.id}">Delete lead</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderLeadsTable() {
+  const tableBody = document.getElementById("leads-table");
+  const summary = document.getElementById("lead-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredLeads = getFilteredLeads();
+  tableBody.innerHTML = "";
+
+  if (filteredLeads.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-table">No leads match your search.</td></tr>`;
+  } else {
+    filteredLeads.forEach((lead) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${escapeHtml(lead.name)}</strong></td>
+        <td>${escapeHtml(lead.customerName)}${lead.isNewCustomer ? ' <span class="table-subtext">(prospective)</span>' : ""}</td>
+        <td>${escapeHtml(lead.projectName)}${lead.isNewProject ? ' <span class="table-subtext">(prospective)</span>' : ""}</td>
+        <td><span class="status ${getStatusClass(lead.status)}">${escapeHtml(lead.status)}</span></td>
+        <td>${formatCurrency(lead.projectedIncome)}</td>
+        <td><button class="secondary-button compact" data-lead-id="${lead.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedLeadId === lead.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="6">${getLeadDetailMarkup(lead)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredLeads.length} of ${leads.length} leads`;
+
+  document.querySelectorAll("[data-lead-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedLeadId = selectedLeadId === button.dataset.leadId ? null : button.dataset.leadId;
+      renderLeadsTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-lead-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedLeadId = null;
+      renderLeadsTable();
+    });
+  });
+
+  document.querySelectorAll("[data-edit-lead]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const lead = leads.find((item) => item.id === button.dataset.editLead);
+      if (lead) openLeadDialogForEdit(lead);
+    });
+  });
+
+  document.querySelectorAll("[data-promote-lead]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const lead = leads.find((item) => item.id === button.dataset.promoteLead);
+      if (lead) promoteLead(lead);
+    });
+  });
+
+  document.querySelectorAll("[data-delete-lead]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const lead = leads.find((item) => item.id === button.dataset.deleteLead);
+      if (lead) deleteLead(lead);
+    });
+  });
+}
+
 function loadLiveBookings() {
   if (unsubscribeBookings) unsubscribeBookings();
   const summary = document.getElementById("booking-summary");
@@ -2102,6 +2593,25 @@ function setupBookingControls() {
   });
 }
 
+function setupLeadControls() {
+  const searchInput = document.getElementById("lead-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentLeadSearch = event.target.value;
+      renderLeadsTable();
+    });
+  }
+
+  document.querySelectorAll(".lead-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentLeadFilter = button.dataset.leadFilter;
+      document.querySelectorAll(".lead-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderLeadsTable();
+    });
+  });
+}
+
 function setupSettingsControls() {
   const saveButton = document.getElementById("save-settings-button");
   if (!saveButton) return;
@@ -2141,7 +2651,18 @@ function initialiseApp() {
   setupProjectControls();
   setupLibraryControls();
   setupBookingControls();
+  setupLeadControls();
   setupSettingsControls();
+  setupDialog("lead-dialog", "new-lead-button", "close-lead-dialog-button", "cancel-lead-dialog-button");
+  document.getElementById("new-lead-button")?.addEventListener("click", resetLeadDialogToCreateMode);
+  document.getElementById("cancel-lead-dialog-button")?.addEventListener("click", resetLeadDialogToCreateMode);
+  document.getElementById("close-lead-dialog-button")?.addEventListener("click", resetLeadDialogToCreateMode);
+  document.getElementById("lead-form")?.addEventListener("submit", createLead);
+  document.getElementById("lead-customer-mode")?.addEventListener("change", updateLeadCustomerMode);
+  document.getElementById("lead-project-mode")?.addEventListener("change", updateLeadProjectMode);
+  document.getElementById("lead-existing-customer")?.addEventListener("change", (event) => {
+    if (document.getElementById("lead-project-mode").value !== "new") populateLeadProjectOptions(event.target.value);
+  });
   setupDialog("customer-dialog", "new-customer-button", "close-dialog-button", "cancel-dialog-button");
   document.getElementById("new-customer-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
   document.getElementById("cancel-dialog-button")?.addEventListener("click", resetCustomerDialogToCreateMode);
@@ -2197,6 +2718,8 @@ function initialiseApp() {
   renderLibraryTable();
   renderBookingTable();
   renderTimeTrackerTable();
+  renderLeadsTable();
+  updateLeadCustomerMode();
   updateDashboardMetrics();
 }
 
@@ -2210,4 +2733,5 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveBookings();
   loadLiveTimeSessions();
   loadTimeTrackerSettings();
+  loadLiveLeads();
 });

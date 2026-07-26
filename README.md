@@ -2,21 +2,23 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.8b – Customer Upload Management
+**Current version:** v0.2.11 – Leads Pipeline
 
 ## Current features
 
 - Firebase email/password authentication
 - Administrator authorisation using the Firestore `admins` collection
 - Live Dashboard metrics
+- Leads pipeline (Cold/Warm/Hot/Won/Lost) with projected income, linking to an existing or prospective Customer and Project, and a "Promote" action that creates real Customer/Project records once a lead is Won
 - Live Customers, with edit and archive/reactivate (archiving also removes their Library access, without disabling their Portal login)
 - Send Portal invites to customers, creating their Firebase Authentication account and emailing them a password-set link
-- Live Projects, with edit and archive/reactivate
+- Live Projects, with edit and archive/reactivate, plus a budgeted-hours field
 - Live Library, with metadata edit, archive/reactivate, and permanent delete (removes the uploaded file from Storage too)
 - Library bulk upload — add several files at once with shared category, source, visibility and status; each item's title is taken from its filename
 - Library Collections — tag related items (e.g. all parts of a training course) so they're grouped together in the Portal, with autocomplete suggestions from existing collection names
 - Internal, All Customers and Selected Customers visibility
 - Live Bookings — an admin-maintained log (create/edit/delete) of sessions arranged in Calendly or another way; not yet auto-synced from Calendly itself
+- Time Tracker — log time per customer/project with auto-incrementing session numbers, see logged/budgeted/remaining time in both hours and billable days, full session history with edit/delete, and a configurable hours-per-billing-day setting
 - Customer document uploads — customers submit files from the Portal (20 MB/file, 500 MB/customer, enforced in Firestore and Storage rules); they land as Draft/Internal Library items for review, and each customer's usage is shown on their detail panel. Deleting an upload frees their quota back
 - Placeholder Reports and Settings
 

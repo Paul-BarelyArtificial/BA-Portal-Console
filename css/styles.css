@@ -431,10 +431,11 @@ select:disabled {
 .compact-list {
   box-shadow: none;
   background: transparent;
-  border-radius: 14px;
+  border: none;
+  border-radius: 0;
 }
 .compact-list div {
-  padding: 14px 0;
+  padding: 14px 4px;
 }
 .compact-list div:first-child {
   padding-top: 0;

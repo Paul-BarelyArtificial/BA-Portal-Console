@@ -18,12 +18,13 @@ Both applications use one Firebase project.
 ## Firestore collections
 
 - `admins`
+- `leads` — admin-only lead pipeline (Cold/Warm/Hot/Won/Lost); prospective customers/projects are described inline until a Won lead is promoted into real `customers`/`projects` records (v0.2.11+)
 - `customers`
-- `projects`
+- `projects` — includes a `budgetHours` field (v0.2.10+) used by Time Tracker
 - `library`
 - `bookings` — live, admin-maintained log (not yet auto-synced from Calendly)
-- `timeSessions` — admin-only time-tracking entries against existing customers/projects (in progress, v0.2.10+)
-- `settings` — planned live implementation
+- `timeSessions` — admin-only time-tracking entries against existing customers/projects (v0.2.10+)
+- `settings` — `settings/timeTracker` is live (hours-per-billing-day); otherwise planned
 
 The previous `resources` collection belongs to the v0.2.3 model. It is not deleted automatically by v0.2.4.
 

@@ -273,3 +273,17 @@ Initial Console foundation release.
 - Stored in the existing `settings` collection (`settings/timeTracker`, field `hoursPerDay`) — no new collection, and no Firestore rules change needed since `settings/{settingId}` was already admin-only read/write.
 - Changing it live-updates every hours/days figure across the Console immediately (Projects page Time column, Project detail panel, Time Tracker overview and session history) since they all read from the same `hoursPerDay` value.
 - This completes the Time Tracker feature end to end.
+
+## v0.2.10f — Settings Panel Padding Fix
+- Fixed cramped/clipped-looking text in the Settings page's compact lists (Firebase status, Notifications, etc.) — the `.compact-list` variant kept a redundant border and rounded corners inherited from the shared panel-style base rule, creating a second bordered box nested flush against the panel's own edge with zero horizontal padding, which read as clipped text.
+- Removed the redundant inner border/radius and added a small horizontal padding so content has breathing room from the panel edge.
+
+## v0.2.11 — Leads Pipeline
+- New "Leads" section, first item in the nav (ahead of Customers), for tracking prospects before they're real customers.
+- New `leads` collection (admin-only, same pattern as `projects`/`bookings`) — leads are deliberately not stored in `customers`/`projects` so unconverted prospects never pollute your real customer/project counts or lists.
+- Pipeline: Cold → Warm → Hot → Won/Lost, plus a projected income figure per lead.
+- A lead links to either an **existing** Customer/Project, or describes a **new (prospective)** one by name — a prospective customer can't have an existing real project, so choosing "new customer" automatically locks the project side to "new" too.
+- **Promote**: only available once a lead is marked Won, and only once. Creates real `customers`/`projects` records for whichever side was prospective (linking to the existing ones untouched if the lead already pointed at real records), then marks the lead as converted. The lead record itself is kept for history, not deleted.
+- Customer/Project association is locked once a lead is created (same reasoning as Projects/Bookings elsewhere) — only name, status, projected income and notes can change via Edit.
+- Delete is a genuine permanent delete (leads aren't referenced elsewhere) — deleting a lead never affects any Customer/Project already promoted from it.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `leads` collection rule (admin-only, same as `projects`). Must be published before this feature works.
