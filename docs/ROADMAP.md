@@ -43,6 +43,7 @@
 - **Console v0.2.10e** — Hours Per Billing Day Setting (Time Tracker feature complete)
 - **Console v0.2.10f** — Settings Panel Padding Fix
 - **Console v0.2.11** — Leads Pipeline (Cold/Warm/Hot/Won/Lost, projected income, promote to real Customer/Project)
+- **Platform v0.2.12** — Mobile Navigation (Console v0.2.12 / Portal v0.2.8) — collapsible hamburger nav for both apps below their mobile breakpoints, first item of the v0.2.9 UI Polish release
 
 ## Backlog (not yet scheduled)
 
@@ -65,6 +66,6 @@
 ### Platform v0.2.9 — UI Polish
 
 - Final consistency review
-- Mobile and accessibility checks
+- ~~Mobile and accessibility checks~~ — collapsible nav shipped as v0.2.12; remaining accessibility checks (focus states, contrast, screen-reader labelling) still open
 - Empty states and helpful messages
 - Imagery/visual polish (requested 2026-07-17) — icons, illustrations, hero images or similar to make the Console and Portal feel more designed rather than purely functional. Not yet scoped: what kind of imagery, which pages, original artwork vs. stock/AI-generated — needs a proper conversation before building, same as everything else on this list.

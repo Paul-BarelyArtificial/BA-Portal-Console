@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.11 – Leads Pipeline";
+const APP_VERSION = "v0.2.12 – Mobile Navigation";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -2636,12 +2636,28 @@ function setupDialog(dialogId, openButtonId, closeButtonId, cancelButtonId) {
 
 function setupNavigation() {
   document.querySelectorAll(".nav-item").forEach((item) => {
-    item.addEventListener("click", () => showPage(item.dataset.page));
+    item.addEventListener("click", () => {
+      showPage(item.dataset.page);
+      closeMobileNav();
+    });
   });
 
   document.querySelectorAll("[data-page-link]").forEach((item) => {
     item.addEventListener("click", () => showPage(item.dataset.pageLink));
   });
+
+  const navToggle = document.getElementById("nav-toggle");
+  const navMenu = document.getElementById("nav-menu");
+
+  navToggle?.addEventListener("click", () => {
+    const isOpen = navMenu?.classList.toggle("nav-open");
+    navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+}
+
+function closeMobileNav() {
+  document.getElementById("nav-menu")?.classList.remove("nav-open");
+  document.getElementById("nav-toggle")?.setAttribute("aria-expanded", "false");
 }
 
 function initialiseApp() {

@@ -287,3 +287,13 @@ Initial Console foundation release.
 - Customer/Project association is locked once a lead is created (same reasoning as Projects/Bookings elsewhere) — only name, status, projected income and notes can change via Edit.
 - Delete is a genuine permanent delete (leads aren't referenced elsewhere) — deleting a lead never affects any Customer/Project already promoted from it.
 - **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `leads` collection rule (admin-only, same as `projects`). Must be published before this feature works.
+
+## Docs — User Manuals added
+- Added `docs/USER-MANUAL.md` in this repo (how to use the Console) and a matching `docs/USER-MANUAL.md` in the Portal repo (what customers see and can do) — internal reference documents, not customer-facing. Linked from this repo's README. No version bump — documentation only, no app changes.
+
+## v0.2.12 — Mobile Navigation
+- First piece of the "v0.2.9 UI Polish" release: both the Console and the Portal previously stacked their full sidebar navigation above the page content on narrow (mobile-width) screens, forcing a long scroll past every nav item before reaching any actual content, with no way to collapse it.
+- Console (`css/styles.css` / `js/app.js`, breakpoint 900px): added a hamburger toggle button in the sidebar header; below 900px the nav list is collapsed by default, opens on tap, and auto-collapses again as soon as a page is selected.
+- Portal (same pattern, `css/styles.css` / `js/main.js`, breakpoint 760px): identical hamburger toggle and collapse-on-navigate behaviour for its own nav.
+- No change to desktop/wide-screen layout in either app — the toggle button only appears below each app's existing mobile breakpoint.
+- Portal version bumped separately (`js/version.js`) to v0.2.8 — Mobile Navigation, since the Portal tracks its own version number.

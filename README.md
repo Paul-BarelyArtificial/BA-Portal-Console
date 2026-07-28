@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.11 – Leads Pipeline
+**Current version:** v0.2.12 – Mobile Navigation
 
 ## Current features
 
@@ -33,10 +33,11 @@ Internal management application for the Barely Artificial Customer Portal.
 
 Project documentation is in the `docs` folder. Start with:
 
-1. `docs/PROJECT.md`
-2. `docs/ROADMAP.md`
-3. `docs/TESTING.md`
-4. `docs/FIREBASE.md`
+1. `docs/USER-MANUAL.md` — how to actually use the Console
+2. `docs/PROJECT.md`
+3. `docs/ROADMAP.md`
+4. `docs/TESTING.md`
+5. `docs/FIREBASE.md`
 
 ## Important v0.2.4 note
 
