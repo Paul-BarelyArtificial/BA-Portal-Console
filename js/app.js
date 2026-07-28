@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.13 – Admin Invites";
+const APP_VERSION = "v0.3.0 – V1 Readiness";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -108,7 +108,8 @@ function normaliseCustomer(document) {
     contactEmail: data.contactEmail || "",
     portalAccountCreated: Boolean(data.portalAccountCreated),
     portalInviteSentAt: data.portalInviteSentAt ? formatFirestoreDate(data.portalInviteSentAt) : "",
-    uploadStorageUsedBytes: Number(data.uploadStorageUsedBytes || 0)
+    uploadStorageUsedBytes: Number(data.uploadStorageUsedBytes || 0),
+    internalPreview: Boolean(data.internalPreview)
   };
 }
 
@@ -229,7 +230,7 @@ function renderAdminList() {
     .map((admin) => `
       <div>
         <strong>${escapeHtml(admin.name || admin.email || admin.id)}</strong>
-        <span>${admin.active === false ? "Inactive" : "Active"} · added ${formatFirestoreDate(admin.addedAt)}</span>
+        <span>${admin.active === false ? "Inactive" : "Active"} · ${admin.addedAt ? `added ${formatFirestoreDate(admin.addedAt)}` : "added before this feature existed"}</span>
       </div>
     `)
     .join("");
@@ -352,6 +353,7 @@ function openCustomerDialogForEdit(customer) {
   form.elements.namedItem("contactName").value = customer.contactName;
   form.elements.namedItem("contactEmail").value = customer.contactEmail;
   form.elements.namedItem("notes").value = customer.notes === "No notes added." ? "" : customer.notes;
+  form.elements.namedItem("internalPreview").checked = Boolean(customer.internalPreview);
   if (title) title.textContent = "Edit Customer";
   if (saveButton) saveButton.textContent = "Save Changes";
   dialog.showModal();
@@ -376,6 +378,7 @@ async function createCustomer(event) {
       contactName: String(formData.get("contactName") || "").trim(),
       contactEmail: String(formData.get("contactEmail") || "").trim(),
       notes: String(formData.get("notes") || "").trim(),
+      internalPreview: formData.get("internalPreview") === "on",
       updatedAt: now
     };
 
@@ -1470,7 +1473,9 @@ function renderTimeTrackerTable() {
   tableBody.innerHTML = "";
 
   if (filteredProjects.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="4" class="empty-table">No projects match your search.</td></tr>`;
+    tableBody.innerHTML = projects.length === 0
+      ? `<tr><td colspan="4" class="empty-table">No projects yet — add one from the Projects page, then come back here to log time against it.</td></tr>`
+      : `<tr><td colspan="4" class="empty-table">No projects match your search.</td></tr>`;
   } else {
     filteredProjects.forEach((project) => {
       const row = document.createElement("tr");
@@ -1941,7 +1946,9 @@ function renderLeadsTable() {
   tableBody.innerHTML = "";
 
   if (filteredLeads.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="6" class="empty-table">No leads match your search.</td></tr>`;
+    tableBody.innerHTML = leads.length === 0
+      ? `<tr><td colspan="6" class="empty-table">No leads yet — click "+ New Lead" above to track your first prospect.</td></tr>`
+      : `<tr><td colspan="6" class="empty-table">No leads match your search.</td></tr>`;
   } else {
     filteredLeads.forEach((lead) => {
       const row = document.createElement("tr");
@@ -2157,12 +2164,14 @@ function renderCustomerTable() {
   tableBody.innerHTML = "";
 
   if (filteredCustomers.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No customers match your search.</td></tr>`;
+    tableBody.innerHTML = customers.length === 0
+      ? `<tr><td colspan="7" class="empty-table">No customers yet — click "+ New Customer" above to add your first one.</td></tr>`
+      : `<tr><td colspan="7" class="empty-table">No customers match your search.</td></tr>`;
   } else {
     filteredCustomers.forEach((customer) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(customer.company)}</strong><span class="table-subtext">${escapeHtml(customer.notes)}</span></td>
+        <td><strong>${escapeHtml(customer.company)}</strong>${customer.internalPreview ? ` <span class="badge">Internal Preview</span>` : ""}<span class="table-subtext">${escapeHtml(customer.notes)}</span></td>
         <td><span class="status ${getStatusClass(customer.status)}">${escapeHtml(customer.status)}</span></td>
         <td>${customer.projects}</td>
         <td>${customer.users}</td>
@@ -2236,7 +2245,9 @@ function renderProjectTable() {
   tableBody.innerHTML = "";
 
   if (filteredProjects.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="8" class="empty-table">No projects match your search.</td></tr>`;
+    tableBody.innerHTML = projects.length === 0
+      ? `<tr><td colspan="8" class="empty-table">No projects yet — click "+ New Project" above to add your first one.</td></tr>`
+      : `<tr><td colspan="8" class="empty-table">No projects match your search.</td></tr>`;
   } else {
     filteredProjects.forEach((project) => {
       const row = document.createElement("tr");
@@ -2309,7 +2320,9 @@ function renderLibraryTable() {
   tableBody.innerHTML = "";
 
   if (filteredItems.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No library items match your search.</td></tr>`;
+    tableBody.innerHTML = libraryItems.length === 0
+      ? `<tr><td colspan="7" class="empty-table">No library items yet — click "+ New Library Item" above to add your first one.</td></tr>`
+      : `<tr><td colspan="7" class="empty-table">No library items match your search.</td></tr>`;
   } else {
     filteredItems.forEach((item) => {
       const audience = item.visibility === "Selected Customers"
@@ -2387,7 +2400,9 @@ function renderBookingTable() {
   tableBody.innerHTML = "";
 
   if (filteredBookings.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-table">No bookings match your search.</td></tr>`;
+    tableBody.innerHTML = bookings.length === 0
+      ? `<tr><td colspan="7" class="empty-table">No bookings yet — click "+ New Booking" above to log your first session.</td></tr>`
+      : `<tr><td colspan="7" class="empty-table">No bookings match your search.</td></tr>`;
   } else {
     filteredBookings.forEach((booking) => {
       const row = document.createElement("tr");

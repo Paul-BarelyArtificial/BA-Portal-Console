@@ -45,6 +45,7 @@
 - **Console v0.2.11** — Leads Pipeline (Cold/Warm/Hot/Won/Lost, projected income, promote to real Customer/Project)
 - **Platform v0.2.12** — Mobile Navigation (Console v0.2.12 / Portal v0.2.8) — collapsible hamburger nav for both apps below their mobile breakpoints, first item of the v0.2.9 UI Polish release
 - **Console v0.2.13** — Admin Invites — self-serve "Add Admin" in Settings, replacing manual Firestore Console edits for every admin after the first
+- **Platform v0.3.0** — V1 Readiness (Console v0.3.0 / Portal v0.2.9) — admin list date fix, "Internal preview" customer flag, and genuinely-empty vs. filtered-empty states across both apps
 
 ## Backlog (not yet scheduled)
 
@@ -68,5 +69,5 @@
 
 - Final consistency review
 - ~~Mobile and accessibility checks~~ — collapsible nav shipped as v0.2.12; remaining accessibility checks (focus states, contrast, screen-reader labelling) still open
-- Empty states and helpful messages
+- ~~Empty states and helpful messages~~ — shipped as part of v0.3.0
 - Imagery/visual polish (requested 2026-07-17) — icons, illustrations, hero images or similar to make the Console and Portal feel more designed rather than purely functional. Not yet scoped: what kind of imagery, which pages, original artwork vs. stock/AI-generated — needs a proper conversation before building, same as everything else on this list.

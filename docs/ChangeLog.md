@@ -305,3 +305,11 @@ Initial Console foundation release.
 - **Known limitation**: only works for a brand-new email address. If the person already has *any* Firebase Auth account (e.g. they're also a customer), the client SDK has no way to look up their existing UID without a backend — the tool detects this case and tells you to add them manually in Firebase Console instead.
 - **Requires a Firestore rules update** — `docs/firestore.rules.txt`'s `admins` collection now allows `write` (and read of other admins' docs) when the requester is already an admin, instead of blocking all writes outright. Must be published before this feature works.
 - The very first admin ever still has to be created manually in Firebase Console — nobody exists yet to grant that permission from inside the app.
+
+## v0.3.0 — V1 Readiness
+- **Admin list date fix**: admins added before the Admin Invites feature existed (no `addedAt` timestamp) previously showed the misleading "added Just now". Now shows "added before this feature existed" instead.
+- **Internal preview flag**: the Customer dialog has a new "Internal preview (not a real customer)" checkbox, for accounts like Paul's own test/preview customer. Flagged customers show an "Internal Preview" badge next to their name in the Customers table, so they're never confused with a real paying customer at a glance.
+- **Empty states, Console**: Customers, Leads, Projects, Library, Bookings and the Time Tracker's project overview all previously showed a generic "No X match your search" message even when the list was genuinely empty (zero records, not a filtered search). Each now distinguishes the two cases — a brand-new Console now tells you to click the relevant "+ New…" button instead of implying your search came up empty.
+- **Empty states, Portal**: "Your Library" showed "No matching resources / try a different search word" even when a customer genuinely had nothing shared with them yet. Now shows "Nothing shared with you yet" in that case, keeping the search-specific message only for an actual filtered-to-zero search.
+- Portal version bumped separately (`js/version.js`) to v0.2.9 — V1 Readiness.
+- No Firestore rules changes required for this release.

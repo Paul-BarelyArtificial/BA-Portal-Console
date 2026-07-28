@@ -34,7 +34,7 @@ Track prospects before they become real customers, and promote them once a deal 
 
 Your live list of real customer organisations.
 
-- **New Customer**: set a company name, status (Trial/Active/Paused/Archived), contact name/email and notes.
+- **New Customer**: set a company name, status (Trial/Active/Paused/Archived), contact name/email and notes. Tick **Internal preview** for accounts that aren't a real customer (e.g. your own test/preview account) — it shows an "Internal Preview" badge in the table so it's never mistaken for a real one.
 - **Editing**: same dialog, reopens pre-filled.
 - **Archiving a customer**: sets their status to Archived. This is a soft delete — nothing is ever removed. Two things happen:
   - They keep their Portal login (there's no way to disable a Firebase login from the Console without adding backend infrastructure), but
