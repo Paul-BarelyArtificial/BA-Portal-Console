@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.3.0 – V1 Readiness
+**Current version:** v0.3.1 – Data Export
 
 ## Current features
 

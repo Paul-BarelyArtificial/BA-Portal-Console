@@ -46,22 +46,22 @@
 - **Platform v0.2.12** — Mobile Navigation (Console v0.2.12 / Portal v0.2.8) — collapsible hamburger nav for both apps below their mobile breakpoints, first item of the v0.2.9 UI Polish release
 - **Console v0.2.13** — Admin Invites — self-serve "Add Admin" in Settings, replacing manual Firestore Console edits for every admin after the first
 - **Platform v0.3.0** — V1 Readiness (Console v0.3.0 / Portal v0.2.9) — admin list date fix, "Internal preview" customer flag, and genuinely-empty vs. filtered-empty states across both apps
+- **Console v0.3.1** — Data Export — manual "Export Data" button in Settings, downloading a full Firestore-data JSON snapshot; restore/import deliberately deferred
 
 ## Backlog (not yet scheduled)
 
 - Improve Library/Customer/Project search and filtering beyond basic text match
 - Confirm migration of any still-useful v0.2.3 `resources` collection records (never automatically migrated when `library` was introduced in v0.2.4 — see `docs/FIREBASE.md`)
 - Calendly webhook + Cloud Function to auto-sync real bookings into the `bookings` collection, instead of the current admin-maintained manual log — a backend infrastructure decision, deliberately deferred
-- Visually flag "internal preview" customer records (e.g. Paul's own account, added as a customer so he can preview the Portal with his existing login) so they're clearly distinct from real customers in the Console table
 - Restore a hard, Storage-rules-enforced 500 MB per-customer total limit (currently only tracked/visible, not blocked — see v0.2.8e) — likely needs Firebase's Rules Playground to diagnose properly
 - Console: a Library filter/tab for "Uploaded Docs" so customer submissions awaiting review are easy to find at a glance, instead of relying on typing "Customer" into search
 - Email alert (e.g. via EmailJS or similar client-side email service, to avoid needing a backend) when a customer uploads a document
 - Per-customer toggle to enable/disable the Customer Upload feature — on by default for new customers, with an admin switch to turn it off for a specific customer if needed
-- **Backup and restore for Firestore/Storage data** (requested 2026-07-17) — real customer, project, library, booking and time-tracking data now lives here, with no backup story yet. Options to weigh when scoping this properly:
-  - Google Cloud's own Firestore export/import (via the Cloud Console or `gcloud` CLI) — covers all Firestore data, no custom code needed, but is a Google Cloud Console task rather than something inside the Console app, and needs the Blaze (pay-as-you-go) billing plan enabled.
-  - A custom "Export data" button in the Console that downloads a JSON snapshot of the Firestore collections — simple, no backend, fits the existing architecture, but Firestore-only (wouldn't include uploaded files in Storage, and a matching "Import/restore" flow needs care to avoid silently overwriting live data).
-  - Uploaded files (Library, customer uploads) live in Storage separately from Firestore and would need their own backup approach regardless of which option above is chosen.
-  - True scheduled/automatic backups likely need a Cloud Function — the same "add a backend" decision already deferred elsewhere on this list.
+- **Backup/restore, remaining half** (requested 2026-07-17) — the export side shipped as Console v0.3.1 (Firestore data only, manual, on-demand). Still open:
+  - A matching "Import/restore" flow — deliberately deferred since it needs careful design (merge vs. overwrite behaviour, avoiding silently clobbering live data with a stale backup).
+  - Backing up uploaded files in Storage (Library items, customer uploads) — the v0.3.1 export is Firestore-only by design; Storage files would need a separate approach.
+  - True scheduled/automatic backups would need a Cloud Function — now technically possible since the project is on the Blaze plan, but still a real architecture addition, not a small one.
+  - In the meantime, Google Cloud's own managed Firestore export (Firestore → Import/Export in Firebase Console, or `gcloud firestore export`) is available as a zero-code, complete backup covering literally everything — see the "Firestore backups" section of `docs/USER-MANUAL.md` for the manual steps.
 
 ## Next releases
 

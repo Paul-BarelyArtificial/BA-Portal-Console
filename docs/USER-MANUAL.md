@@ -93,7 +93,45 @@ Currently a placeholder — no live reporting yet.
 Mostly placeholders for now (branding, notifications) except:
 - **Admin access**: add a new admin by entering their email and clicking "Add Admin" — this creates their Firebase login, grants them admin rights, and emails them a password-set link, all in one step. No more manually creating a document in Firebase Console. Only works for a brand-new email address that's never had a Firebase account before (e.g. an existing customer's email can't be reused this way) — in that case, add them manually in Firebase Console instead. The very first admin ever (you) still had to be set up manually, since nobody existed yet to grant that permission.
 - **Firebase** panel shows live connection status for Authentication/Firestore/Storage.
+- **Data Backup**: click "Export Data" to download a full snapshot of your live data — see "Backing Up Your Data" below.
 - The rest (Portal branding, notification preferences, etc.) don't yet save anywhere — changing them has no effect.
+
+## Backing Up Your Data
+
+There are two backup methods available — use both together for the best protection, since each covers something the other doesn't.
+
+### Method 1: Export Data button (Settings → Data Backup)
+
+The quickest option, built into the Console itself:
+
+1. Go to **Settings → Data Backup**.
+2. Click **Export Data**.
+3. A file named something like `barely-artificial-backup-2026-07-28.json` downloads to your computer automatically.
+
+This file contains every record from Customers, Projects, Leads, Bookings, Library, Time Sessions, Admins and Settings, as plain readable JSON. Save it somewhere safe (a cloud drive, an external disk) — since it's a normal file, it's protected even if something ever went wrong with the Firebase project itself.
+
+**What this does *not* include:**
+- The actual uploaded files (Library documents, customer uploads in Storage) — only their metadata (title, description, etc.) is included, not the files themselves.
+- There is currently no "Import" button to restore from this file automatically — if you ever genuinely needed to restore from it, the data would need to be re-entered via Firebase Console by hand. This is deliberate for now, to avoid a rushed restore flow accidentally overwriting live data.
+
+**How often**: there's no automatic schedule — it's a manual action. Get in the habit of running it every so often (e.g. monthly, or before making any bulk changes you're unsure about).
+
+### Method 2: Firestore's own export (a "backup to the backup")
+
+Since the project is on Firebase's Blaze (pay-as-you-go) plan, you also have access to Google's own official Firestore backup tool. This is more complete (it covers literally all Firestore data, not just the collections listed above) and is entirely separate from the Console app — worth running occasionally as a second safety net.
+
+**Steps (via Firebase Console, no command line needed):**
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) and open the Barely Artificial project.
+2. In the left-hand menu, go to **Firestore Database**.
+3. Click the **Import/Export** tab (near the top, alongside "Data" and "Rules").
+4. Click **Export**.
+5. Leave "Export entire database" selected (unless you specifically want only certain collections).
+6. Choose or create a Cloud Storage bucket to export into (the default one Firebase suggests is fine).
+7. Click **Export**. This runs in the background — it'll show as a completed operation after a short while.
+
+The exported data lands in that Cloud Storage bucket as a set of files — it isn't something you'd casually open and read (unlike the Console's own JSON export), but it's the most complete, official backup available, and Google also supports importing it straight back in from the same screen if ever needed.
+
+**Cost note**: this uses a small amount of Cloud Storage and a per-operation charge, both minimal for a project this size, but worth knowing it's not entirely free the way the in-app export is.
 
 ## A note on Firestore rules
 

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.3.0 – V1 Readiness";
+const APP_VERSION = "v0.3.1 – Data Export";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -302,6 +302,63 @@ async function addAdmin(email) {
     if (button) button.disabled = false;
   }
 }
+
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings"];
+
+function serialiseForBackup(value) {
+  if (value && typeof value.toDate === "function") return value.toDate().toISOString();
+  if (Array.isArray(value)) return value.map(serialiseForBackup);
+  if (value && typeof value === "object") {
+    const result = {};
+    Object.keys(value).forEach((key) => { result[key] = serialiseForBackup(value[key]); });
+    return result;
+  }
+  return value;
+}
+
+async function exportAllData() {
+  const button = document.getElementById("export-data-button");
+  const statusEl = document.getElementById("export-data-status");
+  if (button) button.disabled = true;
+  if (statusEl) statusEl.textContent = "Preparing export…";
+
+  try {
+    const database = firebase.firestore();
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      exportedBy: auth.currentUser?.email || null,
+      collections: {}
+    };
+
+    for (const collectionName of BACKUP_COLLECTIONS) {
+      const snapshot = await database.collection(collectionName).get();
+      backup.collections[collectionName] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: serialiseForBackup(doc.data())
+      }));
+    }
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `barely-artificial-backup-${timestamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    if (statusEl) statusEl.textContent = `Export complete — downloaded barely-artificial-backup-${timestamp}.json`;
+  } catch (error) {
+    console.error("Could not export data", error);
+    if (statusEl) statusEl.textContent = "Could not export data. Check your connection and try again.";
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+document.getElementById("export-data-button")?.addEventListener("click", exportAllData);
 
 function loadLiveCustomers() {
   if (unsubscribeCustomers) unsubscribeCustomers();

@@ -313,3 +313,12 @@ Initial Console foundation release.
 - **Empty states, Portal**: "Your Library" showed "No matching resources / try a different search word" even when a customer genuinely had nothing shared with them yet. Now shows "Nothing shared with you yet" in that case, keeping the search-specific message only for an actual filtered-to-zero search.
 - Portal version bumped separately (`js/version.js`) to v0.2.9 — V1 Readiness.
 - No Firestore rules changes required for this release.
+
+## v0.3.1 — Data Export
+- New **Data Backup** panel in Settings, with an "Export Data" button.
+- Downloads a single timestamped JSON file (`barely-artificial-backup-YYYY-MM-DD.json`) containing every document from Customers, Projects, Leads, Bookings, Library, Time Sessions, Admins and Settings — read live via the existing client SDK, no backend or Cloud Function involved.
+- Deliberately excludes the `customerAccess` collection (a derived mapping, automatically regenerated from Customers — never a source of truth) and Storage files (uploaded documents/Library files) — this is a Firestore-data-only backup by design.
+- Firestore Timestamp fields are converted to readable ISO date strings in the export, rather than raw Firestore objects.
+- **This is export-only.** There's deliberately no matching "restore/import" button yet — that needs its own careful design (merge vs. overwrite behaviour, avoiding clobbering live data) and is parked as a follow-up. If ever needed in an emergency, the JSON is human-readable and could be replayed manually via Firebase Console.
+- No Firestore rules changes required — admins already have full read access to every included collection.
+- Documented in `docs/USER-MANUAL.md` alongside a manual Google Cloud Firestore export process, as a "backup to the backup" now that the project is on the Blaze plan.
