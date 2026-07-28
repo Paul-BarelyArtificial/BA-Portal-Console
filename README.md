@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.2.12 – Mobile Navigation
+**Current version:** v0.2.13 – Admin Invites
 
 ## Current features
 

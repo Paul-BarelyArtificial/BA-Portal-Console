@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.2.12 – Mobile Navigation";
+const APP_VERSION = "v0.2.13 – Admin Invites";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -29,6 +29,9 @@ let timeSessions = [];
 let unsubscribeTimeSessions = null;
 let hoursPerDay = 8;
 let unsubscribeTimeTrackerSettings = null;
+
+let admins = [];
+let unsubscribeAdmins = null;
 
 let leads = [];
 let unsubscribeLeads = null;
@@ -201,6 +204,100 @@ async function sendPortalInvite(customer) {
     console.error("Could not send Portal invite", error);
     if (statusEl) statusEl.textContent = friendlyInviteError(error);
   } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function friendlyAdminInviteError(error) {
+  const messages = {
+    "auth/invalid-email": "Enter a valid email address.",
+    "auth/network-request-failed": "Could not reach Firebase. Check your connection and try again."
+  };
+  return messages[error?.code] || "Could not add this admin. Try again.";
+}
+
+function renderAdminList() {
+  const container = document.getElementById("admin-list");
+  if (!container) return;
+
+  if (!admins.length) {
+    container.innerHTML = "<div><strong>No admins found</strong></div>";
+    return;
+  }
+
+  container.innerHTML = admins
+    .map((admin) => `
+      <div>
+        <strong>${escapeHtml(admin.name || admin.email || admin.id)}</strong>
+        <span>${admin.active === false ? "Inactive" : "Active"} · added ${formatFirestoreDate(admin.addedAt)}</span>
+      </div>
+    `)
+    .join("");
+}
+
+function loadLiveAdmins() {
+  if (unsubscribeAdmins) unsubscribeAdmins();
+  const database = firebase.firestore();
+
+  unsubscribeAdmins = database.collection("admins").onSnapshot((snapshot) => {
+    admins = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    renderAdminList();
+  }, (error) => {
+    console.error("Could not load admins", error);
+    const container = document.getElementById("admin-list");
+    if (container) container.innerHTML = "<div><strong>Could not load admins</strong></div>";
+  });
+}
+
+async function addAdmin(email) {
+  const normalisedEmail = (email || "").trim().toLowerCase();
+  const statusEl = document.getElementById("add-admin-status");
+  const button = document.getElementById("add-admin-button");
+  if (!normalisedEmail) {
+    if (statusEl) statusEl.textContent = "Enter an email address first.";
+    return;
+  }
+
+  if (button) button.disabled = true;
+  if (statusEl) statusEl.textContent = "Adding admin…";
+
+  let secondaryApp;
+  try {
+    try { secondaryApp = firebase.app("AdminInvite"); }
+    catch (error) { secondaryApp = firebase.initializeApp(firebaseConfig, "AdminInvite"); }
+
+    let uid;
+    try {
+      const credential = await secondaryApp.auth().createUserWithEmailAndPassword(normalisedEmail, generateTempPassword());
+      uid = credential.user.uid;
+    } catch (error) {
+      if (error.code === "auth/email-already-in-use") {
+        if (statusEl) statusEl.textContent = "That email already has a Firebase account (e.g. an existing customer). This tool can only add brand-new accounts — add them manually in Firebase Console using their existing UID.";
+        return;
+      }
+      throw error;
+    } finally {
+      await secondaryApp.auth().signOut().catch(() => {});
+    }
+
+    await firebase.firestore().collection("admins").doc(uid).set({
+      email: normalisedEmail,
+      role: "admin",
+      active: true,
+      addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      addedBy: auth.currentUser?.email || null
+    });
+
+    await auth.sendPasswordResetEmail(normalisedEmail);
+
+    if (statusEl) statusEl.textContent = `Admin added — invite sent to ${normalisedEmail}.`;
+    const emailInput = document.getElementById("new-admin-email");
+    if (emailInput) emailInput.value = "";
+  } catch (error) {
+    console.error("Could not add admin", error);
+    if (statusEl) statusEl.textContent = friendlyAdminInviteError(error);
+  } finally {
+    if (secondaryApp) await secondaryApp.delete().catch(() => {});
     if (button) button.disabled = false;
   }
 }
@@ -2750,4 +2847,9 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveTimeSessions();
   loadTimeTrackerSettings();
   loadLiveLeads();
+  loadLiveAdmins();
+});
+
+document.getElementById("add-admin-button")?.addEventListener("click", () => {
+  addAdmin(document.getElementById("new-admin-email")?.value);
 });

@@ -297,3 +297,11 @@ Initial Console foundation release.
 - Portal (same pattern, `css/styles.css` / `js/main.js`, breakpoint 760px): identical hamburger toggle and collapse-on-navigate behaviour for its own nav.
 - No change to desktop/wide-screen layout in either app — the toggle button only appears below each app's existing mobile breakpoint.
 - Portal version bumped separately (`js/version.js`) to v0.2.8 — Mobile Navigation, since the Portal tracks its own version number.
+
+## v0.2.13 — Admin Invites
+- New "Admin access" panel in Settings, replacing the manual "add a document to Firestore's `admins` collection yourself" process with a self-serve one.
+- Enter a new colleague's email and click "Add Admin": creates their Firebase Auth account (via a disposable secondary app instance, same pattern as customer Portal invites, so it doesn't disturb your own signed-in session), writes their `admins/{uid}` document with `role: "admin"` and `active: true`, and emails them a password-set link.
+- Live list of current admins (email, active/inactive, date added) shown underneath, read from Firestore in real time.
+- **Known limitation**: only works for a brand-new email address. If the person already has *any* Firebase Auth account (e.g. they're also a customer), the client SDK has no way to look up their existing UID without a backend — the tool detects this case and tells you to add them manually in Firebase Console instead.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt`'s `admins` collection now allows `write` (and read of other admins' docs) when the requester is already an admin, instead of blocking all writes outright. Must be published before this feature works.
+- The very first admin ever still has to be created manually in Firebase Console — nobody exists yet to grant that permission from inside the app.

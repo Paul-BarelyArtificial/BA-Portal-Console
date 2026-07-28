@@ -91,6 +91,7 @@ Currently a placeholder — no live reporting yet.
 ## Settings
 
 Mostly placeholders for now (branding, notifications) except:
+- **Admin access**: add a new admin by entering their email and clicking "Add Admin" — this creates their Firebase login, grants them admin rights, and emails them a password-set link, all in one step. No more manually creating a document in Firebase Console. Only works for a brand-new email address that's never had a Firebase account before (e.g. an existing customer's email can't be reused this way) — in that case, add them manually in Firebase Console instead. The very first admin ever (you) still had to be set up manually, since nobody existed yet to grant that permission.
 - **Firebase** panel shows live connection status for Authentication/Firestore/Storage.
 - The rest (Portal branding, notification preferences, etc.) don't yet save anywhere — changing them has no effect.
 
