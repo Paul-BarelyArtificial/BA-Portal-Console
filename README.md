@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.4.2 – Customer Library Access
+**Current version:** v0.4.3 – UI Tidy
 
 ## Current features
 

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.4.2 – Customer Library Access";
+const APP_VERSION = "v0.4.3 – UI Tidy";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -3048,9 +3048,9 @@ function getCustomerDetailMarkup(customer) {
         </button>
         <button class="secondary-button danger-button" data-delete-customer="${customer.id}">Delete customer</button>
       </div>
-      <p class="muted" data-invite-status="${customer.id}">${
+      <p class="muted invite-status" data-invite-status="${customer.id}">${
         customer.contactEmail
-          ? (customer.portalInviteSentAt ? `Last invite sent ${escapeHtml(customer.portalInviteSentAt)}.` : "No invite sent yet.")
+          ? (customer.portalInviteSentAt ? `Portal invite: last sent ${escapeHtml(customer.portalInviteSentAt)}.` : "Portal invite: not sent yet.")
           : "Add a contact email to this customer to send a Portal invite."
       }</p>
     </div>

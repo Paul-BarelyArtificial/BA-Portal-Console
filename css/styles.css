@@ -321,6 +321,10 @@ tr:last-child td { border-bottom: 0; }
   flex-wrap: wrap;
   margin-top: 16px;
 }
+.invite-status {
+  margin-top: 12px;
+  font-size: 13px;
+}
 .modal {
   width: min(720px, calc(100% - 32px));
   border: 1px solid var(--line);

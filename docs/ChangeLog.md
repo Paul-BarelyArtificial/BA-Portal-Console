@@ -345,3 +345,7 @@ Initial Console foundation release.
 - The Customer detail panel now shows a **"Library access"** list — every Published item they can see, whether via "All Customers" visibility or being individually selected, with its category shown alongside.
 - Mirrors exactly what the customer would see in their own Portal: Draft/Archived items are excluded (never visible to them), and Internal-only items are excluded (never customer-facing) — this is a real "what can they see" view, not just a raw list of everything tagged with their name.
 - No data model or Firestore rules changes — computed client-side from data already loaded for the Library and Customers pages.
+
+## v0.4.3 — UI Tidy
+- Fixed the New Library Item and Bulk Upload dialogs: their close (×) button was falling below the title and overlapping the intro text, because both dialogs used a `modal-heading` class that doesn't exist in the stylesheet (a typo — every other dialog correctly uses `modal-header`, which is what actually provides the flex layout putting the × top-right).
+- Fixed the Customer detail panel: the Portal invite status line ("No invite sent yet." etc.) had zero spacing after the action buttons, making it look glued to whichever button it happened to land under (especially once buttons wrap onto a second row on a real screen). Added spacing and reworded it to "Portal invite: ..." so it's unambiguous regardless of layout.
