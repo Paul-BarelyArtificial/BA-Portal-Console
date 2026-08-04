@@ -372,3 +372,6 @@ Initial Console foundation release.
 - If a signed-in customer's account isn't yet linked to a real customer record, submitting a suggestion is blocked with a clear message (mirrors how uploads/bookings already handle the unlinked-account case) rather than silently failing or submitting with no owner.
 - **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes `comingSoon` (any signed-in user can read; admin-only write) and `featureRequests` (admin-only read/update/delete; a customer can only create their own, tightly validated) rules. Must be published before this feature works.
 - Both new collections included in the Console's Data Export.
+
+## Portal v0.4.1 — Suggestion Form Fix
+- Fixed the "Have an idea?" form on the Portal Dashboard: its label and textarea were rendering with raw, unstyled browser defaults (sitting awkwardly side-by-side) because the CSS for form fields was scoped only to `#upload-form`'s ID, and the new `#feature-request-form` didn't match it. Extended the same styling to cover both forms — label now sits above a full-width textarea, matching the Share a Document form.
