@@ -49,6 +49,7 @@
 - **Console v0.3.1** — Data Export — manual "Export Data" button in Settings, downloading a full Firestore-data JSON snapshot; restore/import deliberately deferred
 - **Console v0.4.0** — Marketing Opportunities — new nav section tracking recurring promotion opportunities (Facebook groups, networking breakfasts, meetups) with smart recurrence ("First Wednesday of the month") and a 14-day upcoming callout
 - **Console v0.4.1** — Customer/Project Delete — permanent delete for Customers and Projects (guarded against orphaning linked records), to clean out testing/demo data before going live
+- **Console v0.4.2** — Customer Library Access — Customer detail panel now shows every Library item that customer can actually see, matching what they'd see in their own Portal
 
 ## Backlog (not yet scheduled)
 

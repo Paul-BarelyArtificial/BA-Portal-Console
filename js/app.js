@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.4.1 – Customer/Project Delete";
+const APP_VERSION = "v0.4.2 – Customer Library Access";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -2998,7 +2998,15 @@ function renderBookingTable() {
   });
 }
 
+function getAccessibleLibraryItems(customer) {
+  return libraryItems.filter((item) =>
+    item.status === "Published"
+    && (item.visibility === "All Customers" || (item.visibility === "Selected Customers" && item.customerIds.includes(customer.id)))
+  );
+}
+
 function getCustomerDetailMarkup(customer) {
+  const accessibleItems = getAccessibleLibraryItems(customer);
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
       <div class="detail-header">
@@ -3023,6 +3031,12 @@ function getCustomerDetailMarkup(customer) {
       </div>
       ${customer.status === "Archived" ? `<p class="muted">This customer is archived. They can still sign in to the Portal, but their Library will show no items until reactivated.</p>` : ""}
       <p>${escapeHtml(customer.notes)}</p>
+      <p class="eyebrow">Library access (${accessibleItems.length})</p>
+      <div class="settings-list compact-list">
+        ${accessibleItems.length
+          ? accessibleItems.map((item) => `<div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.category)} · ${item.visibility === "All Customers" ? "All customers" : "Selected customers"}</span></div>`).join("")
+          : `<div><strong>No published library items shared with them yet</strong></div>`}
+      </div>
       <div class="detail-actions">
         <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>

@@ -339,3 +339,9 @@ Initial Console foundation release.
 - Deleting a customer also cleans up their `customerAccess` mapping doc (if they had a contact email set), so no stale mapping is left pointing at a deleted customer. Their Firebase Authentication login (if they'd been sent a Portal invite) is untouched — same limitation as Archive, since disabling a login needs backend access this project deliberately doesn't have.
 - Deleting a project correctly decrements the parent customer's project count (the same counter incremented when a project is created), keeping the Customers table accurate.
 - No Firestore rules changes required — `customers`/`projects` already grant admins full read/write, which covers delete.
+
+## v0.4.2 — Customer Library Access
+- Requested: a way to see, per customer, every document they actually have access to — previously you could only see this the other way round (open each Library item and check its audience).
+- The Customer detail panel now shows a **"Library access"** list — every Published item they can see, whether via "All Customers" visibility or being individually selected, with its category shown alongside.
+- Mirrors exactly what the customer would see in their own Portal: Draft/Archived items are excluded (never visible to them), and Internal-only items are excluded (never customer-facing) — this is a real "what can they see" view, not just a raw list of everything tagged with their name.
+- No data model or Firestore rules changes — computed client-side from data already loaded for the Library and Customers pages.

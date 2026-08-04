@@ -56,6 +56,7 @@ Your live list of real customer organisations.
 - **Portal invite**: if a customer has a contact email set, you can click "Send Portal invite" to create their Firebase login and email them a link to set their own password. You never see or set their password yourself. If they already have an account, this just resends the password-set email.
 - **Uploads used**: shows how much of their 500 MB document-upload allowance (see Library below) they've used.
 - **Deleting a customer**: unlike Archive, this is permanent — use it to clean up test/demo accounts rather than real customers. Blocked with a clear message if the customer still has any linked Projects or Bookings — delete those first. If they had a Portal login, it stays active in Firebase (there's no way to disable it from the Console); only their Console/Portal data is removed.
+- **Library access**: each customer's detail panel lists every Published Library item they can actually see — whether via "All Customers" visibility or being individually selected — matching exactly what they'd see in their own Portal. Useful when a customer has several items and you want to check at a glance what they can access, rather than checking each Library item's audience one by one.
 
 ## Projects
 
