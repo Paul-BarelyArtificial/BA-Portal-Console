@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.4.4 – Collapsible Library Access";
+const APP_VERSION = "v0.5.0 – Welcome Messages";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -61,6 +61,8 @@ let currentBookingFilter = "all";
 let currentBookingSearch = "";
 let selectedCustomerId = null;
 let expandedLibraryAccessCustomerId = null;
+let customerMessages = [];
+let unsubscribeCustomerMessages = null;
 let editingCustomerId = null;
 let selectedProjectId = null;
 let editingProjectId = null;
@@ -312,7 +314,7 @@ async function addAdmin(email) {
   }
 }
 
-const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities"];
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages"];
 
 function serialiseForBackup(value) {
   if (value && typeof value.toDate === "function") return value.toDate().toISOString();
@@ -769,6 +771,45 @@ function setupMarketingControls() {
   });
 
   document.getElementById("marketing-frequency")?.addEventListener("change", updateMarketingFrequencyFields);
+}
+
+function loadLiveCustomerMessages() {
+  if (unsubscribeCustomerMessages) unsubscribeCustomerMessages();
+  unsubscribeCustomerMessages = firebase.firestore().collection("customerMessages").onSnapshot((snapshot) => {
+    customerMessages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    renderCustomerTable();
+  }, (error) => {
+    console.error("Could not load customer welcome messages", error);
+  });
+}
+
+function getCustomerMessage(customerId) {
+  return customerMessages.find((entry) => entry.id === customerId)?.message || "";
+}
+
+async function saveCustomerMessage(customerId) {
+  const textarea = document.getElementById(`welcome-message-${customerId}`);
+  const statusEl = document.querySelector(`[data-welcome-message-status="${customerId}"]`);
+  const button = document.querySelector(`[data-save-welcome-message="${customerId}"]`);
+  if (!textarea) return;
+
+  const message = textarea.value.trim();
+  if (button) button.disabled = true;
+  if (statusEl) statusEl.textContent = "Saving…";
+
+  try {
+    await firebase.firestore().collection("customerMessages").doc(customerId).set({
+      message,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: auth.currentUser?.email || null
+    });
+    if (statusEl) statusEl.textContent = message ? "Saved — the customer will see this next time they visit their Dashboard." : "Saved — no message will be shown.";
+  } catch (error) {
+    console.error("Could not save welcome message", error);
+    if (statusEl) statusEl.textContent = "Could not save this message. Please try again.";
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 function loadLiveCustomers() {
@@ -2768,6 +2809,12 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-save-welcome-message]").forEach((button) => {
+    button.addEventListener("click", () => {
+      saveCustomerMessage(button.dataset.saveWelcomeMessage);
+    });
+  });
+
   document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
@@ -3069,6 +3116,12 @@ function getCustomerDetailMarkup(customer) {
           ? (customer.portalInviteSentAt ? `Portal invite: last sent ${escapeHtml(customer.portalInviteSentAt)}.` : "Portal invite: not sent yet.")
           : "Add a contact email to this customer to send a Portal invite."
       }</p>
+      <p class="eyebrow">Welcome message (shown on their Portal Dashboard)</p>
+      <textarea class="detail-textarea" id="welcome-message-${customer.id}" rows="3" placeholder="e.g. Hi Paul, welcome to the portal — great catching up yesterday!">${escapeHtml(getCustomerMessage(customer.id))}</textarea>
+      <div class="detail-actions">
+        <button class="secondary-button compact" data-save-welcome-message="${customer.id}">Save message</button>
+      </div>
+      <p class="muted" data-welcome-message-status="${customer.id}"></p>
     </div>
   `;
 }
@@ -3443,6 +3496,7 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveLeads();
   loadLiveAdmins();
   loadLiveMarketingOpportunities();
+  loadLiveCustomerMessages();
 });
 
 document.getElementById("add-admin-button")?.addEventListener("click", () => {

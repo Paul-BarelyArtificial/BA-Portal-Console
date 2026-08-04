@@ -354,3 +354,11 @@ Initial Console foundation release.
 - The Customer detail panel's "Library access" list (added in v0.4.2) is now collapsed by default behind a "Show library"/"Hide library" toggle, since a customer with many published items was taking up a lot of vertical space and forcing a long scroll just to reach the action buttons below.
 - When expanded, the list is capped at 260px tall with its own internal scrollbar, rather than pushing the rest of the panel down — tested with 100 items to confirm it stays contained.
 - The toggle state resets whenever you close the detail panel or switch to a different customer, so it always starts collapsed for a fresh view.
+
+## v0.5.0 — Welcome Messages (Console v0.5.0 / Portal v0.3.0)
+- First piece of "make more use of the Dashboard" — a per-customer personal welcome message, written as free text in the Console, shown to that customer on their Portal Dashboard (e.g. "Hi Paul, welcome to the portal, it was great catching up yesterday.").
+- Console: each customer's detail panel now has a "Welcome message" textarea with a Save button — live, saves to a new `customerMessages/{customerId}` collection. Leave it blank to show nothing.
+- Portal: a highlighted card appears at the top of the Dashboard, right under the hero, whenever the signed-in customer has a message set — hidden entirely when there isn't one. Line breaks in the message are preserved.
+- **New Firestore collection `customerMessages`**, kept deliberately separate from the `customers` collection itself: customers still have no read access to their own `customers/{id}` document (which holds internal notes), so a customer-readable field couldn't live there. This new collection holds only the message, nothing internal.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `customerMessages` rule (admin write; read for admins and the matching customer only). Must be published before this feature works.
+- Included in the Console's Data Export.

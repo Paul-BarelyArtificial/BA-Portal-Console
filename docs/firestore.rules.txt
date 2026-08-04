@@ -100,6 +100,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /customerMessages/{customerId} {
+      allow read: if isAdmin() || (isSignedIn() && customerId == callerCustomerId());
+      allow write: if isAdmin();
+    }
+
     match /bookings/{bookingId} {
       allow write: if isAdmin();
       allow read: if isAdmin() || (

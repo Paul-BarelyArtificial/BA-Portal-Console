@@ -52,6 +52,7 @@
 - **Console v0.4.2** — Customer Library Access — Customer detail panel now shows every Library item that customer can actually see, matching what they'd see in their own Portal
 - **Console v0.4.3** — UI Tidy — fixed misplaced close button on New Library Item/Bulk Upload dialogs (a `modal-heading`/`modal-header` class typo), and clarified/spaced the Customer detail panel's Portal invite status line
 - **Console v0.4.4** — Collapsible Library Access — the Customer detail panel's Library access list is now collapsed by default with a "Show library" toggle, and scrolls internally (capped at 260px) instead of stretching the whole panel
+- **Platform v0.5.0** — Welcome Messages (Console v0.5.0 / Portal v0.3.0) — per-customer personal welcome message, written free-text in the Console, shown as a highlighted card on that customer's Portal Dashboard. First piece of the "make more use of the Dashboard" initiative (requested 2026-08-04)
 
 ## Backlog (not yet scheduled)
 
@@ -67,6 +68,9 @@
   - Backing up uploaded files in Storage (Library items, customer uploads) — the v0.3.1 export is Firestore-only by design; Storage files would need a separate approach.
   - True scheduled/automatic backups would need a Cloud Function — now technically possible since the project is on the Blaze plan, but still a real architecture addition, not a small one.
   - In the meantime, Google Cloud's own managed Firestore export (Firestore → Import/Export in Firebase Console, or `gcloud firestore export`) is available as a zero-code, complete backup covering literally everything — see the "Firestore backups" section of `docs/USER-MANUAL.md` for the manual steps.
+- **Further Dashboard improvements** (requested 2026-08-04, alongside Welcome Messages above) — Paul wants to make "more use of the Dashboard" in both apps and is open to ideas. Not yet scoped, candidates worth a proper conversation:
+  - Console: an "upcoming" widget reusing the Marketing Opportunities 14-day logic, a recent-activity feed backed by real data (currently hardcoded placeholder text), a Time Tracker summary (hours logged this week), or a "needs attention" list (customers near their upload quota, no Portal invite sent yet, etc.)
+  - Portal: the Dashboard/Account pages still show some hardcoded placeholder profile data (`customerProfile` object in `js/main.js`) rather than fully live Firestore data — worth fixing as part of any further Dashboard work. Also candidates: next upcoming booking countdown, a real "what's new" feed, quota/usage summary.
 - **Light/dark theme toggle** (parked 2026-08-04) — both apps already use CSS custom properties for their core palette (`--bg`, `--panel`, `--text`, `--accent`, etc. in Console; `--bg-main`, `--bg-panel`, `--text-main`, etc. in Portal), which would make a `[data-theme="light"]` override plus a saved toggle fairly mechanical. The complication: each app also has 15-20 hardcoded colours (status badges, card shadows, sidebar backgrounds) that bypass the variables and would need converting first, or they'd stay dark in "light mode". Estimated at roughly an afternoon of work per app, plus real visual QA across every page — not started.
 
 ## Next releases
