@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.4.3 – UI Tidy";
+const APP_VERSION = "v0.4.4 – Collapsible Library Access";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -60,6 +60,7 @@ let currentLibrarySearch = "";
 let currentBookingFilter = "all";
 let currentBookingSearch = "";
 let selectedCustomerId = null;
+let expandedLibraryAccessCustomerId = null;
 let editingCustomerId = null;
 let selectedProjectId = null;
 let editingProjectId = null;
@@ -2722,6 +2723,7 @@ function renderCustomerTable() {
   document.querySelectorAll("[data-customer-id]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = selectedCustomerId === button.dataset.customerId ? null : button.dataset.customerId;
+      expandedLibraryAccessCustomerId = null;
       renderCustomerTable();
     });
   });
@@ -2758,9 +2760,18 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-toggle-library-access]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customerId = button.dataset.toggleLibraryAccess;
+      expandedLibraryAccessCustomerId = expandedLibraryAccessCustomerId === customerId ? null : customerId;
+      renderCustomerTable();
+    });
+  });
+
   document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
+      expandedLibraryAccessCustomerId = null;
       renderCustomerTable();
     });
   });
@@ -3031,12 +3042,17 @@ function getCustomerDetailMarkup(customer) {
       </div>
       ${customer.status === "Archived" ? `<p class="muted">This customer is archived. They can still sign in to the Portal, but their Library will show no items until reactivated.</p>` : ""}
       <p>${escapeHtml(customer.notes)}</p>
-      <p class="eyebrow">Library access (${accessibleItems.length})</p>
-      <div class="settings-list compact-list">
-        ${accessibleItems.length
-          ? accessibleItems.map((item) => `<div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.category)} · ${item.visibility === "All Customers" ? "All customers" : "Selected customers"}</span></div>`).join("")
-          : `<div><strong>No published library items shared with them yet</strong></div>`}
+      <div class="detail-subheading">
+        <p class="eyebrow">Library access (${accessibleItems.length})</p>
+        ${accessibleItems.length ? `<button class="secondary-button compact" data-toggle-library-access="${customer.id}">${expandedLibraryAccessCustomerId === customer.id ? "Hide library" : "Show library"}</button>` : ""}
       </div>
+      ${expandedLibraryAccessCustomerId === customer.id ? `
+        <div class="settings-list compact-list scrollable-list">
+          ${accessibleItems.length
+            ? accessibleItems.map((item) => `<div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.category)} · ${item.visibility === "All Customers" ? "All customers" : "Selected customers"}</span></div>`).join("")
+            : `<div><strong>No published library items shared with them yet</strong></div>`}
+        </div>
+      ` : `<p class="muted">${accessibleItems.length ? `Click "Show library" to see all ${accessibleItems.length} item${accessibleItems.length === 1 ? "" : "s"}.` : "No published library items shared with them yet."}</p>`}
       <div class="detail-actions">
         <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>

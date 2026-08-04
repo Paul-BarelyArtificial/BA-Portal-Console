@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.4.3 – UI Tidy
+**Current version:** v0.4.4 – Collapsible Library Access
 
 ## Current features
 

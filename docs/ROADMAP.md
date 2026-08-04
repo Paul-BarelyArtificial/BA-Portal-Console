@@ -51,6 +51,7 @@
 - **Console v0.4.1** — Customer/Project Delete — permanent delete for Customers and Projects (guarded against orphaning linked records), to clean out testing/demo data before going live
 - **Console v0.4.2** — Customer Library Access — Customer detail panel now shows every Library item that customer can actually see, matching what they'd see in their own Portal
 - **Console v0.4.3** — UI Tidy — fixed misplaced close button on New Library Item/Bulk Upload dialogs (a `modal-heading`/`modal-header` class typo), and clarified/spaced the Customer detail panel's Portal invite status line
+- **Console v0.4.4** — Collapsible Library Access — the Customer detail panel's Library access list is now collapsed by default with a "Show library" toggle, and scrolls internally (capped at 260px) instead of stretching the whole panel
 
 ## Backlog (not yet scheduled)
 

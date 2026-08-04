@@ -349,3 +349,8 @@ Initial Console foundation release.
 ## v0.4.3 — UI Tidy
 - Fixed the New Library Item and Bulk Upload dialogs: their close (×) button was falling below the title and overlapping the intro text, because both dialogs used a `modal-heading` class that doesn't exist in the stylesheet (a typo — every other dialog correctly uses `modal-header`, which is what actually provides the flex layout putting the × top-right).
 - Fixed the Customer detail panel: the Portal invite status line ("No invite sent yet." etc.) had zero spacing after the action buttons, making it look glued to whichever button it happened to land under (especially once buttons wrap onto a second row on a real screen). Added spacing and reworded it to "Portal invite: ..." so it's unambiguous regardless of layout.
+
+## v0.4.4 — Collapsible Library Access
+- The Customer detail panel's "Library access" list (added in v0.4.2) is now collapsed by default behind a "Show library"/"Hide library" toggle, since a customer with many published items was taking up a lot of vertical space and forcing a long scroll just to reach the action buttons below.
+- When expanded, the list is capped at 260px tall with its own internal scrollbar, rather than pushing the rest of the panel down — tested with 100 items to confirm it stays contained.
+- The toggle state resets whenever you close the detail panel or switch to a different customer, so it always starts collapsed for a fresh view.

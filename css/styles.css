@@ -325,6 +325,17 @@ tr:last-child td { border-bottom: 0; }
   margin-top: 12px;
   font-size: 13px;
 }
+.detail-subheading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.detail-subheading .eyebrow { margin-bottom: 0; }
+.scrollable-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
 .modal {
   width: min(720px, calc(100% - 32px));
   border: 1px solid var(--line);
