@@ -322,3 +322,12 @@ Initial Console foundation release.
 - **This is export-only.** There's deliberately no matching "restore/import" button yet — that needs its own careful design (merge vs. overwrite behaviour, avoiding clobbering live data) and is parked as a follow-up. If ever needed in an emergency, the JSON is human-readable and could be replayed manually via Firebase Console.
 - No Firestore rules changes required — admins already have full read access to every included collection.
 - Documented in `docs/USER-MANUAL.md` alongside a manual Google Cloud Firestore export process, as a "backup to the backup" now that the project is on the Blaze plan.
+
+## v0.4.0 — Marketing Opportunities
+- New **Marketing** section in the nav, for tracking recurring places to promote Barely Artificial — Facebook groups, networking breakfasts, meetups, conferences.
+- New `marketingOpportunities` collection (admin-only, same pattern as `leads`/`bookings`).
+- **Smart recurrence**: set a pattern once — One-off (specific date), Weekly (a day of the week), or Monthly (e.g. "First Wednesday" or "Last Friday") — and the Console works out the next real occurrence automatically. No need to update a date by hand every month.
+- **Coming up in the next 14 days**: a highlighted panel at the top of the page showing what's due soon ("Today", "Tomorrow", "In N days"), so nothing gets missed.
+- Full table with search, an Active/Archived filter, and a detail panel per opportunity (type, recurrence in plain English, next occurrence, optional link, notes) with Edit/Archive/Delete actions — archiving is a safe soft-hide, same reasoning as Customers/Projects.
+- Included in the Data Export (Settings → Data Backup) alongside the other collections.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `marketingOpportunities` collection rule (admin-only, same as `leads`). Must be published before this feature works.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.3.1" />
+  <link rel="stylesheet" href="css/styles.css?v=0.4.0" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -48,6 +48,7 @@
       <nav id="nav-menu" class="nav-menu" aria-label="Console navigation">
         <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
         <button class="nav-item" data-page="leads"><span>◎</span>Leads</button>
+        <button class="nav-item" data-page="marketing"><span>▲</span>Marketing</button>
         <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
         <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
         <button class="nav-item" data-page="library"><span>▤</span>Library</button>
@@ -58,7 +59,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.3.1 – Data Export</div>
+        <div id="version-label">v0.4.0 – Marketing Opportunities</div>
       </div>
     </aside>
 
@@ -157,6 +158,55 @@
               </tr>
             </thead>
             <tbody id="leads-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="marketing" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Marketing</p>
+            <h2>Marketing opportunities</h2>
+            <p>Track recurring places to promote Barely Artificial — Facebook groups, networking breakfasts, meetups — so you never miss a posting window.</p>
+          </div>
+          <button class="primary-button" id="new-marketing-button">+ New Opportunity</button>
+        </div>
+
+        <section class="panel upcoming-panel">
+          <div class="panel-heading">
+            <h3>Coming up in the next 14 days</h3>
+          </div>
+          <ul class="activity-list" id="marketing-upcoming-list">
+            <li><span>Loading…</span></li>
+          </ul>
+        </section>
+
+        <div class="toolbar">
+          <label class="search-box" for="marketing-search">
+            <span>Search</span>
+            <input id="marketing-search" type="search" placeholder="Search opportunities..." autocomplete="off" />
+          </label>
+          <div class="filter-group" aria-label="Marketing opportunity filters">
+            <button class="marketing-filter-button filter-button active" data-marketing-filter="all">All</button>
+            <button class="marketing-filter-button filter-button" data-marketing-filter="Active">Active</button>
+            <button class="marketing-filter-button filter-button" data-marketing-filter="Archived">Archived</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="marketing-summary">Loading marketing opportunities…</div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Opportunity</th>
+                <th>Type</th>
+                <th>Recurrence</th>
+                <th>Next occurrence</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="marketing-table"></tbody>
           </table>
         </div>
       </section>
@@ -498,7 +548,7 @@
               <h3>Data Backup</h3>
               <span class="badge">Manual</span>
             </div>
-            <p class="muted">Download a full snapshot of your live data (Customers, Projects, Leads, Bookings, Library, Time Sessions, Admins and Settings) as a JSON file, for safekeeping outside Firebase.</p>
+            <p class="muted">Download a full snapshot of your live data (Customers, Projects, Leads, Marketing Opportunities, Bookings, Library, Time Sessions, Admins and Settings) as a JSON file, for safekeeping outside Firebase.</p>
             <button class="primary-button" id="export-data-button" type="button">Export Data</button>
             <p id="export-data-status" class="muted"></p>
           </section>
@@ -509,7 +559,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.3.1 – Data Export</span></div>
+              <div><strong>Console version</strong><span>v0.4.0 – Marketing Opportunities</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -545,6 +595,33 @@
       <div class="modal-actions">
         <button class="secondary-button" id="cancel-lead-dialog-button" type="button">Cancel</button>
         <button class="primary-button" id="save-lead-button" type="submit">Create Lead</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="marketing-dialog" class="modal">
+    <form id="marketing-form">
+      <div class="modal-header">
+        <h3 id="marketing-dialog-title">New Opportunity</h3>
+        <button class="icon-button" id="close-marketing-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>Track a recurring place to promote Barely Artificial. Set the pattern once and the next occurrence is worked out for you.</p>
+      <div class="form-preview">
+        <label class="full-width">Name<input name="name" type="text" required placeholder="e.g. Local Business Owners FB Group" /></label>
+        <label>Type<select name="type"><option>Facebook Group</option><option>Networking Breakfast</option><option>Meetup</option><option>Conference</option><option>Other</option></select></label>
+        <label>Frequency<select id="marketing-frequency" name="frequency"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="once">One-off</option></select></label>
+
+        <label id="marketing-ordinal-group">Which occurrence<select name="ordinal"><option value="1">First</option><option value="2">Second</option><option value="3">Third</option><option value="4">Fourth</option><option value="-1">Last</option></select></label>
+        <label id="marketing-weekday-group">Day of the week<select name="weekday"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+        <label id="marketing-once-date-group" hidden>Date<input name="date" type="date" /></label>
+
+        <label class="full-width">Link (optional)<input name="url" type="url" placeholder="https://facebook.com/groups/..." /></label>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="What to post, group rules, anything useful to remember"></textarea></label>
+      </div>
+      <p id="marketing-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-marketing-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-marketing-button" type="submit">Create Opportunity</button>
       </div>
     </form>
   </dialog>
@@ -713,8 +790,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.3.1"></script>
-  <script src="js/app.js?v=0.3.1"></script>
-  <script src="js/auth.js?v=0.3.1"></script>
+  <script src="js/firebase-config.js?v=0.4.0"></script>
+  <script src="js/app.js?v=0.4.0"></script>
+  <script src="js/auth.js?v=0.4.0"></script>
 </body>
 </html>

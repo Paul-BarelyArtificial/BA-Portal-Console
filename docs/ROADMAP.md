@@ -47,6 +47,7 @@
 - **Console v0.2.13** — Admin Invites — self-serve "Add Admin" in Settings, replacing manual Firestore Console edits for every admin after the first
 - **Platform v0.3.0** — V1 Readiness (Console v0.3.0 / Portal v0.2.9) — admin list date fix, "Internal preview" customer flag, and genuinely-empty vs. filtered-empty states across both apps
 - **Console v0.3.1** — Data Export — manual "Export Data" button in Settings, downloading a full Firestore-data JSON snapshot; restore/import deliberately deferred
+- **Console v0.4.0** — Marketing Opportunities — new nav section tracking recurring promotion opportunities (Facebook groups, networking breakfasts, meetups) with smart recurrence ("First Wednesday of the month") and a 14-day upcoming callout
 
 ## Backlog (not yet scheduled)
 

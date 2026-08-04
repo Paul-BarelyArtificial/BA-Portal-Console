@@ -1,8 +1,9 @@
-const APP_VERSION = "v0.3.1 – Data Export";
+const APP_VERSION = "v0.4.0 – Marketing Opportunities";
 
 const pageTitles = {
   dashboard: "Dashboard",
   leads: "Leads",
+  marketing: "Marketing",
   customers: "Customers",
   projects: "Projects",
   library: "Library",
@@ -32,6 +33,13 @@ let unsubscribeTimeTrackerSettings = null;
 
 let admins = [];
 let unsubscribeAdmins = null;
+
+let marketingOpportunities = [];
+let unsubscribeMarketingOpportunities = null;
+let selectedMarketingOpportunityId = null;
+let editingMarketingOpportunityId = null;
+let currentMarketingFilter = "all";
+let currentMarketingSearch = "";
 
 let leads = [];
 let unsubscribeLeads = null;
@@ -303,7 +311,7 @@ async function addAdmin(email) {
   }
 }
 
-const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings"];
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities"];
 
 function serialiseForBackup(value) {
   if (value && typeof value.toDate === "function") return value.toDate().toISOString();
@@ -359,6 +367,408 @@ async function exportAllData() {
 }
 
 document.getElementById("export-data-button")?.addEventListener("click", exportAllData);
+
+const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const ORDINAL_NAMES = { "1": "First", "2": "Second", "3": "Third", "4": "Fourth", "-1": "Last" };
+
+function normaliseMarketingOpportunity(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    name: data.name || "Unnamed opportunity",
+    type: data.type || "Other",
+    recurrence: data.recurrence || { frequency: "once", date: "" },
+    url: data.url || "",
+    notes: data.notes || "",
+    active: data.active !== false
+  };
+}
+
+function describeRecurrence(recurrence) {
+  if (!recurrence) return "Not set";
+  if (recurrence.frequency === "once") {
+    return recurrence.date ? `Once — ${formatBookingDateDisplay(recurrence.date)}` : "Once — no date set";
+  }
+  if (recurrence.frequency === "weekly") {
+    return `Weekly — every ${WEEKDAY_NAMES[recurrence.weekday]}`;
+  }
+  if (recurrence.frequency === "monthly") {
+    return `Monthly — ${ORDINAL_NAMES[String(recurrence.ordinal)]} ${WEEKDAY_NAMES[recurrence.weekday]}`;
+  }
+  return "Not set";
+}
+
+function getNthWeekdayOfMonth(year, month, weekday, ordinal) {
+  if (ordinal === -1) {
+    const lastDay = new Date(year, month + 1, 0);
+    const diff = (lastDay.getDay() - weekday + 7) % 7;
+    return new Date(year, month, lastDay.getDate() - diff);
+  }
+  const firstDay = new Date(year, month, 1);
+  const diff = (weekday - firstDay.getDay() + 7) % 7;
+  const day = 1 + diff + (ordinal - 1) * 7;
+  const candidate = new Date(year, month, day);
+  return candidate.getMonth() === month ? candidate : null;
+}
+
+function getNextOccurrence(recurrence, fromDate = new Date()) {
+  if (!recurrence) return null;
+  const today = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+
+  if (recurrence.frequency === "once") {
+    if (!recurrence.date) return null;
+    const parsed = new Date(`${recurrence.date}T00:00:00`);
+    return parsed >= today ? parsed : null;
+  }
+
+  if (recurrence.frequency === "weekly") {
+    const weekday = Number(recurrence.weekday);
+    const diff = (weekday - today.getDay() + 7) % 7;
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate() + diff);
+  }
+
+  if (recurrence.frequency === "monthly") {
+    const weekday = Number(recurrence.weekday);
+    const ordinal = Number(recurrence.ordinal);
+    let year = today.getFullYear();
+    let month = today.getMonth();
+    for (let i = 0; i < 12; i++) {
+      const candidate = getNthWeekdayOfMonth(year, month, weekday, ordinal);
+      if (candidate && candidate >= today) return candidate;
+      month += 1;
+      if (month > 11) { month = 0; year += 1; }
+    }
+  }
+
+  return null;
+}
+
+function formatOccurrenceDate(date) {
+  if (!date) return "Not scheduled";
+  return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(date);
+}
+
+function formatOccurrenceRelative(date) {
+  if (!date) return "";
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = Math.round((date - startOfToday) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `In ${days} days`;
+}
+
+function loadLiveMarketingOpportunities() {
+  if (unsubscribeMarketingOpportunities) unsubscribeMarketingOpportunities();
+  const summary = document.getElementById("marketing-summary");
+  if (summary) summary.textContent = "Loading marketing opportunities…";
+
+  unsubscribeMarketingOpportunities = firebase.firestore().collection("marketingOpportunities").onSnapshot((snapshot) => {
+    marketingOpportunities = snapshot.docs.map(normaliseMarketingOpportunity);
+    selectedMarketingOpportunityId = marketingOpportunities.some((item) => item.id === selectedMarketingOpportunityId) ? selectedMarketingOpportunityId : null;
+    renderMarketingTable();
+    renderUpcomingMarketingOpportunities();
+  }, (error) => {
+    console.error("Could not load marketing opportunities", error);
+    marketingOpportunities = [];
+    renderMarketingTable();
+    renderUpcomingMarketingOpportunities();
+    if (summary) summary.textContent = "Marketing opportunities could not be loaded. Check Firestore access.";
+  });
+}
+
+function renderUpcomingMarketingOpportunities() {
+  const list = document.getElementById("marketing-upcoming-list");
+  if (!list) return;
+
+  const upcoming = marketingOpportunities
+    .filter((item) => item.active)
+    .map((item) => ({ item, next: getNextOccurrence(item.recurrence) }))
+    .filter(({ next }) => next && Math.round((next - new Date()) / (1000 * 60 * 60 * 24)) <= 14)
+    .sort((a, b) => a.next - b.next);
+
+  if (upcoming.length === 0) {
+    list.innerHTML = `<li><span>Nothing coming up in the next 14 days.</span></li>`;
+    return;
+  }
+
+  list.innerHTML = upcoming
+    .map(({ item, next }) => `<li><span>${escapeHtml(item.name)} <span class="table-subtext">${escapeHtml(item.type)}</span></span><time>${formatOccurrenceRelative(next)}</time></li>`)
+    .join("");
+}
+
+function resetMarketingDialogToCreateMode() {
+  editingMarketingOpportunityId = null;
+  document.getElementById("marketing-form")?.reset();
+  const title = document.getElementById("marketing-dialog-title");
+  const saveButton = document.getElementById("save-marketing-button");
+  if (title) title.textContent = "New Opportunity";
+  if (saveButton) saveButton.textContent = "Create Opportunity";
+  updateMarketingFrequencyFields();
+}
+
+function updateMarketingFrequencyFields() {
+  const frequency = document.getElementById("marketing-frequency")?.value;
+  const ordinalGroup = document.getElementById("marketing-ordinal-group");
+  const weekdayGroup = document.getElementById("marketing-weekday-group");
+  const onceDateGroup = document.getElementById("marketing-once-date-group");
+  if (ordinalGroup) ordinalGroup.hidden = frequency !== "monthly";
+  if (weekdayGroup) weekdayGroup.hidden = frequency === "once";
+  if (onceDateGroup) onceDateGroup.hidden = frequency !== "once";
+}
+
+function openMarketingDialogForEdit(item) {
+  const form = document.getElementById("marketing-form");
+  const dialog = document.getElementById("marketing-dialog");
+  const title = document.getElementById("marketing-dialog-title");
+  const saveButton = document.getElementById("save-marketing-button");
+  if (!form || !dialog) return;
+
+  editingMarketingOpportunityId = item.id;
+  form.elements.namedItem("name").value = item.name;
+  form.elements.namedItem("type").value = item.type;
+  form.elements.namedItem("frequency").value = item.recurrence.frequency || "monthly";
+  form.elements.namedItem("ordinal").value = String(item.recurrence.ordinal ?? "1");
+  form.elements.namedItem("weekday").value = String(item.recurrence.weekday ?? "3");
+  form.elements.namedItem("date").value = item.recurrence.date || "";
+  form.elements.namedItem("url").value = item.url;
+  form.elements.namedItem("notes").value = item.notes;
+  updateMarketingFrequencyFields();
+  if (title) title.textContent = "Edit Opportunity";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
+async function createMarketingOpportunity(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-marketing-button");
+  const message = document.getElementById("marketing-form-message");
+  const formData = new FormData(form);
+  const name = String(formData.get("name") || "").trim();
+
+  if (!name) {
+    message.textContent = "Enter a name for this opportunity.";
+    return;
+  }
+
+  const frequency = formData.get("frequency") || "monthly";
+  const recurrence = { frequency };
+  if (frequency === "once") {
+    recurrence.date = String(formData.get("date") || "").trim();
+  } else {
+    recurrence.weekday = Number(formData.get("weekday"));
+    if (frequency === "monthly") recurrence.ordinal = Number(formData.get("ordinal"));
+  }
+
+  const record = {
+    name,
+    type: formData.get("type") || "Other",
+    recurrence,
+    url: String(formData.get("url") || "").trim(),
+    notes: String(formData.get("notes") || "").trim()
+  };
+
+  saveButton.disabled = true;
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    if (editingMarketingOpportunityId) {
+      message.textContent = "Saving changes…";
+      await firebase.firestore().collection("marketingOpportunities").doc(editingMarketingOpportunityId).set({
+        ...record,
+        updatedAt: now
+      }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      message.textContent = "Saving opportunity…";
+      await firebase.firestore().collection("marketingOpportunities").add({
+        ...record,
+        active: true,
+        createdAt: now,
+        updatedAt: now
+      });
+      message.textContent = "Opportunity created.";
+    }
+
+    form.reset();
+    setTimeout(() => {
+      document.getElementById("marketing-dialog")?.close();
+      resetMarketingDialogToCreateMode();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not save marketing opportunity", error);
+    message.textContent = "This could not be saved. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function setMarketingOpportunityActive(item, active) {
+  try {
+    await firebase.firestore().collection("marketingOpportunities").doc(item.id).set({
+      active,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Could not update marketing opportunity", error);
+    alert("This could not be updated. Please try again.");
+  }
+}
+
+async function deleteMarketingOpportunity(item) {
+  if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
+  try {
+    await firebase.firestore().collection("marketingOpportunities").doc(item.id).delete();
+    if (selectedMarketingOpportunityId === item.id) selectedMarketingOpportunityId = null;
+  } catch (error) {
+    console.error("Could not delete marketing opportunity", error);
+    alert("This could not be deleted. Please try again.");
+  }
+}
+
+function getFilteredMarketingOpportunities() {
+  return marketingOpportunities.filter((item) => {
+    const matchesFilter = currentMarketingFilter === "all"
+      || (currentMarketingFilter === "Active" && item.active)
+      || (currentMarketingFilter === "Archived" && !item.active);
+    const searchTarget = `${item.name} ${item.type} ${item.notes}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentMarketingSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getMarketingDetailMarkup(item) {
+  const next = getNextOccurrence(item.recurrence);
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Marketing opportunity</p>
+          <h3>${escapeHtml(item.name)}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${item.active ? "active" : "archived"}">${item.active ? "Active" : "Archived"}</span>
+          <button class="icon-button" data-close-marketing-detail aria-label="Close detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Type</span><strong>${escapeHtml(item.type)}</strong></div>
+        <div><span>Recurrence</span><strong>${escapeHtml(describeRecurrence(item.recurrence))}</strong></div>
+        <div><span>Next occurrence</span><strong>${escapeHtml(formatOccurrenceDate(next))}</strong></div>
+      </div>
+      ${item.url ? `<p><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Open link ↗</a></p>` : ""}
+      <p>${escapeHtml(item.notes || "No notes added.")}</p>
+      <div class="detail-actions">
+        <button class="secondary-button" data-edit-marketing="${item.id}">Edit</button>
+        <button class="secondary-button" data-toggle-marketing-active="${item.id}">${item.active ? "Archive" : "Reactivate"}</button>
+        <button class="secondary-button danger-button" data-delete-marketing="${item.id}">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMarketingTable() {
+  const tableBody = document.getElementById("marketing-table");
+  const summary = document.getElementById("marketing-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredItems = getFilteredMarketingOpportunities()
+    .slice()
+    .sort((a, b) => {
+      const nextA = getNextOccurrence(a.recurrence);
+      const nextB = getNextOccurrence(b.recurrence);
+      if (!nextA && !nextB) return 0;
+      if (!nextA) return 1;
+      if (!nextB) return -1;
+      return nextA - nextB;
+    });
+  tableBody.innerHTML = "";
+
+  if (filteredItems.length === 0) {
+    tableBody.innerHTML = marketingOpportunities.length === 0
+      ? `<tr><td colspan="5" class="empty-table">No marketing opportunities yet — click "+ New Opportunity" above to add your first one.</td></tr>`
+      : `<tr><td colspan="5" class="empty-table">No opportunities match your search.</td></tr>`;
+  } else {
+    filteredItems.forEach((item) => {
+      const next = getNextOccurrence(item.recurrence);
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${escapeHtml(item.name)}</strong>${item.active ? "" : ` <span class="badge">Archived</span>`}</td>
+        <td>${escapeHtml(item.type)}</td>
+        <td>${escapeHtml(describeRecurrence(item.recurrence))}</td>
+        <td>${escapeHtml(formatOccurrenceDate(next))}</td>
+        <td><button class="secondary-button compact" data-marketing-id="${item.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedMarketingOpportunityId === item.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="5">${getMarketingDetailMarkup(item)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredItems.length} of ${marketingOpportunities.length} marketing opportunities`;
+
+  document.querySelectorAll("[data-marketing-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedMarketingOpportunityId = selectedMarketingOpportunityId === button.dataset.marketingId ? null : button.dataset.marketingId;
+      renderMarketingTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-marketing-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedMarketingOpportunityId = null;
+      renderMarketingTable();
+    });
+  });
+
+  document.querySelectorAll("[data-edit-marketing]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = marketingOpportunities.find((entry) => entry.id === button.dataset.editMarketing);
+      if (item) openMarketingDialogForEdit(item);
+    });
+  });
+
+  document.querySelectorAll("[data-toggle-marketing-active]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = marketingOpportunities.find((entry) => entry.id === button.dataset.toggleMarketingActive);
+      if (item) setMarketingOpportunityActive(item, !item.active);
+    });
+  });
+
+  document.querySelectorAll("[data-delete-marketing]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = marketingOpportunities.find((entry) => entry.id === button.dataset.deleteMarketing);
+      if (item) deleteMarketingOpportunity(item);
+    });
+  });
+}
+
+function setupMarketingControls() {
+  const searchInput = document.getElementById("marketing-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentMarketingSearch = event.target.value;
+      renderMarketingTable();
+    });
+  }
+
+  document.querySelectorAll(".marketing-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentMarketingFilter = button.dataset.marketingFilter;
+      document.querySelectorAll(".marketing-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderMarketingTable();
+    });
+  });
+
+  document.getElementById("marketing-frequency")?.addEventListener("change", updateMarketingFrequencyFields);
+}
 
 function loadLiveCustomers() {
   if (unsubscribeCustomers) unsubscribeCustomers();
@@ -2837,7 +3247,13 @@ function initialiseApp() {
   setupLibraryControls();
   setupBookingControls();
   setupLeadControls();
+  setupMarketingControls();
   setupSettingsControls();
+  setupDialog("marketing-dialog", "new-marketing-button", "close-marketing-dialog-button", "cancel-marketing-dialog-button");
+  document.getElementById("new-marketing-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
+  document.getElementById("cancel-marketing-dialog-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
+  document.getElementById("close-marketing-dialog-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
+  document.getElementById("marketing-form")?.addEventListener("submit", createMarketingOpportunity);
   setupDialog("lead-dialog", "new-lead-button", "close-lead-dialog-button", "cancel-lead-dialog-button");
   document.getElementById("new-lead-button")?.addEventListener("click", resetLeadDialogToCreateMode);
   document.getElementById("cancel-lead-dialog-button")?.addEventListener("click", resetLeadDialogToCreateMode);
@@ -2920,6 +3336,7 @@ document.addEventListener("ba:admin-authorised", () => {
   loadTimeTrackerSettings();
   loadLiveLeads();
   loadLiveAdmins();
+  loadLiveMarketingOpportunities();
 });
 
 document.getElementById("add-admin-button")?.addEventListener("click", () => {

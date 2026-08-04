@@ -30,6 +30,19 @@ Track prospects before they become real customers, and promote them once a deal 
 - **Editing a lead**: you can change its name, status, projected income and notes. You can't change which Customer/Project it's linked to once created — if you got that wrong, delete the lead and create a new one.
 - **Deleting a lead**: permanent, and safe to do any time — it never affects a Customer/Project that's already been promoted from it.
 
+## Marketing
+
+Track recurring places to promote Barely Artificial — Facebook groups, networking breakfasts, meetups, conferences — so you never miss a posting window.
+
+- **New Opportunity**: give it a name and type, then set how often it happens:
+  - **One-off**: pick a specific date.
+  - **Weekly**: pick a day of the week.
+  - **Monthly**: pick which occurrence (First, Second, Third, Fourth or Last) and which day of the week — e.g. "First Wednesday" for a Facebook group that allows promotion on the first Wednesday of every month.
+  - You don't need to update the date yourself afterwards — the Console always works out the next real occurrence from today.
+- **Coming up in the next 14 days**: a highlighted panel at the top of the page shows anything due soon, with "Today", "Tomorrow", or "In N days" so it's easy to see at a glance what needs action this week.
+- **Link and notes**: add the Facebook group/event link and any notes (what to post, group rules, anything worth remembering) on the opportunity's detail panel.
+- **Archive vs Delete**: Archive hides an opportunity from the upcoming panel and active filters without losing its history (e.g. a seasonal event you might use again); Delete is permanent.
+
 ## Customers
 
 Your live list of real customer organisations.
@@ -108,7 +121,7 @@ The quickest option, built into the Console itself:
 2. Click **Export Data**.
 3. A file named something like `barely-artificial-backup-2026-07-28.json` downloads to your computer automatically.
 
-This file contains every record from Customers, Projects, Leads, Bookings, Library, Time Sessions, Admins and Settings, as plain readable JSON. Save it somewhere safe (a cloud drive, an external disk) — since it's a normal file, it's protected even if something ever went wrong with the Firebase project itself.
+This file contains every record from Customers, Projects, Leads, Marketing Opportunities, Bookings, Library, Time Sessions, Admins and Settings, as plain readable JSON. Save it somewhere safe (a cloud drive, an external disk) — since it's a normal file, it's protected even if something ever went wrong with the Firebase project itself.
 
 **What this does *not* include:**
 - The actual uploaded files (Library documents, customer uploads in Storage) — only their metadata (title, description, etc.) is included, not the files themselves.
