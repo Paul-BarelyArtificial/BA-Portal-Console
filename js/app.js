@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.5.0 – Welcome Messages";
+const APP_VERSION = "v0.6.0 – Dashboard Widgets";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -63,6 +63,10 @@ let selectedCustomerId = null;
 let expandedLibraryAccessCustomerId = null;
 let customerMessages = [];
 let unsubscribeCustomerMessages = null;
+let comingSoonItems = [];
+let unsubscribeComingSoon = null;
+let featureRequests = [];
+let unsubscribeFeatureRequests = null;
 let editingCustomerId = null;
 let selectedProjectId = null;
 let editingProjectId = null;
@@ -314,7 +318,7 @@ async function addAdmin(email) {
   }
 }
 
-const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages"];
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages", "comingSoon", "featureRequests"];
 
 function serialiseForBackup(value) {
   if (value && typeof value.toDate === "function") return value.toDate().toISOString();
@@ -809,6 +813,122 @@ async function saveCustomerMessage(customerId) {
     if (statusEl) statusEl.textContent = "Could not save this message. Please try again.";
   } finally {
     if (button) button.disabled = false;
+  }
+}
+
+function loadLiveComingSoon() {
+  if (unsubscribeComingSoon) unsubscribeComingSoon();
+  unsubscribeComingSoon = firebase.firestore().collection("comingSoon").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+    comingSoonItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    renderComingSoonList();
+  }, (error) => {
+    console.error("Could not load Coming Soon items", error);
+    const list = document.getElementById("coming-soon-list");
+    if (list) list.innerHTML = "<li><span>Could not load Coming Soon items.</span></li>";
+  });
+}
+
+function renderComingSoonList() {
+  const list = document.getElementById("coming-soon-list");
+  if (!list) return;
+
+  if (!comingSoonItems.length) {
+    list.innerHTML = `<li><span>Nothing posted yet — add something above to let customers know what's coming.</span></li>`;
+    return;
+  }
+
+  list.innerHTML = comingSoonItems.map((item) => `
+    <li>
+      <div><strong>${escapeHtml(item.title)}</strong>${item.description ? `<div class="table-subtext">${escapeHtml(item.description)}</div>` : ""}</div>
+      <button class="icon-button" data-delete-coming-soon="${item.id}" aria-label="Remove">×</button>
+    </li>
+  `).join("");
+
+  document.querySelectorAll("[data-delete-coming-soon]").forEach((button) => {
+    button.addEventListener("click", () => deleteComingSoonItem(button.dataset.deleteComingSoon));
+  });
+}
+
+async function createComingSoonItem(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById("coming-soon-message");
+  const formData = new FormData(form);
+  const title = String(formData.get("title") || "").trim();
+
+  if (!title) {
+    if (message) message.textContent = "Enter a title first.";
+    return;
+  }
+
+  try {
+    await firebase.firestore().collection("comingSoon").add({
+      title,
+      description: String(formData.get("description") || "").trim(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: auth.currentUser?.email || null
+    });
+    form.reset();
+    if (message) {
+      message.textContent = "Posted — customers will see this on their Dashboard.";
+      setTimeout(() => { message.textContent = ""; }, 3000);
+    }
+  } catch (error) {
+    console.error("Could not post Coming Soon item", error);
+    if (message) message.textContent = "Could not post this. Please try again.";
+  }
+}
+
+async function deleteComingSoonItem(id) {
+  if (!confirm("Remove this Coming Soon item? Customers will no longer see it.")) return;
+  try {
+    await firebase.firestore().collection("comingSoon").doc(id).delete();
+  } catch (error) {
+    console.error("Could not delete Coming Soon item", error);
+    alert("Could not remove this item. Please try again.");
+  }
+}
+
+function loadLiveFeatureRequests() {
+  if (unsubscribeFeatureRequests) unsubscribeFeatureRequests();
+  unsubscribeFeatureRequests = firebase.firestore().collection("featureRequests").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+    featureRequests = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    renderFeatureRequestsList();
+  }, (error) => {
+    console.error("Could not load customer suggestions", error);
+    const list = document.getElementById("feature-requests-list");
+    if (list) list.innerHTML = "<li><span>Could not load customer suggestions.</span></li>";
+  });
+}
+
+function renderFeatureRequestsList() {
+  const list = document.getElementById("feature-requests-list");
+  if (!list) return;
+
+  if (!featureRequests.length) {
+    list.innerHTML = `<li><span>No suggestions from customers yet.</span></li>`;
+    return;
+  }
+
+  list.innerHTML = featureRequests.map((item) => `
+    <li>
+      <div><strong>${escapeHtml(item.customerName || "A customer")}</strong><div class="table-subtext">${escapeHtml(item.message)}</div></div>
+      <button class="icon-button" data-dismiss-feature-request="${item.id}" aria-label="Dismiss">×</button>
+    </li>
+  `).join("");
+
+  document.querySelectorAll("[data-dismiss-feature-request]").forEach((button) => {
+    button.addEventListener("click", () => dismissFeatureRequest(button.dataset.dismissFeatureRequest));
+  });
+}
+
+async function dismissFeatureRequest(id) {
+  if (!confirm("Dismiss this suggestion? This can't be undone.")) return;
+  try {
+    await firebase.firestore().collection("featureRequests").doc(id).delete();
+  } catch (error) {
+    console.error("Could not dismiss suggestion", error);
+    alert("Could not dismiss this. Please try again.");
   }
 }
 
@@ -3497,7 +3617,11 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveAdmins();
   loadLiveMarketingOpportunities();
   loadLiveCustomerMessages();
+  loadLiveComingSoon();
+  loadLiveFeatureRequests();
 });
+
+document.getElementById("coming-soon-form")?.addEventListener("submit", createComingSoonItem);
 
 document.getElementById("add-admin-button")?.addEventListener("click", () => {
   addAdmin(document.getElementById("new-admin-email")?.value);

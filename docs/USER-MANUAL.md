@@ -16,6 +16,9 @@ There's no self-service "forgot password" in the Console yet. If you need a pass
 
 A quick-glance summary: live counts for Customers, Projects, Library items and Bookings, plus a couple of shortcut cards to jump straight into Resources or Booking a session (these mirror what the Console can do, not customer-facing content).
 
+- **Coming Soon**: post a title and short description to let every customer know what's on the horizon — it appears on all customers' Portal Dashboards under "Coming Soon From Barely Artificial". Remove a post once it's no longer relevant (e.g. once the thing has actually launched).
+- **Customer Suggestions**: whenever a customer submits an idea via their Portal's "Have an idea?" box, it shows up here — most recent first. Click "Dismiss" once you've reviewed one; there's no way to reply from inside the Console, so follow up with the customer directly if needed.
+
 ## Leads
 
 Track prospects before they become real customers, and promote them once a deal is won.

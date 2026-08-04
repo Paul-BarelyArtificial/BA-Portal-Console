@@ -105,6 +105,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /comingSoon/{itemId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /featureRequests/{requestId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isSignedIn()
+        && request.resource.data.customerId == callerCustomerId()
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 2000;
+    }
+
     match /bookings/{bookingId} {
       allow write: if isAdmin();
       allow read: if isAdmin() || (

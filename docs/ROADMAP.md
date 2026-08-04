@@ -53,6 +53,7 @@
 - **Console v0.4.3** — UI Tidy — fixed misplaced close button on New Library Item/Bulk Upload dialogs (a `modal-heading`/`modal-header` class typo), and clarified/spaced the Customer detail panel's Portal invite status line
 - **Console v0.4.4** — Collapsible Library Access — the Customer detail panel's Library access list is now collapsed by default with a "Show library" toggle, and scrolls internally (capped at 260px) instead of stretching the whole panel
 - **Platform v0.5.0** — Welcome Messages (Console v0.5.0 / Portal v0.3.0) — per-customer personal welcome message, written free-text in the Console, shown as a highlighted card on that customer's Portal Dashboard. First piece of the "make more use of the Dashboard" initiative (requested 2026-08-04)
+- **Platform v0.6.0** — Dashboard Widgets (Console v0.6.0 / Portal v0.4.0) — "Coming Soon" announcements (Console → Portal) and "Have an idea?" customer suggestions (Portal → Console), replacing the Console Dashboard's old hardcoded placeholder panels
 
 ## Backlog (not yet scheduled)
 

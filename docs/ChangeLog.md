@@ -362,3 +362,13 @@ Initial Console foundation release.
 - **New Firestore collection `customerMessages`**, kept deliberately separate from the `customers` collection itself: customers still have no read access to their own `customers/{id}` document (which holds internal notes), so a customer-readable field couldn't live there. This new collection holds only the message, nothing internal.
 - **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `customerMessages` rule (admin write; read for admins and the matching customer only). Must be published before this feature works.
 - Included in the Console's Data Export.
+
+## v0.6.0 — Dashboard Widgets (Console v0.6.0 / Portal v0.4.0)
+- Second and third pieces of "make more use of the Dashboard" — two new two-way widgets replacing the Console Dashboard's old hardcoded "Recent activity" and "Next steps" placeholder panels, which were never connected to real data.
+- **Console Dashboard → "Coming Soon"**: post a title + short description to let customers know what's on the horizon (e.g. "New AI Training Course — a deep dive into prompt engineering, launching next month"). Each post can be removed once it's no longer relevant. New `comingSoon` collection.
+- **Portal Dashboard → "Coming Soon From Barely Artificial"**: replaces the old hardcoded "What's New" section (which only ever showed two fake, unremovable entries) with the live list from the Console. Shows a friendly "Nothing new right now" message when empty, rather than an empty section.
+- **Portal Dashboard → "Have an idea?"**: a new suggestion box where a customer can type "I'd like this feature in the Portal..." and send it straight to Barely Artificial. New `featureRequests` collection.
+- **Console Dashboard → "Customer Suggestions"**: every suggestion a customer submits appears here, most recent first, with a "Dismiss" action once reviewed.
+- If a signed-in customer's account isn't yet linked to a real customer record, submitting a suggestion is blocked with a clear message (mirrors how uploads/bookings already handle the unlinked-account case) rather than silently failing or submitting with no owner.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes `comingSoon` (any signed-in user can read; admin-only write) and `featureRequests` (admin-only read/update/delete; a customer can only create their own, tightly validated) rules. Must be published before this feature works.
+- Both new collections included in the Console's Data Export.

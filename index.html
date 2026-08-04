@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.5.0" />
+  <link rel="stylesheet" href="css/styles.css?v=0.6.0" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -59,7 +59,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.5.0 – Welcome Messages</div>
+        <div id="version-label">v0.6.0 – Dashboard Widgets</div>
       </div>
     </aside>
 
@@ -95,25 +95,30 @@
         <div class="content-grid two-column">
           <section class="panel">
             <div class="panel-heading">
-              <h3>Recent activity</h3>
-              <span class="badge">Placeholder</span>
+              <h3>Coming Soon</h3>
+              <span class="badge status active">Live</span>
             </div>
-            <ul class="activity-list">
-              <li><span>Customer list structure added</span><time>Today</time></li>
-              <li><span>Console foundation approved</span><time>Today</time></li>
-              <li><span>Customer portal access foundation tested</span><time>Today</time></li>
+            <p class="muted">Post something customers will see on their Portal Dashboard, under "Coming Soon From Barely Artificial".</p>
+            <form id="coming-soon-form" class="coming-soon-form">
+              <input name="title" type="text" placeholder="Title, e.g. New Training Course" required />
+              <textarea name="description" rows="2" placeholder="Short description customers will see"></textarea>
+              <button class="secondary-button compact" type="submit">Post</button>
+            </form>
+            <p id="coming-soon-message" class="form-message" aria-live="polite"></p>
+            <ul class="activity-list" id="coming-soon-list">
+              <li><span>Loading…</span></li>
             </ul>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
-              <h3>Next steps</h3>
+              <h3>Customer Suggestions</h3>
+              <span class="badge status active">Live</span>
             </div>
-            <ol class="task-list">
-              <li>Build the live Library and customer visibility model.</li>
-              <li>Connect records to Firebase later.</li>
-              <li>Connect the Customer Portal to the live Library in v0.2.6.</li>
-            </ol>
+            <p class="muted">Feature requests customers submit from their Portal Dashboard appear here.</p>
+            <ul class="activity-list" id="feature-requests-list">
+              <li><span>Loading…</span></li>
+            </ul>
           </section>
         </div>
       </section>
@@ -559,7 +564,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.5.0 – Welcome Messages</span></div>
+              <div><strong>Console version</strong><span>v0.6.0 – Dashboard Widgets</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -790,8 +795,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.5.0"></script>
-  <script src="js/app.js?v=0.5.0"></script>
-  <script src="js/auth.js?v=0.5.0"></script>
+  <script src="js/firebase-config.js?v=0.6.0"></script>
+  <script src="js/app.js?v=0.6.0"></script>
+  <script src="js/auth.js?v=0.6.0"></script>
 </body>
 </html>
