@@ -48,6 +48,7 @@
 - **Platform v0.3.0** — V1 Readiness (Console v0.3.0 / Portal v0.2.9) — admin list date fix, "Internal preview" customer flag, and genuinely-empty vs. filtered-empty states across both apps
 - **Console v0.3.1** — Data Export — manual "Export Data" button in Settings, downloading a full Firestore-data JSON snapshot; restore/import deliberately deferred
 - **Console v0.4.0** — Marketing Opportunities — new nav section tracking recurring promotion opportunities (Facebook groups, networking breakfasts, meetups) with smart recurrence ("First Wednesday of the month") and a 14-day upcoming callout
+- **Console v0.4.1** — Customer/Project Delete — permanent delete for Customers and Projects (guarded against orphaning linked records), to clean out testing/demo data before going live
 
 ## Backlog (not yet scheduled)
 
@@ -63,6 +64,7 @@
   - Backing up uploaded files in Storage (Library items, customer uploads) — the v0.3.1 export is Firestore-only by design; Storage files would need a separate approach.
   - True scheduled/automatic backups would need a Cloud Function — now technically possible since the project is on the Blaze plan, but still a real architecture addition, not a small one.
   - In the meantime, Google Cloud's own managed Firestore export (Firestore → Import/Export in Firebase Console, or `gcloud firestore export`) is available as a zero-code, complete backup covering literally everything — see the "Firestore backups" section of `docs/USER-MANUAL.md` for the manual steps.
+- **Light/dark theme toggle** (parked 2026-08-04) — both apps already use CSS custom properties for their core palette (`--bg`, `--panel`, `--text`, `--accent`, etc. in Console; `--bg-main`, `--bg-panel`, `--text-main`, etc. in Portal), which would make a `[data-theme="light"]` override plus a saved toggle fairly mechanical. The complication: each app also has 15-20 hardcoded colours (status badges, card shadows, sidebar backgrounds) that bypass the variables and would need converting first, or they'd stay dark in "light mode". Estimated at roughly an afternoon of work per app, plus real visual QA across every page — not started.
 
 ## Next releases
 

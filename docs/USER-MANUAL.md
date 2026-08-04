@@ -55,6 +55,7 @@ Your live list of real customer organisations.
   - Reactivating undoes this automatically the next time the Customers list refreshes.
 - **Portal invite**: if a customer has a contact email set, you can click "Send Portal invite" to create their Firebase login and email them a link to set their own password. You never see or set their password yourself. If they already have an account, this just resends the password-set email.
 - **Uploads used**: shows how much of their 500 MB document-upload allowance (see Library below) they've used.
+- **Deleting a customer**: unlike Archive, this is permanent — use it to clean up test/demo accounts rather than real customers. Blocked with a clear message if the customer still has any linked Projects or Bookings — delete those first. If they had a Portal login, it stays active in Firebase (there's no way to disable it from the Console); only their Console/Portal data is removed.
 
 ## Projects
 
@@ -64,6 +65,7 @@ Live projects, each belonging to one customer.
 - **Time column**: shows hours logged so far (in hours and billable days — see Time Tracker), and either "X remaining" or "X over budget" if a budget is set, or "No budget set" if not.
 - **Editing**: the customer a project belongs to is locked once created — to move a project to a different customer, archive the old one and create a new one against the right customer.
 - **Archiving**: soft delete, same reasoning as Customers — nothing is removed, just marked Archived. Has no effect on Library, since Library items are never tied to projects.
+- **Deleting a project**: permanent — use it to clean up test/demo projects rather than real ones. Blocked with a clear message if the project still has any logged Time Sessions — delete those first. Correctly updates the parent customer's project count.
 
 ## Library
 

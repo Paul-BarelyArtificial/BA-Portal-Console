@@ -331,3 +331,11 @@ Initial Console foundation release.
 - Full table with search, an Active/Archived filter, and a detail panel per opportunity (type, recurrence in plain English, next occurrence, optional link, notes) with Edit/Archive/Delete actions — archiving is a safe soft-hide, same reasoning as Customers/Projects.
 - Included in the Data Export (Settings → Data Backup) alongside the other collections.
 - **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `marketingOpportunities` collection rule (admin-only, same as `leads`). Must be published before this feature works.
+
+## v0.4.1 — Customer/Project Delete
+- Requested to allow cleaning out testing/demo data (customers, projects) before going fully live — until now, Customers and Projects only supported Archive (a permanent soft-hide), with no way to actually remove one.
+- New **"Delete customer"** and **"Delete project"** actions on each record's detail panel, alongside the existing Archive/Reactivate.
+- **Guarded, not silent**: deleting a customer is blocked (with a clear message) if it still has any linked Projects or Bookings — delete those first. Deleting a project is blocked if it still has any logged Time Sessions — delete those first. This avoids leaving orphaned records with a dangling customer/project reference.
+- Deleting a customer also cleans up their `customerAccess` mapping doc (if they had a contact email set), so no stale mapping is left pointing at a deleted customer. Their Firebase Authentication login (if they'd been sent a Portal invite) is untouched — same limitation as Archive, since disabling a login needs backend access this project deliberately doesn't have.
+- Deleting a project correctly decrements the parent customer's project count (the same counter incremented when a project is created), keeping the Customers table accurate.
+- No Firestore rules changes required — `customers`/`projects` already grant admins full read/write, which covers delete.

@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.4.0 – Marketing Opportunities";
+const APP_VERSION = "v0.4.1 – Customer/Project Delete";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -889,6 +889,36 @@ async function setCustomerStatus(customer, status) {
   }
 }
 
+async function deleteCustomer(customer) {
+  const linkedProjects = projects.filter((project) => project.customerId === customer.id).length;
+  if (linkedProjects > 0) {
+    alert(`"${customer.company}" still has ${linkedProjects} project${linkedProjects === 1 ? "" : "s"} linked. Delete those first (Projects page), then delete the customer.`);
+    return;
+  }
+
+  const linkedBookings = bookings.filter((booking) => booking.customerId === customer.id).length;
+  if (linkedBookings > 0) {
+    alert(`"${customer.company}" still has ${linkedBookings} booking${linkedBookings === 1 ? "" : "s"} linked. Delete those first (Bookings page), then delete the customer.`);
+    return;
+  }
+
+  if (!confirm(`Permanently delete "${customer.company}"? This cannot be undone.\n\nNote: if they have a Portal login, it stays active in Firebase Authentication — this only removes their Console/Portal data, not their sign-in.`)) return;
+
+  try {
+    const database = firebase.firestore();
+    const batch = database.batch();
+    batch.delete(database.collection("customers").doc(customer.id));
+    if (customer.contactEmail) {
+      batch.delete(database.collection("customerAccess").doc(customer.contactEmail.trim().toLowerCase()));
+    }
+    await batch.commit();
+    if (selectedCustomerId === customer.id) selectedCustomerId = null;
+  } catch (error) {
+    console.error("Could not delete customer", error);
+    alert("This customer could not be deleted. Please try again.");
+  }
+}
+
 
 function normaliseProject(documentSnapshot) {
   const data = documentSnapshot.data() || {};
@@ -1154,6 +1184,36 @@ async function setProjectStatus(project, status) {
   } catch (error) {
     console.error("Could not update project status", error);
     alert("This project's status could not be updated. Please try again.");
+  }
+}
+
+async function deleteProject(project) {
+  const linkedSessions = timeSessions.filter((session) => session.projectId === project.id).length;
+  if (linkedSessions > 0) {
+    alert(`"${project.name}" still has ${linkedSessions} logged time session${linkedSessions === 1 ? "" : "s"}. Delete those first (Time Tracker page), then delete the project.`);
+    return;
+  }
+
+  if (!confirm(`Permanently delete "${project.name}"? This cannot be undone.`)) return;
+
+  try {
+    const database = firebase.firestore();
+    const projectRef = database.collection("projects").doc(project.id);
+    const customerRef = database.collection("customers").doc(project.customerId);
+
+    await database.runTransaction(async (transaction) => {
+      const customerSnapshot = await transaction.get(customerRef);
+      transaction.delete(projectRef);
+      if (customerSnapshot.exists) {
+        const currentProjects = Number(customerSnapshot.data().projects || 0);
+        transaction.update(customerRef, { projects: Math.max(0, currentProjects - 1), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      }
+    });
+
+    if (selectedProjectId === project.id) selectedProjectId = null;
+  } catch (error) {
+    console.error("Could not delete project", error);
+    alert("This project could not be deleted. Please try again.");
   }
 }
 
@@ -2691,6 +2751,13 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-delete-customer]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customer = customers.find((item) => item.id === button.dataset.deleteCustomer);
+      if (customer) deleteCustomer(customer);
+    });
+  });
+
   document.querySelectorAll("[data-close-customer-detail]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
@@ -2770,6 +2837,13 @@ function renderProjectTable() {
       const verb = archiving ? "archive" : "reactivate";
       if (!confirm(`Are you sure you want to ${verb} ${project.name}?`)) return;
       setProjectStatus(project, archiving ? "Archived" : "Planning");
+    });
+  });
+
+  document.querySelectorAll("[data-delete-project]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const project = projects.find((item) => item.id === button.dataset.deleteProject);
+      if (project) deleteProject(project);
     });
   });
 
@@ -2958,6 +3032,7 @@ function getCustomerDetailMarkup(customer) {
         <button class="secondary-button" data-archive-customer="${customer.id}">
           ${customer.status === "Archived" ? "Reactivate customer" : "Archive customer"}
         </button>
+        <button class="secondary-button danger-button" data-delete-customer="${customer.id}">Delete customer</button>
       </div>
       <p class="muted" data-invite-status="${customer.id}">${
         customer.contactEmail
@@ -3000,6 +3075,7 @@ function getProjectDetailMarkup(project) {
         <button class="secondary-button" data-archive-project="${project.id}">
           ${project.status === "Archived" ? "Reactivate project" : "Archive project"}
         </button>
+        <button class="secondary-button danger-button" data-delete-project="${project.id}">Delete project</button>
       </div>
     </div>
   `;
