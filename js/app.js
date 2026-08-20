@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.7.0 – Multiple Customer Contacts";
+const APP_VERSION = "v0.7.1 – Badge Alignment Fix";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -725,7 +725,7 @@ function renderMarketingTable() {
       const next = getNextOccurrence(item.recurrence);
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(item.name)}</strong>${item.active ? "" : ` <span class="badge">Archived</span>`}</td>
+        <td><strong>${escapeHtml(item.name)}</strong>${item.active ? "" : ` <span class="badge inline-badge">Archived</span>`}</td>
         <td>${escapeHtml(item.type)}</td>
         <td>${escapeHtml(describeRecurrence(item.recurrence))}</td>
         <td>${escapeHtml(formatOccurrenceDate(next))}</td>
@@ -2901,7 +2901,7 @@ function renderCustomerTable() {
     filteredCustomers.forEach((customer) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(customer.company)}</strong>${customer.internalPreview ? ` <span class="badge">Internal Preview</span>` : ""}<span class="table-subtext">${escapeHtml(customer.notes)}</span></td>
+        <td><strong>${escapeHtml(customer.company)}</strong>${customer.internalPreview ? ` <span class="badge inline-badge">Internal Preview</span>` : ""}<span class="table-subtext">${escapeHtml(customer.notes)}</span></td>
         <td><span class="status ${getStatusClass(customer.status)}">${escapeHtml(customer.status)}</span></td>
         <td>${customer.projects}</td>
         <td>${customer.users}</td>

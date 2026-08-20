@@ -384,3 +384,7 @@ Initial Console foundation release.
 - `customerAccess` (the collection that lets a signed-in Portal user resolve which customer they belong to) already worked per-email rather than per-customer, so multiple contacts at the same customer each getting their own login and identical Library/Bookings access required no changes there.
 - Deleting a customer now cleans up the `customerAccess` mapping for every contact, not just one.
 - No Firestore rules changes required.
+
+## v0.7.1 — Badge Alignment Fix
+- Fixed the "Internal Preview" badge (Customers table) and "Archived" badge (Marketing table) sitting cramped and misaligned right against the bold company/item name, with no gap and no vertical alignment. Both `.badge` uses had no `vertical-align` or margin, so they just fell wherever inline default baseline alignment put them.
+- Added an `.inline-badge` modifier (vertical-align: middle, left margin, slightly smaller padding) and applied it to both. Wraps cleanly onto its own line at narrower widths instead of crowding the text.

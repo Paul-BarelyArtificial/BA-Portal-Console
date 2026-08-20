@@ -56,6 +56,7 @@
 - **Platform v0.6.0** — Dashboard Widgets (Console v0.6.0 / Portal v0.4.0) — "Coming Soon" announcements (Console → Portal) and "Have an idea?" customer suggestions (Portal → Console), replacing the Console Dashboard's old hardcoded placeholder panels
 - **Portal v0.4.1** — Suggestion Form Fix — the "Have an idea?" form's label/textarea were unstyled (CSS was scoped only to `#upload-form`'s ID); fixed to match the Share a Document form's styling
 - **Console v0.7.0** — Multiple Customer Contacts — customers now support up to 3 contacts, each with their own Portal login, invite, and status; backward compatible with existing single-contact customer records, no migration needed
+- **Console v0.7.1** — Badge Alignment Fix — fixed cramped/misaligned "Internal Preview" and "Archived" badges sitting against bold table text
 
 ## Backlog (not yet scheduled)
 
