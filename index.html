@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.6.0" />
+  <link rel="stylesheet" href="css/styles.css?v=0.7.0" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -59,7 +59,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.6.0 – Dashboard Widgets</div>
+        <div id="version-label">v0.7.0 – Multiple Customer Contacts</div>
       </div>
     </aside>
 
@@ -564,7 +564,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.6.0 – Dashboard Widgets</span></div>
+              <div><strong>Console version</strong><span>v0.7.0 – Multiple Customer Contacts</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -641,8 +641,13 @@
       <div class="form-preview">
         <label>Company name<input name="company" type="text" placeholder="Example Ltd" required /></label>
         <label>Status<select name="status"><option>Trial</option><option>Active</option><option>Paused</option><option>Archived</option></select></label>
-        <label>Primary contact<input name="contactName" type="text" placeholder="Contact name" /></label>
-        <label>Contact email<input name="contactEmail" type="email" placeholder="name@example.com" /></label>
+        <label class="full-width"><strong>Contacts</strong> — up to 3 people can each have their own Portal login.</label>
+        <label>Contact 1 name<input name="contactName1" type="text" placeholder="Contact name" /></label>
+        <label>Contact 1 email<input name="contactEmail1" type="email" placeholder="name@example.com" /></label>
+        <label>Contact 2 name<input name="contactName2" type="text" placeholder="Contact name (optional)" /></label>
+        <label>Contact 2 email<input name="contactEmail2" type="email" placeholder="name@example.com" /></label>
+        <label>Contact 3 name<input name="contactName3" type="text" placeholder="Contact name (optional)" /></label>
+        <label>Contact 3 email<input name="contactEmail3" type="email" placeholder="name@example.com" /></label>
         <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="What are we helping this customer with?"></textarea></label>
         <label class="full-width checkbox-label"><input name="internalPreview" type="checkbox" /> Internal preview (not a real customer — e.g. your own test account)</label>
       </div>
@@ -795,8 +800,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.6.0"></script>
-  <script src="js/app.js?v=0.6.0"></script>
-  <script src="js/auth.js?v=0.6.0"></script>
+  <script src="js/firebase-config.js?v=0.7.0"></script>
+  <script src="js/app.js?v=0.7.0"></script>
+  <script src="js/auth.js?v=0.7.0"></script>
 </body>
 </html>

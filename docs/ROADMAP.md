@@ -55,6 +55,7 @@
 - **Platform v0.5.0** — Welcome Messages (Console v0.5.0 / Portal v0.3.0) — per-customer personal welcome message, written free-text in the Console, shown as a highlighted card on that customer's Portal Dashboard. First piece of the "make more use of the Dashboard" initiative (requested 2026-08-04)
 - **Platform v0.6.0** — Dashboard Widgets (Console v0.6.0 / Portal v0.4.0) — "Coming Soon" announcements (Console → Portal) and "Have an idea?" customer suggestions (Portal → Console), replacing the Console Dashboard's old hardcoded placeholder panels
 - **Portal v0.4.1** — Suggestion Form Fix — the "Have an idea?" form's label/textarea were unstyled (CSS was scoped only to `#upload-form`'s ID); fixed to match the Share a Document form's styling
+- **Console v0.7.0** — Multiple Customer Contacts — customers now support up to 3 contacts, each with their own Portal login, invite, and status; backward compatible with existing single-contact customer records, no migration needed
 
 ## Backlog (not yet scheduled)
 

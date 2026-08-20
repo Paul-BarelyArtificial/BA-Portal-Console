@@ -375,3 +375,12 @@ Initial Console foundation release.
 
 ## Portal v0.4.1 — Suggestion Form Fix
 - Fixed the "Have an idea?" form on the Portal Dashboard: its label and textarea were rendering with raw, unstyled browser defaults (sitting awkwardly side-by-side) because the CSS for form fields was scoped only to `#upload-form`'s ID, and the new `#feature-request-form` didn't match it. Extended the same styling to cover both forms — label now sits above a full-width textarea, matching the Share a Document form.
+
+## v0.7.0 — Multiple Customer Contacts
+- Requested: some customers (e.g. Curzon) have more than one person who needs their own Portal login — previously a customer could only ever have a single contact name/email, so only one person could ever get access.
+- Customers now support up to 3 contacts, each with their own name, email, Portal login, and independent "Send/Resend invite" action and status.
+- **Backward compatible with no migration needed**: existing customers using the old single `contactName`/`contactEmail` fields are automatically read as a one-person contacts list. The moment you save any change to that customer, it's written forward in the new format.
+- Data model: `customers/{id}.contacts` is now an array of `{ name, email, portalAccountCreated, portalInviteSentAt }`, replacing the old top-level `contactName`/`contactEmail`/`portalAccountCreated`/`portalInviteSentAt` fields.
+- `customerAccess` (the collection that lets a signed-in Portal user resolve which customer they belong to) already worked per-email rather than per-customer, so multiple contacts at the same customer each getting their own login and identical Library/Bookings access required no changes there.
+- Deleting a customer now cleans up the `customerAccess` mapping for every contact, not just one.
+- No Firestore rules changes required.

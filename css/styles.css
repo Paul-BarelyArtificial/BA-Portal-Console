@@ -353,6 +353,31 @@ tr:last-child td { border-bottom: 0; }
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+.contacts-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.contact-card span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.contact-card strong {
+  word-break: break-word;
+}
+.contact-card-actions {
+  margin-top: 6px;
+}
+.contact-card .invite-status {
+  margin-top: 4px;
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .contacts-grid { grid-template-columns: 1fr; }
+}
 .coming-soon-form {
   display: grid;
   gap: 10px;

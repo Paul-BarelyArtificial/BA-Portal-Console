@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.6.0 – Dashboard Widgets";
+const APP_VERSION = "v0.7.0 – Multiple Customer Contacts";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -108,6 +108,27 @@ function formatBookingDateDisplay(isoDate) {
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(parsed);
 }
 
+const MAX_CUSTOMER_CONTACTS = 3;
+
+function normaliseCustomerContacts(data) {
+  let contacts = Array.isArray(data.contacts) ? data.contacts : null;
+  if (!contacts) {
+    contacts = (data.contactName || data.contactEmail) ? [{
+      name: data.contactName || "",
+      email: data.contactEmail || "",
+      portalAccountCreated: Boolean(data.portalAccountCreated),
+      portalInviteSentAt: data.portalInviteSentAt || null
+    }] : [];
+  }
+  return contacts.slice(0, MAX_CUSTOMER_CONTACTS).map((contact) => ({
+    name: contact.name || "",
+    email: contact.email || "",
+    portalAccountCreated: Boolean(contact.portalAccountCreated),
+    portalInviteSentAt: contact.portalInviteSentAt ? formatFirestoreDate(contact.portalInviteSentAt) : "",
+    portalInviteSentAtRaw: contact.portalInviteSentAt || null
+  }));
+}
+
 function normaliseCustomer(document) {
   const data = document.data() || {};
   return {
@@ -119,10 +140,7 @@ function normaliseCustomer(document) {
     owner: data.owner || "Paul O’Brien",
     lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
     notes: data.notes || "No notes added.",
-    contactName: data.contactName || "",
-    contactEmail: data.contactEmail || "",
-    portalAccountCreated: Boolean(data.portalAccountCreated),
-    portalInviteSentAt: data.portalInviteSentAt ? formatFirestoreDate(data.portalInviteSentAt) : "",
+    contacts: normaliseCustomerContacts(data),
     uploadStorageUsedBytes: Number(data.uploadStorageUsedBytes || 0),
     internalPreview: Boolean(data.internalPreview)
   };
@@ -138,23 +156,26 @@ function formatBytes(bytes) {
 
 async function syncCustomerAccessMappings(customerList) {
   const database = firebase.firestore();
-  const writes = customerList
-    .filter((customer) => customer.contactEmail)
-    .map((customer) => {
-      const email = customer.contactEmail.trim().toLowerCase();
+  const writes = [];
+  customerList.forEach((customer) => {
+    customer.contacts.forEach((contact) => {
+      if (!contact.email) return;
+      const email = contact.email.trim().toLowerCase();
       const ref = database.collection("customerAccess").doc(email);
       if (customer.status === "Archived") {
         // Archived customers keep their Portal login but lose Library access:
         // removing this mapping makes the Portal treat them as unlinked.
-        return ref.delete();
+        writes.push(ref.delete());
+      } else {
+        writes.push(ref.set({
+          customerId: customer.id,
+          customerName: customer.company,
+          email,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }));
       }
-      return ref.set({
-        customerId: customer.id,
-        customerName: customer.company,
-        email,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
     });
+  });
   try { await Promise.all(writes); }
   catch (error) { console.warn("Customer access mappings could not be synchronised", error); }
 }
@@ -183,17 +204,18 @@ function friendlyInviteError(error) {
   return messages[error?.code] || "Could not send the Portal invite. Try again.";
 }
 
-async function sendPortalInvite(customer) {
-  const email = (customer.contactEmail || "").trim().toLowerCase();
+async function sendPortalInvite(customer, contactIndex) {
+  const contact = customer.contacts[contactIndex];
+  const email = (contact?.email || "").trim().toLowerCase();
   if (!email) return;
 
-  const statusEl = document.querySelector(`[data-invite-status="${customer.id}"]`);
-  const button = document.querySelector(`[data-send-invite="${customer.id}"]`);
+  const statusEl = document.querySelector(`[data-invite-status="${customer.id}-${contactIndex}"]`);
+  const button = document.querySelector(`[data-send-invite="${customer.id}-${contactIndex}"]`);
   if (button) button.disabled = true;
   if (statusEl) statusEl.textContent = "Sending invite…";
 
   try {
-    if (!customer.portalAccountCreated) {
+    if (!contact.portalAccountCreated) {
       let secondaryApp;
       try { secondaryApp = firebase.app("PortalInvite"); }
       catch (error) { secondaryApp = firebase.initializeApp(firebaseConfig, "PortalInvite"); }
@@ -210,9 +232,11 @@ async function sendPortalInvite(customer) {
 
     await auth.sendPasswordResetEmail(email);
 
+    const updatedContacts = customer.contacts.map((entry, index) => index === contactIndex
+      ? { ...entry, portalAccountCreated: true, portalInviteSentAt: firebase.firestore.Timestamp.now() }
+      : entry);
     await firebase.firestore().collection("customers").doc(customer.id).set({
-      portalAccountCreated: true,
-      portalInviteSentAt: firebase.firestore.FieldValue.serverTimestamp()
+      contacts: updatedContacts
     }, { merge: true });
 
     if (statusEl) statusEl.textContent = `Invite sent to ${email}.`;
@@ -979,8 +1003,11 @@ function openCustomerDialogForEdit(customer) {
   editingCustomerId = customer.id;
   form.elements.namedItem("company").value = customer.company;
   form.elements.namedItem("status").value = customer.status;
-  form.elements.namedItem("contactName").value = customer.contactName;
-  form.elements.namedItem("contactEmail").value = customer.contactEmail;
+  for (let i = 0; i < MAX_CUSTOMER_CONTACTS; i++) {
+    const contact = customer.contacts[i] || { name: "", email: "" };
+    form.elements.namedItem(`contactName${i + 1}`).value = contact.name;
+    form.elements.namedItem(`contactEmail${i + 1}`).value = contact.email;
+  }
   form.elements.namedItem("notes").value = customer.notes === "No notes added." ? "" : customer.notes;
   form.elements.namedItem("internalPreview").checked = Boolean(customer.internalPreview);
   if (title) title.textContent = "Edit Customer";
@@ -1001,11 +1028,25 @@ async function createCustomer(event) {
   message.textContent = editingCustomerId ? "Saving changes…" : "Saving customer…";
   try {
     const now = firebase.firestore.FieldValue.serverTimestamp();
+    const existingCustomer = editingCustomerId ? customers.find((item) => item.id === editingCustomerId) : null;
+    const contacts = [];
+    for (let i = 0; i < MAX_CUSTOMER_CONTACTS; i++) {
+      const name = String(formData.get(`contactName${i + 1}`) || "").trim();
+      const email = String(formData.get(`contactEmail${i + 1}`) || "").trim();
+      if (!name && !email) continue;
+      const existingContact = existingCustomer?.contacts[i];
+      const emailUnchanged = existingContact && existingContact.email.toLowerCase() === email.toLowerCase();
+      contacts.push({
+        name,
+        email,
+        portalAccountCreated: emailUnchanged ? existingContact.portalAccountCreated : false,
+        portalInviteSentAt: emailUnchanged ? (existingContact.portalInviteSentAtRaw || null) : null
+      });
+    }
     const record = {
       company,
       status: formData.get("status") || "Trial",
-      contactName: String(formData.get("contactName") || "").trim(),
-      contactEmail: String(formData.get("contactEmail") || "").trim(),
+      contacts,
       notes: String(formData.get("notes") || "").trim(),
       internalPreview: formData.get("internalPreview") === "on",
       updatedAt: now
@@ -1070,9 +1111,11 @@ async function deleteCustomer(customer) {
     const database = firebase.firestore();
     const batch = database.batch();
     batch.delete(database.collection("customers").doc(customer.id));
-    if (customer.contactEmail) {
-      batch.delete(database.collection("customerAccess").doc(customer.contactEmail.trim().toLowerCase()));
-    }
+    customer.contacts.forEach((contact) => {
+      if (contact.email) {
+        batch.delete(database.collection("customerAccess").doc(contact.email.trim().toLowerCase()));
+      }
+    });
     await batch.commit();
     if (selectedCustomerId === customer.id) selectedCustomerId = null;
   } catch (error) {
@@ -2519,8 +2562,6 @@ async function promoteLead(lead) {
       const customerRef = await database.collection("customers").add({
         company: lead.customerName,
         status: "Trial",
-        contactName: "",
-        contactEmail: "",
         notes: `Promoted from lead: ${lead.name}`,
         owner: document.getElementById("admin-profile")?.textContent || "Paul O’Brien",
         projects: 0,
@@ -2891,8 +2932,9 @@ function renderCustomerTable() {
 
   document.querySelectorAll("[data-send-invite]").forEach((button) => {
     button.addEventListener("click", () => {
-      const customer = customers.find((item) => item.id === button.dataset.sendInvite);
-      if (customer) sendPortalInvite(customer);
+      const [customerId, contactIndex] = button.dataset.sendInvite.split("-");
+      const customer = customers.find((item) => item.id === customerId);
+      if (customer) sendPortalInvite(customer, Number(contactIndex));
     });
   });
 
@@ -3202,13 +3244,31 @@ function getCustomerDetailMarkup(customer) {
         <div><span>Users</span><strong>${customer.users}</strong></div>
         <div><span>Owner</span><strong>${escapeHtml(customer.owner)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(customer.lastUpdated)}</strong></div>
-        <div><span>Contact name</span><strong>${escapeHtml(customer.contactName || "Not set")}</strong></div>
-        <div><span>Contact email</span><strong>${escapeHtml(customer.contactEmail || "Not set")}</strong></div>
-        <div><span>Portal login</span><strong>${customer.portalAccountCreated ? "Invite sent" : "Not set up"}</strong></div>
         <div><span>Uploads used</span><strong>${formatBytes(customer.uploadStorageUsedBytes)} of ${formatBytes(UPLOAD_QUOTA_BYTES)}</strong></div>
       </div>
       ${customer.status === "Archived" ? `<p class="muted">This customer is archived. They can still sign in to the Portal, but their Library will show no items until reactivated.</p>` : ""}
       <p>${escapeHtml(customer.notes)}</p>
+      <p class="eyebrow">Contacts (${customer.contacts.length} of ${MAX_CUSTOMER_CONTACTS})</p>
+      <div class="detail-grid contacts-grid">
+        ${customer.contacts.length
+          ? customer.contacts.map((contact, index) => `
+            <div class="contact-card">
+              <span>${escapeHtml(contact.name || "Unnamed contact")}</span>
+              <strong>${escapeHtml(contact.email || "No email set")}</strong>
+              <div class="contact-card-actions">
+                <button class="secondary-button compact" data-send-invite="${customer.id}-${index}" ${contact.email ? "" : "disabled"}>
+                  ${contact.portalAccountCreated ? "Resend invite" : "Send invite"}
+                </button>
+              </div>
+              <p class="muted invite-status" data-invite-status="${customer.id}-${index}">${
+                contact.email
+                  ? (contact.portalInviteSentAt ? `Last sent ${escapeHtml(contact.portalInviteSentAt)}.` : "Not sent yet.")
+                  : "Add an email to send an invite."
+              }</p>
+            </div>
+          `).join("")
+          : `<div class="contact-card"><span>No contacts added yet</span></div>`}
+      </div>
       <div class="detail-subheading">
         <p class="eyebrow">Library access (${accessibleItems.length})</p>
         ${accessibleItems.length ? `<button class="secondary-button compact" data-toggle-library-access="${customer.id}">${expandedLibraryAccessCustomerId === customer.id ? "Hide library" : "Show library"}</button>` : ""}
@@ -3223,19 +3283,11 @@ function getCustomerDetailMarkup(customer) {
       <div class="detail-actions">
         <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>
-        <button class="secondary-button" data-send-invite="${customer.id}" ${customer.contactEmail ? "" : "disabled"}>
-          ${customer.portalAccountCreated ? "Resend Portal invite" : "Send Portal invite"}
-        </button>
         <button class="secondary-button" data-archive-customer="${customer.id}">
           ${customer.status === "Archived" ? "Reactivate customer" : "Archive customer"}
         </button>
         <button class="secondary-button danger-button" data-delete-customer="${customer.id}">Delete customer</button>
       </div>
-      <p class="muted invite-status" data-invite-status="${customer.id}">${
-        customer.contactEmail
-          ? (customer.portalInviteSentAt ? `Portal invite: last sent ${escapeHtml(customer.portalInviteSentAt)}.` : "Portal invite: not sent yet.")
-          : "Add a contact email to this customer to send a Portal invite."
-      }</p>
       <p class="eyebrow">Welcome message (shown on their Portal Dashboard)</p>
       <textarea class="detail-textarea" id="welcome-message-${customer.id}" rows="3" placeholder="e.g. Hi Paul, welcome to the portal — great catching up yesterday!">${escapeHtml(getCustomerMessage(customer.id))}</textarea>
       <div class="detail-actions">

@@ -50,13 +50,14 @@ Track recurring places to promote Barely Artificial — Facebook groups, network
 
 Your live list of real customer organisations.
 
-- **New Customer**: set a company name, status (Trial/Active/Paused/Archived), contact name/email and notes. Tick **Internal preview** for accounts that aren't a real customer (e.g. your own test/preview account) — it shows an "Internal Preview" badge in the table so it's never mistaken for a real one.
+- **New Customer**: set a company name, status (Trial/Active/Paused/Archived), up to 3 contacts (name + email each) and notes. Tick **Internal preview** for accounts that aren't a real customer (e.g. your own test/preview account) — it shows an "Internal Preview" badge in the table so it's never mistaken for a real one.
 - **Editing**: same dialog, reopens pre-filled.
 - **Archiving a customer**: sets their status to Archived. This is a soft delete — nothing is ever removed. Two things happen:
   - They keep their Portal login (there's no way to disable a Firebase login from the Console without adding backend infrastructure), but
   - Their Library access is fully cut off — the Portal will show them "not linked to a customer" and an empty library until you reactivate them.
   - Reactivating undoes this automatically the next time the Customers list refreshes.
-- **Portal invite**: if a customer has a contact email set, you can click "Send Portal invite" to create their Firebase login and email them a link to set their own password. You never see or set their password yourself. If they already have an account, this just resends the password-set email.
+- **Multiple contacts**: a customer can have up to 3 people, each with their own Portal login (e.g. Curzon has two people who each need access). Each contact gets their own **Send/Resend invite** button and their own status line in the detail panel — they're entirely independent, so one contact's login has no effect on another's. Every contact who's set up gets identical access to that customer's Library items and Bookings.
+- **Portal invite**: for each contact with an email set, click "Send invite" to create their Firebase login and email them a link to set their own password. You never see or set their password yourself. If they already have an account, this just resends the password-set email.
 - **Uploads used**: shows how much of their 500 MB document-upload allowance (see Library below) they've used.
 - **Deleting a customer**: unlike Archive, this is permanent — use it to clean up test/demo accounts rather than real customers. Blocked with a clear message if the customer still has any linked Projects or Bookings — delete those first. If they had a Portal login, it stays active in Firebase (there's no way to disable it from the Console); only their Console/Portal data is removed.
 - **Welcome message**: write a short personal note for this customer (e.g. "Hi Paul, great catching up yesterday") and click "Save message" — it appears as a highlighted card at the top of their Portal Dashboard next time they visit. Leave it blank and save to remove it. This is entirely separate from the internal Notes field above — Notes are never shown to the customer, the welcome message always is.
