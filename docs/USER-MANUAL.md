@@ -46,6 +46,17 @@ Track recurring places to promote Barely Artificial — Facebook groups, network
 - **Link and notes**: add the Facebook group/event link and any notes (what to post, group rules, anything worth remembering) on the opportunity's detail panel.
 - **Archive vs Delete**: Archive hides an opportunity from the upcoming panel and active filters without losing its history (e.g. a seasonal event you might use again); Delete is permanent.
 
+## Social Media
+
+Plan and track social posts across LinkedIn, Facebook, Twitter/X, Instagram, TikTok and YouTube, from first idea through to how it performed.
+
+- **New Post**: set a title, status (Planning / Creating / Ready to Post / Posted / Cancelled), the planned post date, an optional campaign name (autocompletes from campaigns you've already used), which platforms it's going on, why you're doing it, who's making the content, who's posting it, the media type, and a link to where the source graphic or video lives — files aren't hosted in the Console, just linked to.
+- **Creation window**: you don't need to work out or store a separate "start creating by" date — the Console automatically shows a 7-day window ending on your post date, throughout the table and detail panel.
+- **Hashtags, goal and live link**: add hashtags/keywords, a goal tag (Awareness, Traffic, Engagement or Leads) for later reporting, and once it's actually posted, the live post URL.
+- **How it went**: record an engagement level (Low/Medium/High) and free-text notes once a post has run its course — a permanent record of what worked and what didn't.
+- **Needs attention (next 14 days)**: a highlighted panel on the Social Media page, and a matching one on the Dashboard, surface posts whose creation window or post date is coming up soon — so nothing gets missed. Posts already Posted or Cancelled never show here.
+- **Delete**: permanent, for removing posts that were never actually going to happen.
+
 ## Customers
 
 Your live list of real customer organisations.

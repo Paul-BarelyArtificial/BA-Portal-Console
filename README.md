@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.7.1 – Badge Alignment Fix
+**Current version:** v0.8.0 – Social Media Planning
 
 ## Current features
 

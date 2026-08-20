@@ -388,3 +388,13 @@ Initial Console foundation release.
 ## v0.7.1 — Badge Alignment Fix
 - Fixed the "Internal Preview" badge (Customers table) and "Archived" badge (Marketing table) sitting cramped and misaligned right against the bold company/item name, with no gap and no vertical alignment. Both `.badge` uses had no `vertical-align` or margin, so they just fell wherever inline default baseline alignment put them.
 - Added an `.inline-badge` modifier (vertical-align: middle, left margin, slightly smaller padding) and applied it to both. Wraps cleanly onto its own line at narrower widths instead of crowding the text.
+
+## v0.8.0 — Social Media Planning
+- New **Social Media** nav section for planning and tracking posts across LinkedIn, Facebook, Twitter/X, Instagram, TikTok and YouTube, from first idea through to how it performed.
+- **New Post** captures: title, status (Planning / Creating / Ready to Post / Posted / Cancelled), post date, campaign (free text with autocomplete from previous campaigns), platforms (multi-select), why it's being done, content creator, who's posting, media type, a link to where the source media lives (not hosted in the Console), hashtags/keywords, and a goal tag (Awareness / Traffic / Engagement / Leads).
+- **Creation window**: rather than storing a separate date, the "start creating by" date is computed automatically as 7 days before the post date and shown throughout the UI — one less thing to keep in sync by hand.
+- **Post-mortem fields**: once posted, record the live post URL, an engagement level (Low/Medium/High), and free-text notes on how it went — a permanent record of what worked.
+- **"Needs attention in the next 14 days"** panel on the Social Media page, and a matching **"Social posts needing attention"** widget on the Dashboard — surfaces posts whose creation window or post date is coming up soon, skipping anything already Posted or Cancelled.
+- New `socialPosts` collection, admin-only.
+- **Requires a Firestore rules update** — `docs/firestore.rules.txt` now includes a `socialPosts` rule. Must be published before this feature works.
+- Included in the Console's Data Export.

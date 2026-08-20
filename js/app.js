@@ -1,9 +1,10 @@
-const APP_VERSION = "v0.7.1 – Badge Alignment Fix";
+const APP_VERSION = "v0.8.0 – Social Media Planning";
 
 const pageTitles = {
   dashboard: "Dashboard",
   leads: "Leads",
   marketing: "Marketing",
+  social: "Social Media",
   customers: "Customers",
   projects: "Projects",
   library: "Library",
@@ -40,6 +41,13 @@ let selectedMarketingOpportunityId = null;
 let editingMarketingOpportunityId = null;
 let currentMarketingFilter = "all";
 let currentMarketingSearch = "";
+
+let socialPosts = [];
+let unsubscribeSocialPosts = null;
+let selectedSocialPostId = null;
+let editingSocialPostId = null;
+let currentSocialFilter = "all";
+let currentSocialSearch = "";
 
 let leads = [];
 let unsubscribeLeads = null;
@@ -342,7 +350,7 @@ async function addAdmin(email) {
   }
 }
 
-const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages", "comingSoon", "featureRequests"];
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages", "comingSoon", "featureRequests", "socialPosts"];
 
 function serialiseForBackup(value) {
   if (value && typeof value.toDate === "function") return value.toDate().toISOString();
@@ -799,6 +807,342 @@ function setupMarketingControls() {
   });
 
   document.getElementById("marketing-frequency")?.addEventListener("change", updateMarketingFrequencyFields);
+}
+
+function normaliseSocialPost(documentSnapshot) {
+  const data = documentSnapshot.data() || {};
+  return {
+    id: documentSnapshot.id,
+    title: data.title || "Untitled post",
+    status: data.status || "Planning",
+    postDate: data.postDate || "",
+    campaign: data.campaign || "",
+    platforms: Array.isArray(data.platforms) ? data.platforms : [],
+    why: data.why || "",
+    contentCreator: data.contentCreator || "",
+    poster: data.poster || "",
+    mediaType: data.mediaType || "Image/Graphic",
+    mediaUrl: data.mediaUrl || "",
+    hashtags: data.hashtags || "",
+    goal: data.goal || "Awareness",
+    liveUrl: data.liveUrl || "",
+    engagementLevel: data.engagementLevel || "Not yet posted",
+    performanceNotes: data.performanceNotes || ""
+  };
+}
+
+function getSocialCreationWindow(postDate) {
+  if (!postDate) return null;
+  const post = new Date(`${postDate}T00:00:00`);
+  if (Number.isNaN(post.getTime())) return null;
+  const start = new Date(post);
+  start.setDate(start.getDate() - 7);
+  return { start, end: post };
+}
+
+function formatSocialCreationWindow(postDate) {
+  const window = getSocialCreationWindow(postDate);
+  if (!window) return "No post date set";
+  return `${formatOccurrenceDate(window.start)} – ${formatOccurrenceDate(window.end)}`;
+}
+
+function updateSocialCampaignOptions() {
+  const datalist = document.getElementById("social-campaign-options");
+  if (!datalist) return;
+  const names = [...new Set(socialPosts.map((post) => post.campaign).filter(Boolean))].sort();
+  datalist.innerHTML = names.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("");
+}
+
+function renderSocialUpcomingInto(elementId) {
+  const list = document.getElementById(elementId);
+  if (!list) return;
+
+  const today = new Date();
+  const upcoming = socialPosts
+    .filter((post) => post.postDate && !["Posted", "Cancelled"].includes(post.status))
+    .map((post) => ({ post, window: getSocialCreationWindow(post.postDate) }))
+    .filter(({ window }) => window && Math.round((window.end - today) / (1000 * 60 * 60 * 24)) <= 14 && Math.round((window.end - today) / (1000 * 60 * 60 * 24)) >= -1)
+    .sort((a, b) => a.window.end - b.window.end);
+
+  if (upcoming.length === 0) {
+    list.innerHTML = `<li><span>Nothing needs attention in the next 14 days.</span></li>`;
+    return;
+  }
+
+  list.innerHTML = upcoming
+    .map(({ post, window }) => {
+      const daysToCreate = Math.round((window.start - today) / (1000 * 60 * 60 * 24));
+      const relative = (date) => {
+        const text = formatOccurrenceRelative(date);
+        return text.startsWith("In ") ? `in ${text.slice(3)}` : text.toLowerCase();
+      };
+      const label = daysToCreate >= 0 ? `Start creating ${relative(window.start)}` : `Post ${relative(window.end)}`;
+      return `<li><span>${escapeHtml(post.title)} <span class="table-subtext">${escapeHtml(post.status)} · ${post.platforms.length ? escapeHtml(post.platforms.join(", ")) : "No platform set"}</span></span><time>${label}</time></li>`;
+    })
+    .join("");
+}
+
+function renderSocialUpcoming() {
+  renderSocialUpcomingInto("social-upcoming-list");
+  renderSocialUpcomingInto("dashboard-social-list");
+}
+
+function loadLiveSocialPosts() {
+  if (unsubscribeSocialPosts) unsubscribeSocialPosts();
+  const summary = document.getElementById("social-summary");
+  if (summary) summary.textContent = "Loading social posts…";
+
+  unsubscribeSocialPosts = firebase.firestore().collection("socialPosts").orderBy("postDate").onSnapshot((snapshot) => {
+    socialPosts = snapshot.docs.map(normaliseSocialPost);
+    selectedSocialPostId = socialPosts.some((post) => post.id === selectedSocialPostId) ? selectedSocialPostId : null;
+    renderSocialTable();
+    renderSocialUpcoming();
+    updateSocialCampaignOptions();
+  }, (error) => {
+    console.error("Could not load social posts", error);
+    socialPosts = [];
+    renderSocialTable();
+    renderSocialUpcoming();
+    if (summary) summary.textContent = "Social posts could not be loaded. Check Firestore access.";
+  });
+}
+
+function resetSocialDialogToCreateMode() {
+  editingSocialPostId = null;
+  document.getElementById("social-form")?.reset();
+  const title = document.getElementById("social-dialog-title");
+  const saveButton = document.getElementById("save-social-button");
+  if (title) title.textContent = "New Post";
+  if (saveButton) saveButton.textContent = "Create Post";
+}
+
+function openSocialDialogForEdit(post) {
+  const form = document.getElementById("social-form");
+  const dialog = document.getElementById("social-dialog");
+  const title = document.getElementById("social-dialog-title");
+  const saveButton = document.getElementById("save-social-button");
+  if (!form || !dialog) return;
+
+  editingSocialPostId = post.id;
+  form.elements.namedItem("title").value = post.title;
+  form.elements.namedItem("status").value = post.status;
+  form.elements.namedItem("postDate").value = post.postDate;
+  form.elements.namedItem("campaign").value = post.campaign;
+  form.querySelectorAll('input[name="platforms"]').forEach((input) => {
+    input.checked = post.platforms.includes(input.value);
+  });
+  form.elements.namedItem("why").value = post.why;
+  form.elements.namedItem("contentCreator").value = post.contentCreator;
+  form.elements.namedItem("poster").value = post.poster;
+  form.elements.namedItem("mediaType").value = post.mediaType;
+  form.elements.namedItem("mediaUrl").value = post.mediaUrl;
+  form.elements.namedItem("hashtags").value = post.hashtags;
+  form.elements.namedItem("goal").value = post.goal;
+  form.elements.namedItem("liveUrl").value = post.liveUrl;
+  form.elements.namedItem("engagementLevel").value = post.engagementLevel;
+  form.elements.namedItem("performanceNotes").value = post.performanceNotes;
+  if (title) title.textContent = "Edit Post";
+  if (saveButton) saveButton.textContent = "Save Changes";
+  dialog.showModal();
+}
+
+async function createSocialPost(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const saveButton = document.getElementById("save-social-button");
+  const message = document.getElementById("social-form-message");
+  const formData = new FormData(form);
+  const title = String(formData.get("title") || "").trim();
+
+  if (!title) {
+    message.textContent = "Enter a post title.";
+    return;
+  }
+
+  const record = {
+    title,
+    status: formData.get("status") || "Planning",
+    postDate: String(formData.get("postDate") || "").trim(),
+    campaign: String(formData.get("campaign") || "").trim(),
+    platforms: formData.getAll("platforms"),
+    why: String(formData.get("why") || "").trim(),
+    contentCreator: String(formData.get("contentCreator") || "").trim(),
+    poster: String(formData.get("poster") || "").trim(),
+    mediaType: formData.get("mediaType") || "Image/Graphic",
+    mediaUrl: String(formData.get("mediaUrl") || "").trim(),
+    hashtags: String(formData.get("hashtags") || "").trim(),
+    goal: formData.get("goal") || "Awareness",
+    liveUrl: String(formData.get("liveUrl") || "").trim(),
+    engagementLevel: formData.get("engagementLevel") || "Not yet posted",
+    performanceNotes: String(formData.get("performanceNotes") || "").trim()
+  };
+
+  saveButton.disabled = true;
+  try {
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    if (editingSocialPostId) {
+      message.textContent = "Saving changes…";
+      await firebase.firestore().collection("socialPosts").doc(editingSocialPostId).set({ ...record, updatedAt: now }, { merge: true });
+      message.textContent = "Changes saved.";
+    } else {
+      message.textContent = "Saving post…";
+      await firebase.firestore().collection("socialPosts").add({ ...record, createdAt: now, updatedAt: now });
+      message.textContent = "Post created.";
+    }
+
+    form.reset();
+    setTimeout(() => {
+      document.getElementById("social-dialog")?.close();
+      resetSocialDialogToCreateMode();
+      message.textContent = "";
+    }, 500);
+  } catch (error) {
+    console.error("Could not save social post", error);
+    message.textContent = "Could not save this post. Please try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function deleteSocialPost(post) {
+  if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) return;
+  try {
+    await firebase.firestore().collection("socialPosts").doc(post.id).delete();
+    if (selectedSocialPostId === post.id) selectedSocialPostId = null;
+  } catch (error) {
+    console.error("Could not delete social post", error);
+    alert("This post could not be deleted. Please try again.");
+  }
+}
+
+function getFilteredSocialPosts() {
+  return socialPosts.filter((post) => {
+    const matchesFilter = currentSocialFilter === "all" || post.status === currentSocialFilter;
+    const searchTarget = `${post.title} ${post.campaign} ${post.platforms.join(" ")} ${post.contentCreator} ${post.poster} ${post.hashtags} ${post.why}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentSocialSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function getSocialDetailMarkup(post) {
+  return `
+    <div class="detail-panel inline-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div>
+          <p class="eyebrow">Social post</p>
+          <h3>${escapeHtml(post.title)}</h3>
+        </div>
+        <div class="detail-header-actions">
+          <span class="status ${getStatusClass(post.status)}">${escapeHtml(post.status)}</span>
+          <button class="icon-button" data-close-social-detail aria-label="Close detail">×</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div><span>Post date</span><strong>${escapeHtml(formatBookingDateDisplay(post.postDate))}</strong></div>
+        <div><span>Creation window</span><strong>${escapeHtml(formatSocialCreationWindow(post.postDate))}</strong></div>
+        <div><span>Campaign</span><strong>${escapeHtml(post.campaign || "None")}</strong></div>
+        <div><span>Goal</span><strong>${escapeHtml(post.goal)}</strong></div>
+        <div><span>Content creator</span><strong>${escapeHtml(post.contentCreator || "Not set")}</strong></div>
+        <div><span>Posted by</span><strong>${escapeHtml(post.poster || "Not set")}</strong></div>
+        <div><span>Media type</span><strong>${escapeHtml(post.mediaType)}</strong></div>
+        <div><span>Engagement</span><strong>${escapeHtml(post.engagementLevel)}</strong></div>
+      </div>
+      <p><strong>Platforms:</strong> ${post.platforms.length ? escapeHtml(post.platforms.join(", ")) : "None selected"}</p>
+      ${post.why ? `<p><strong>Why:</strong> ${escapeHtml(post.why)}</p>` : ""}
+      ${post.hashtags ? `<p><strong>Hashtags:</strong> ${escapeHtml(post.hashtags)}</p>` : ""}
+      ${post.mediaUrl ? `<p><a href="${escapeHtml(post.mediaUrl)}" target="_blank" rel="noopener noreferrer">Open media file ↗</a></p>` : ""}
+      ${post.liveUrl ? `<p><a href="${escapeHtml(post.liveUrl)}" target="_blank" rel="noopener noreferrer">Open live post ↗</a></p>` : ""}
+      ${post.performanceNotes ? `<p><strong>How it went:</strong> ${escapeHtml(post.performanceNotes)}</p>` : ""}
+      <div class="detail-actions">
+        <button class="secondary-button" data-edit-social="${post.id}">Edit post</button>
+        <button class="secondary-button danger-button" data-delete-social="${post.id}">Delete post</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderSocialTable() {
+  const tableBody = document.getElementById("social-table");
+  const summary = document.getElementById("social-summary");
+  if (!tableBody || !summary) return;
+
+  const filteredPosts = getFilteredSocialPosts();
+  tableBody.innerHTML = "";
+
+  if (filteredPosts.length === 0) {
+    tableBody.innerHTML = socialPosts.length === 0
+      ? `<tr><td colspan="6" class="empty-table">No social posts yet — click "+ New Post" above to plan your first one.</td></tr>`
+      : `<tr><td colspan="6" class="empty-table">No posts match your search.</td></tr>`;
+  } else {
+    filteredPosts.forEach((post) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${escapeHtml(post.title)}</strong>${post.campaign ? `<span class="table-subtext">${escapeHtml(post.campaign)}</span>` : ""}</td>
+        <td>${post.platforms.length ? escapeHtml(post.platforms.join(", ")) : "—"}</td>
+        <td><span class="status ${getStatusClass(post.status)}">${escapeHtml(post.status)}</span></td>
+        <td>${escapeHtml(formatBookingDateDisplay(post.postDate))}</td>
+        <td>${escapeHtml(formatSocialCreationWindow(post.postDate))}</td>
+        <td><button class="secondary-button compact" data-social-id="${post.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      if (selectedSocialPostId === post.id) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "inline-detail-row";
+        detailRow.innerHTML = `<td colspan="6">${getSocialDetailMarkup(post)}</td>`;
+        tableBody.appendChild(detailRow);
+      }
+    });
+  }
+
+  summary.textContent = `Showing ${filteredPosts.length} of ${socialPosts.length} social posts`;
+
+  document.querySelectorAll("[data-social-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedSocialPostId = selectedSocialPostId === button.dataset.socialId ? null : button.dataset.socialId;
+      renderSocialTable();
+    });
+  });
+
+  document.querySelectorAll("[data-close-social-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedSocialPostId = null;
+      renderSocialTable();
+    });
+  });
+
+  document.querySelectorAll("[data-edit-social]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const post = socialPosts.find((item) => item.id === button.dataset.editSocial);
+      if (post) openSocialDialogForEdit(post);
+    });
+  });
+
+  document.querySelectorAll("[data-delete-social]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const post = socialPosts.find((item) => item.id === button.dataset.deleteSocial);
+      if (post) deleteSocialPost(post);
+    });
+  });
+}
+
+function setupSocialControls() {
+  const searchInput = document.getElementById("social-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentSocialSearch = event.target.value;
+      renderSocialTable();
+    });
+  }
+
+  document.querySelectorAll(".social-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentSocialFilter = button.dataset.socialFilter;
+      document.querySelectorAll(".social-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderSocialTable();
+    });
+  });
 }
 
 function loadLiveCustomerMessages() {
@@ -3579,12 +3923,18 @@ function initialiseApp() {
   setupBookingControls();
   setupLeadControls();
   setupMarketingControls();
+  setupSocialControls();
   setupSettingsControls();
   setupDialog("marketing-dialog", "new-marketing-button", "close-marketing-dialog-button", "cancel-marketing-dialog-button");
   document.getElementById("new-marketing-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
   document.getElementById("cancel-marketing-dialog-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
   document.getElementById("close-marketing-dialog-button")?.addEventListener("click", resetMarketingDialogToCreateMode);
   document.getElementById("marketing-form")?.addEventListener("submit", createMarketingOpportunity);
+  setupDialog("social-dialog", "new-social-post-button", "close-social-dialog-button", "cancel-social-dialog-button");
+  document.getElementById("new-social-post-button")?.addEventListener("click", resetSocialDialogToCreateMode);
+  document.getElementById("cancel-social-dialog-button")?.addEventListener("click", resetSocialDialogToCreateMode);
+  document.getElementById("close-social-dialog-button")?.addEventListener("click", resetSocialDialogToCreateMode);
+  document.getElementById("social-form")?.addEventListener("submit", createSocialPost);
   setupDialog("lead-dialog", "new-lead-button", "close-lead-dialog-button", "cancel-lead-dialog-button");
   document.getElementById("new-lead-button")?.addEventListener("click", resetLeadDialogToCreateMode);
   document.getElementById("cancel-lead-dialog-button")?.addEventListener("click", resetLeadDialogToCreateMode);
@@ -3671,6 +4021,7 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveCustomerMessages();
   loadLiveComingSoon();
   loadLiveFeatureRequests();
+  loadLiveSocialPosts();
 });
 
 document.getElementById("coming-soon-form")?.addEventListener("submit", createComingSoonItem);

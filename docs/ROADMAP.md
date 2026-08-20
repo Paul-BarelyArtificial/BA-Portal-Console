@@ -57,6 +57,7 @@
 - **Portal v0.4.1** — Suggestion Form Fix — the "Have an idea?" form's label/textarea were unstyled (CSS was scoped only to `#upload-form`'s ID); fixed to match the Share a Document form's styling
 - **Console v0.7.0** — Multiple Customer Contacts — customers now support up to 3 contacts, each with their own Portal login, invite, and status; backward compatible with existing single-contact customer records, no migration needed
 - **Console v0.7.1** — Badge Alignment Fix — fixed cramped/misaligned "Internal Preview" and "Archived" badges sitting against bold table text
+- **Console v0.8.0** — Social Media Planning — new nav section for planning and tracking posts across platforms, with an auto-computed creation window, post-mortem engagement tracking, and "needs attention" widgets on both the Social Media page and the Dashboard
 
 ## Backlog (not yet scheduled)
 
