@@ -2375,6 +2375,7 @@ function normaliseEvent(document) {
     type: data.type || "Catch-up",
     format: data.format || "Video call",
     date: data.date || "",
+    startTime: data.startTime || "",
     status: data.status || "Scheduled",
     attendees: data.attendees || "",
     duration: Number.isNaN(duration) ? null : duration,
@@ -2438,6 +2439,7 @@ function openEventDialogForEdit(evt) {
   form.elements.namedItem("type").value = evt.type;
   form.elements.namedItem("format").value = evt.format;
   form.elements.namedItem("date").value = evt.date;
+  form.elements.namedItem("startTime").value = evt.startTime;
   form.elements.namedItem("status").value = evt.status;
   form.elements.namedItem("attendees").value = evt.attendees;
   form.elements.namedItem("duration").value = evt.duration === null ? "" : evt.duration;
@@ -2479,6 +2481,7 @@ async function createEvent(event) {
     type: formData.get("type") || "Catch-up",
     format: formData.get("format") || "Video call",
     date,
+    startTime: String(formData.get("startTime") || "").trim(),
     status: formData.get("status") || "Scheduled",
     attendees: String(formData.get("attendees") || "").trim(),
     duration,
@@ -2547,6 +2550,15 @@ async function deleteEvent(evt) {
   }
 }
 
+function formatEventDateTime(evt) {
+  const dateLabel = formatBookingDateDisplay(evt.date);
+  return evt.startTime ? `${dateLabel}, ${evt.startTime}` : dateLabel;
+}
+
+function eventSortKey(evt) {
+  return `${evt.date || ""} ${evt.startTime || "00:00"}`;
+}
+
 function getFilteredEvents() {
   return events.filter((evt) => {
     const matchesFilter = currentEventFilter === "all" || evt.status === currentEventFilter;
@@ -2568,7 +2580,7 @@ function getEventDetailMarkup(evt) {
         <div><span>Project</span><strong>${escapeHtml(evt.projectName || "None")}</strong></div>
         <div><span>Type</span><strong>${escapeHtml(evt.type)}</strong></div>
         <div><span>Format</span><strong>${escapeHtml(evt.format)}</strong></div>
-        <div><span>Date</span><strong>${escapeHtml(formatBookingDateDisplay(evt.date))}</strong></div>
+        <div><span>Date</span><strong>${escapeHtml(formatEventDateTime(evt))}</strong></div>
         <div><span>Time spent</span><strong>${evt.duration === null ? "Not logged" : formatHoursAndDays(evt.duration)}</strong></div>
         <div><span>Attendees</span><strong>${escapeHtml(evt.attendees || "Not set")}</strong></div>
         <div><span>Visible to customer</span><strong>${evt.internalOnly ? "No — internal only" : "Yes"}</strong></div>
@@ -2591,7 +2603,7 @@ function renderEventTable() {
 
   const filteredEvents = getFilteredEvents()
     .slice()
-    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    .sort((a, b) => eventSortKey(b).localeCompare(eventSortKey(a)));
   tableBody.innerHTML = "";
 
   if (filteredEvents.length === 0) {
@@ -2605,7 +2617,7 @@ function renderEventTable() {
         <td><strong>${escapeHtml(evt.title)}</strong><span class="table-subtext">${escapeHtml(evt.customerName)}</span></td>
         <td>${escapeHtml(evt.type)}</td>
         <td>${escapeHtml(evt.projectName || "—")}</td>
-        <td>${escapeHtml(formatBookingDateDisplay(evt.date))}</td>
+        <td>${escapeHtml(formatEventDateTime(evt))}</td>
         <td><span class="status ${getStatusClass(evt.status)}">${escapeHtml(evt.status)}</span></td>
         <td><button class="secondary-button compact" data-event-id="${evt.id}">View</button></td>
       `;
@@ -3667,7 +3679,7 @@ function getCustomerDetailMarkup(customer) {
   const accessibleItems = getAccessibleLibraryItems(customer);
   const customerEvents = events
     .filter((evt) => evt.customerId === customer.id)
-    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    .sort((a, b) => eventSortKey(b).localeCompare(eventSortKey(a)));
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
       <div class="detail-header">
@@ -3730,7 +3742,7 @@ function getCustomerDetailMarkup(customer) {
           ${customerEvents.map((evt) => `
             <div>
               <strong>${escapeHtml(evt.title)}</strong>
-              <span>${escapeHtml(formatBookingDateDisplay(evt.date))} · ${escapeHtml(evt.type)} · <span class="status ${getStatusClass(evt.status)}">${escapeHtml(evt.status)}</span></span>
+              <span>${escapeHtml(formatEventDateTime(evt))} · ${escapeHtml(evt.type)} · <span class="status ${getStatusClass(evt.status)}">${escapeHtml(evt.status)}</span></span>
               <button class="secondary-button compact" data-view-customer-event="${evt.id}">View</button>
             </div>
           `).join("")}

@@ -111,7 +111,7 @@ A manual log of sessions arranged in Calendly (or however else) — logging a bo
 
 A record of every meeting, call or session with a customer — catch-ups, technical sessions, account reviews, scoping calls, training, anything. Replaces the old Time Tracker: time spent is now just one field on an Event, rather than its own separate log.
 
-- **New Event**: title, customer, project (optional — not every event is tied to one), type (Catch-up/Technical/Account/Scoping/Training/Other), format (Video call/In person/Phone call/Other), date, status (Scheduled/Logged), attendees (free text), time spent in hours (optional), key items, actions, and an "Internal only" checkbox.
+- **New Event**: title, customer, project (optional — not every event is tied to one), type (Catch-up/Technical/Account/Scoping/Training/Other), format (Video call/In person/Phone call/Other), date, start time (optional), status (Scheduled/Logged), attendees (free text), time spent in hours (optional), key items, actions, and an "Internal only" checkbox.
 - **Schedule now, fill in later**: create an event as a Scheduled placeholder with just a title, customer and date before it happens, then edit it afterwards to add key items, actions and time spent, and change its status to Logged. The customer detail's Edit button always keeps the customer locked; the project can still be changed on edit.
 - **Internal only**: tick this to keep an event off the customer's Portal entirely — useful for internal prep or account-team-only notes. Unticked (the default) means the customer sees it in their "Your Events" page.
 - **Search and filters**: search across title, customer, project, type, attendees, key items and actions; filter by All/Scheduled/Logged.
