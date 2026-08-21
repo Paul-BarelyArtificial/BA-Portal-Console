@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.9.0 – Events & Time Tracking";
+const APP_VERSION = "v0.9.1 – Quick-Add Event";
 
 const pageTitles = {
   dashboard: "Dashboard",
