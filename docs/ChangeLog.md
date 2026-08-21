@@ -405,6 +405,7 @@ Initial Console foundation release.
 - **Schedule now, fill in later**: create an event as a Scheduled placeholder ahead of time with just a title/customer/date, then come back after it happens to edit in key items, actions and time spent, and mark it Logged.
 - Events table on the Events page supports search and All/Scheduled/Logged filters, with an inline detail view per event (edit/delete).
 - Customer detail panel now has a collapsible **"Events"** list, mirroring the existing "Library access" pattern, with a "View" link into the full Events page.
+- **Quick-add from the Customers page**: a "+ Event" button on each customer row (before "View") opens the New Event dialog with that customer already selected, so logging or scheduling an event doesn't require a trip to the Events page first.
 - Project time totals (`getProjectHoursUsed`, used by the Projects table and project detail budget tracking) now sum hours from both legacy `timeSessions` and Logged Events against that project, so nothing already logged is lost.
 - **Portal**: new **"Your Events"** page listing every non-internal-only event for the signed-in customer, split into Upcoming/Past, plus **"Last Event"** and **"Next Event"** highlight cards on the Portal Dashboard.
 - New `events` collection, replacing time-session creation (the `timeSessions` collection stays, read-only, for historical data).

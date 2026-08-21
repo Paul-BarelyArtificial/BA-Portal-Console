@@ -2452,6 +2452,16 @@ function openEventDialogForEdit(evt) {
   dialog.showModal();
 }
 
+function openEventDialogForCustomer(customer) {
+  const dialog = document.getElementById("event-dialog");
+  if (!dialog) return;
+  resetEventDialogToCreateMode();
+  const customerSelect = document.getElementById("event-customer");
+  customerSelect.value = customer.id;
+  populateEventProjectOptions(customer.id);
+  dialog.showModal();
+}
+
 async function createEvent(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -3334,7 +3344,10 @@ function renderCustomerTable() {
         <td>${customer.users}</td>
         <td>${escapeHtml(customer.owner)}</td>
         <td>${escapeHtml(customer.lastUpdated)}</td>
-        <td><button class="secondary-button compact" data-customer-id="${customer.id}">View</button></td>
+        <td>
+          <button class="secondary-button compact" data-new-event-for-customer="${customer.id}">+ Event</button>
+          <button class="secondary-button compact" data-customer-id="${customer.id}">View</button>
+        </td>
       `;
       tableBody.appendChild(row);
 
@@ -3355,6 +3368,13 @@ function renderCustomerTable() {
       expandedLibraryAccessCustomerId = null;
       expandedCustomerEventsId = null;
       renderCustomerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-new-event-for-customer]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customer = customers.find((item) => item.id === button.dataset.newEventForCustomer);
+      if (customer) openEventDialogForCustomer(customer);
     });
   });
 
