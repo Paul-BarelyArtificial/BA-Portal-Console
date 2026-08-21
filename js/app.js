@@ -1,4 +1,4 @@
-const APP_VERSION = "v0.8.0 – Social Media Planning";
+const APP_VERSION = "v0.9.0 – Events & Time Tracking";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -9,7 +9,7 @@ const pageTitles = {
   projects: "Projects",
   library: "Library",
   bookings: "Bookings",
-  timeTracker: "Time Tracker",
+  events: "Events",
   reports: "Reports",
   settings: "Settings"
 };
@@ -55,9 +55,12 @@ let selectedLeadId = null;
 let editingLeadId = null;
 let currentLeadFilter = "all";
 let currentLeadSearch = "";
-let selectedTimeTrackerProjectId = null;
-let editingTimeSessionId = null;
-let currentTimeTrackerSearch = "";
+let events = [];
+let unsubscribeEvents = null;
+let selectedEventId = null;
+let editingEventId = null;
+let currentEventFilter = "all";
+let currentEventSearch = "";
 
 let currentCustomerFilter = "all";
 let currentCustomerSearch = "";
@@ -69,6 +72,7 @@ let currentBookingFilter = "all";
 let currentBookingSearch = "";
 let selectedCustomerId = null;
 let expandedLibraryAccessCustomerId = null;
+let expandedCustomerEventsId = null;
 let customerMessages = [];
 let unsubscribeCustomerMessages = null;
 let comingSoonItems = [];
@@ -350,7 +354,7 @@ async function addAdmin(email) {
   }
 }
 
-const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "admins", "settings", "marketingOpportunities", "customerMessages", "comingSoon", "featureRequests", "socialPosts"];
+const BACKUP_COLLECTIONS = ["customers", "projects", "leads", "bookings", "library", "timeSessions", "events", "admins", "settings", "marketingOpportunities", "customerMessages", "comingSoon", "featureRequests", "socialPosts"];
 
 function serialiseForBackup(value) {
   if (value && typeof value.toDate === "function") return value.toDate().toISOString();
@@ -1316,7 +1320,7 @@ function loadLiveCustomers() {
     populateLibraryCustomerOptions();
     populateBulkCustomerOptions();
     populateBookingCustomerOptions();
-    populateTimeSessionCustomerOptions();
+    populateEventCustomerOptions();
     populateLeadCustomerOptions();
     renderLeadsTable();
     updateDashboardMetrics();
@@ -1506,14 +1510,14 @@ function loadLiveProjects() {
     projects = snapshot.docs.map(normaliseProject);
     selectedProjectId = projects.some((project) => project.id === selectedProjectId) ? selectedProjectId : null;
     renderProjectTable();
-    renderTimeTrackerTable();
+    renderEventTable();
     renderLeadsTable();
     updateDashboardMetrics();
   }, (error) => {
     console.error("Could not load projects", error);
     projects = [];
     renderProjectTable();
-    renderTimeTrackerTable();
+    renderEventTable();
     if (summary) summary.textContent = "Projects could not be loaded. Check Firestore access.";
   });
 }
@@ -1524,7 +1528,6 @@ function loadLiveTimeSessions() {
   unsubscribeTimeSessions = firebase.firestore().collection("timeSessions").onSnapshot((snapshot) => {
     timeSessions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     renderProjectTable();
-    renderTimeTrackerTable();
   }, (error) => {
     console.error("Could not load time sessions", error);
     timeSessions = [];
@@ -1539,7 +1542,6 @@ function loadTimeTrackerSettings() {
     const input = document.getElementById("hours-per-day-input");
     if (input && document.activeElement !== input) input.value = hoursPerDay;
     renderProjectTable();
-    renderTimeTrackerTable();
   }, (error) => {
     console.error("Could not load Time Tracker settings", error);
   });
@@ -1571,9 +1573,13 @@ async function saveTimeTrackerSettings(event) {
 }
 
 function getProjectHoursUsed(projectId) {
-  return timeSessions
+  const legacyHours = timeSessions
     .filter((session) => session.projectId === projectId)
     .reduce((total, session) => total + (Number(session.hours) || 0), 0);
+  const eventHours = events
+    .filter((evt) => evt.projectId === projectId && evt.status === "Logged")
+    .reduce((total, evt) => total + (Number(evt.duration) || 0), 0);
+  return legacyHours + eventHours;
 }
 
 function formatHoursAndDays(hours) {
@@ -1738,8 +1744,12 @@ async function setProjectStatus(project, status) {
 
 async function deleteProject(project) {
   const linkedSessions = timeSessions.filter((session) => session.projectId === project.id).length;
-  if (linkedSessions > 0) {
-    alert(`"${project.name}" still has ${linkedSessions} logged time session${linkedSessions === 1 ? "" : "s"}. Delete those first (Time Tracker page), then delete the project.`);
+  const linkedEvents = events.filter((evt) => evt.projectId === project.id).length;
+  if (linkedSessions > 0 || linkedEvents > 0) {
+    const parts = [];
+    if (linkedSessions > 0) parts.push(`${linkedSessions} logged time session${linkedSessions === 1 ? "" : "s"}`);
+    if (linkedEvents > 0) parts.push(`${linkedEvents} event${linkedEvents === 1 ? "" : "s"}`);
+    alert(`"${project.name}" still has ${parts.join(" and ")}. Delete or unlink those first (Events page), then delete the project.`);
     return;
   }
 
@@ -2323,8 +2333,8 @@ function populateBookingCustomerOptions() {
   if (customers.some((customer) => customer.id === selected)) select.value = selected;
 }
 
-function populateTimeSessionCustomerOptions() {
-  const select = document.getElementById("time-session-customer");
+function populateEventCustomerOptions() {
+  const select = document.getElementById("event-customer");
   if (!select) return;
   const selected = select.value;
   select.innerHTML = '<option value="">Select a customer</option>' + customers
@@ -2333,8 +2343,8 @@ function populateTimeSessionCustomerOptions() {
   if (customers.some((customer) => customer.id === selected)) select.value = selected;
 }
 
-function populateTimeSessionProjectOptions(customerId) {
-  const select = document.getElementById("time-session-project");
+function populateEventProjectOptions(customerId) {
+  const select = document.getElementById("event-project");
   if (!select) return;
   const selected = select.value;
 
@@ -2345,261 +2355,322 @@ function populateTimeSessionProjectOptions(customerId) {
   }
 
   const customerProjects = projects.filter((project) => project.customerId === customerId);
-  if (customerProjects.length === 0) {
-    select.innerHTML = '<option value="">No projects for this customer yet</option>';
-    select.disabled = true;
-    return;
-  }
-
-  select.innerHTML = '<option value="">Select a project</option>' + customerProjects
+  select.innerHTML = '<option value="">No specific project</option>' + customerProjects
     .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`)
     .join("");
   select.disabled = false;
   if (customerProjects.some((project) => project.id === selected)) select.value = selected;
 }
 
-function nextSessionNumber(projectId) {
-  return timeSessions.filter((session) => session.projectId === projectId).length + 1;
+function normaliseEvent(document) {
+  const data = document.data() || {};
+  const duration = data.duration === undefined || data.duration === null || data.duration === "" ? null : Number(data.duration);
+  return {
+    id: document.id,
+    title: data.title || "Untitled event",
+    customerId: data.customerId || "",
+    customerName: data.customerName || "Unassigned customer",
+    projectId: data.projectId || "",
+    projectName: data.projectName || "",
+    type: data.type || "Catch-up",
+    format: data.format || "Video call",
+    date: data.date || "",
+    status: data.status || "Scheduled",
+    attendees: data.attendees || "",
+    duration: Number.isNaN(duration) ? null : duration,
+    keyItems: data.keyItems || "",
+    actions: data.actions || "",
+    internalOnly: Boolean(data.internalOnly),
+    owner: data.owner || "Admin"
+  };
 }
 
-function resetTimeSessionDialog() {
-  editingTimeSessionId = null;
-  document.getElementById("time-session-form")?.reset();
-  const message = document.getElementById("time-session-form-message");
-  const title = document.getElementById("time-session-dialog-title");
-  const saveButton = document.getElementById("save-time-session-button");
-  const customerSelect = document.getElementById("time-session-customer");
-  const projectSelect = document.getElementById("time-session-project");
+function loadLiveEvents() {
+  if (unsubscribeEvents) unsubscribeEvents();
+  const summary = document.getElementById("event-summary");
+  if (summary) summary.textContent = "Loading events…";
+
+  unsubscribeEvents = firebase.firestore().collection("events").onSnapshot((snapshot) => {
+    events = snapshot.docs.map(normaliseEvent);
+    selectedEventId = events.some((evt) => evt.id === selectedEventId) ? selectedEventId : null;
+    renderEventTable();
+    renderProjectTable();
+    renderCustomerTable();
+    updateDashboardMetrics();
+  }, (error) => {
+    console.error("Could not load events", error);
+    events = [];
+    renderEventTable();
+    if (summary) summary.textContent = "Events could not be loaded. Check Firestore access.";
+  });
+}
+
+function resetEventDialogToCreateMode() {
+  editingEventId = null;
+  document.getElementById("event-form")?.reset();
+  const message = document.getElementById("event-form-message");
+  const title = document.getElementById("event-dialog-title");
+  const saveButton = document.getElementById("save-event-button");
+  const customerSelect = document.getElementById("event-customer");
   if (message) message.textContent = "";
-  if (title) title.textContent = "Log Session";
-  if (saveButton) saveButton.textContent = "Save Session";
+  if (title) title.textContent = "New Event";
+  if (saveButton) saveButton.textContent = "Create Event";
   if (customerSelect) customerSelect.disabled = false;
-  populateTimeSessionProjectOptions("");
-  if (projectSelect) projectSelect.disabled = true;
-  const dateInput = document.querySelector('#time-session-form [name="date"]');
+  populateEventProjectOptions("");
+  const dateInput = document.querySelector('#event-form [name="date"]');
   if (dateInput) dateInput.valueAsDate = new Date();
 }
 
-function openTimeSessionDialogForEdit(session) {
-  const dialog = document.getElementById("time-session-dialog");
-  const form = document.getElementById("time-session-form");
-  const title = document.getElementById("time-session-dialog-title");
-  const saveButton = document.getElementById("save-time-session-button");
-  const customerSelect = document.getElementById("time-session-customer");
+function openEventDialogForEdit(evt) {
+  const dialog = document.getElementById("event-dialog");
+  const form = document.getElementById("event-form");
+  const title = document.getElementById("event-dialog-title");
+  const saveButton = document.getElementById("save-event-button");
+  const customerSelect = document.getElementById("event-customer");
   if (!dialog || !form) return;
 
-  editingTimeSessionId = session.id;
-  customerSelect.value = session.customerId;
-  populateTimeSessionProjectOptions(session.customerId);
-  document.getElementById("time-session-project").value = session.projectId;
-  document.getElementById("time-session-number").value = session.sessionNumber;
-  form.elements.namedItem("date").value = session.date;
-  form.elements.namedItem("hours").value = session.hours;
-  form.elements.namedItem("reason").value = session.reason;
-
+  editingEventId = evt.id;
+  customerSelect.value = evt.customerId;
   customerSelect.disabled = true;
-  document.getElementById("time-session-project").disabled = true;
+  populateEventProjectOptions(evt.customerId);
+  document.getElementById("event-project").value = evt.projectId;
+  form.elements.namedItem("title").value = evt.title;
+  form.elements.namedItem("type").value = evt.type;
+  form.elements.namedItem("format").value = evt.format;
+  form.elements.namedItem("date").value = evt.date;
+  form.elements.namedItem("status").value = evt.status;
+  form.elements.namedItem("attendees").value = evt.attendees;
+  form.elements.namedItem("duration").value = evt.duration === null ? "" : evt.duration;
+  form.elements.namedItem("keyItems").value = evt.keyItems;
+  form.elements.namedItem("actions").value = evt.actions;
+  form.elements.namedItem("internalOnly").checked = evt.internalOnly;
 
-  if (title) title.textContent = "Edit Session";
+  if (title) title.textContent = "Edit Event";
   if (saveButton) saveButton.textContent = "Save Changes";
   dialog.showModal();
 }
 
-async function createTimeSession(event) {
+async function createEvent(event) {
   event.preventDefault();
   const form = event.currentTarget;
-  const saveButton = document.getElementById("save-time-session-button");
-  const message = document.getElementById("time-session-form-message");
+  const saveButton = document.getElementById("save-event-button");
+  const message = document.getElementById("event-form-message");
   const formData = new FormData(form);
 
-  const sessionNumber = Number(formData.get("sessionNumber"));
+  const title = String(formData.get("title") || "").trim();
   const date = String(formData.get("date") || "").trim();
-  const hours = Number(formData.get("hours"));
-  const reason = String(formData.get("reason") || "").trim();
-
-  if (!date || !reason || Number.isNaN(hours) || Number.isNaN(sessionNumber)) {
-    message.textContent = "Please fill in all fields.";
+  if (!title || !date) {
+    message.textContent = "Enter a title and date.";
     return;
   }
+
+  const durationRaw = String(formData.get("duration") || "").trim();
+  const duration = durationRaw === "" ? null : Number(durationRaw);
+  if (duration !== null && (Number.isNaN(duration) || duration < 0)) {
+    message.textContent = "Enter a valid number of hours, or leave it blank.";
+    return;
+  }
+
+  const projectId = String(formData.get("projectId") || "").trim();
+  const project = projects.find((item) => item.id === projectId);
+
+  const sharedFields = {
+    title,
+    type: formData.get("type") || "Catch-up",
+    format: formData.get("format") || "Video call",
+    date,
+    status: formData.get("status") || "Scheduled",
+    attendees: String(formData.get("attendees") || "").trim(),
+    duration,
+    keyItems: String(formData.get("keyItems") || "").trim(),
+    actions: String(formData.get("actions") || "").trim(),
+    internalOnly: formData.get("internalOnly") === "on",
+    projectId,
+    projectName: project ? project.name : ""
+  };
 
   saveButton.disabled = true;
 
   try {
     const now = firebase.firestore.FieldValue.serverTimestamp();
 
-    if (editingTimeSessionId) {
+    if (editingEventId) {
       message.textContent = "Saving changes…";
-      await firebase.firestore().collection("timeSessions").doc(editingTimeSessionId).set({
-        sessionNumber,
-        date,
-        hours,
-        reason,
+      await firebase.firestore().collection("events").doc(editingEventId).set({
+        ...sharedFields,
         updatedAt: now
       }, { merge: true });
       message.textContent = "Changes saved.";
     } else {
       const customerId = String(formData.get("customerId") || "").trim();
-      const projectId = String(formData.get("projectId") || "").trim();
       const customer = customers.find((item) => item.id === customerId);
-      const project = projects.find((item) => item.id === projectId);
 
-      if (!customer || !project) {
-        message.textContent = "Select a customer and project.";
+      if (!customer) {
+        message.textContent = "Select a customer.";
         saveButton.disabled = false;
         return;
       }
 
-      message.textContent = "Saving session…";
-      await firebase.firestore().collection("timeSessions").add({
+      message.textContent = "Saving event…";
+      await firebase.firestore().collection("events").add({
+        ...sharedFields,
         customerId,
         customerName: customer.company,
-        projectId,
-        projectName: project.name,
-        sessionNumber,
-        date,
-        hours,
-        reason,
-        userName: document.getElementById("admin-profile")?.textContent || "Admin",
+        owner: document.getElementById("admin-profile")?.textContent || "Admin",
         createdAt: now,
         updatedAt: now
       });
-      message.textContent = "Session saved.";
+      message.textContent = "Event saved.";
     }
 
     setTimeout(() => {
-      document.getElementById("time-session-dialog")?.close();
-      resetTimeSessionDialog();
+      document.getElementById("event-dialog")?.close();
+      resetEventDialogToCreateMode();
       message.textContent = "";
     }, 500);
   } catch (error) {
-    console.error("Could not save time session", error);
-    message.textContent = "Could not save the session. Please try again.";
+    console.error("Could not save event", error);
+    message.textContent = "Could not save the event. Please try again.";
   } finally {
     saveButton.disabled = false;
   }
 }
 
-async function deleteTimeSession(session) {
-  if (!confirm(`Delete session #${session.sessionNumber} (${session.date}) for ${session.projectName}? This cannot be undone.`)) return;
+async function deleteEvent(evt) {
+  if (!confirm(`Delete "${evt.title}"? This cannot be undone.`)) return;
   try {
-    await firebase.firestore().collection("timeSessions").doc(session.id).delete();
+    await firebase.firestore().collection("events").doc(evt.id).delete();
+    if (selectedEventId === evt.id) selectedEventId = null;
   } catch (error) {
-    console.error("Could not delete time session", error);
-    alert("This session could not be deleted. Please try again.");
+    console.error("Could not delete event", error);
+    alert("This event could not be deleted. Please try again.");
   }
 }
 
-function getFilteredTimeTrackerProjects() {
-  const search = currentTimeTrackerSearch.toLowerCase();
-  return projects.filter((project) => `${project.name} ${project.customer}`.toLowerCase().includes(search));
+function getFilteredEvents() {
+  return events.filter((evt) => {
+    const matchesFilter = currentEventFilter === "all" || evt.status === currentEventFilter;
+    const searchTarget = `${evt.title} ${evt.customerName} ${evt.projectName} ${evt.type} ${evt.attendees} ${evt.keyItems} ${evt.actions}`.toLowerCase();
+    const matchesSearch = searchTarget.includes(currentEventSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 }
 
-function getTimeSessionHistoryMarkup(project) {
-  const sessions = timeSessions
-    .filter((session) => session.projectId === project.id)
-    .sort((a, b) => (a.sessionNumber || 0) - (b.sessionNumber || 0));
-
-  const rows = sessions.length
-    ? sessions.map((session) => `
-        <tr>
-          <td>${escapeHtml(String(session.sessionNumber ?? ""))}</td>
-          <td>${escapeHtml(session.date || "")}</td>
-          <td>${formatHoursAndDays(Number(session.hours) || 0)}</td>
-          <td>${escapeHtml(session.reason || "")}</td>
-          <td>${escapeHtml(session.userName || "")}</td>
-          <td>
-            <button class="secondary-button compact" data-edit-time-session="${session.id}">Edit</button>
-            <button class="secondary-button compact danger-button" data-delete-time-session="${session.id}">Delete</button>
-          </td>
-        </tr>
-      `).join("")
-    : `<tr><td colspan="6" class="empty-table">No sessions logged yet for this project.</td></tr>`;
-
+function getEventDetailMarkup(evt) {
   return `
     <div class="inline-detail">
       <div class="detail-heading">
-        <div><p class="eyebrow">Session history</p><h3>${escapeHtml(project.name)} — ${escapeHtml(project.customer)}</h3></div>
-        <button class="icon-button" data-close-time-tracker-detail aria-label="Close detail">×</button>
+        <div><p class="eyebrow">Event</p><h3>${escapeHtml(evt.title)}</h3></div>
+        <button class="icon-button" data-close-event-detail aria-label="Close detail">×</button>
       </div>
-      <div class="inline-detail-table-wrap">
-        <table class="inline-detail-table">
-          <thead>
-            <tr>
-              <th>Session #</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Reason</th>
-              <th>Logged by</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+      <div class="detail-grid">
+        <div><span>Customer</span><strong>${escapeHtml(evt.customerName)}</strong></div>
+        <div><span>Project</span><strong>${escapeHtml(evt.projectName || "None")}</strong></div>
+        <div><span>Type</span><strong>${escapeHtml(evt.type)}</strong></div>
+        <div><span>Format</span><strong>${escapeHtml(evt.format)}</strong></div>
+        <div><span>Date</span><strong>${escapeHtml(formatBookingDateDisplay(evt.date))}</strong></div>
+        <div><span>Time spent</span><strong>${evt.duration === null ? "Not logged" : formatHoursAndDays(evt.duration)}</strong></div>
+        <div><span>Attendees</span><strong>${escapeHtml(evt.attendees || "Not set")}</strong></div>
+        <div><span>Visible to customer</span><strong>${evt.internalOnly ? "No — internal only" : "Yes"}</strong></div>
+      </div>
+      ${evt.keyItems ? `<p><strong>Key items:</strong> ${escapeHtml(evt.keyItems)}</p>` : ""}
+      ${evt.actions ? `<p><strong>Actions:</strong> ${escapeHtml(evt.actions)}</p>` : ""}
+      ${evt.status === "Scheduled" ? `<p class="muted">This event hasn't happened yet, or hasn't been filled in yet. Edit it once it's done to add key items, actions and time spent, and mark it Logged.</p>` : ""}
+      <div class="detail-actions">
+        <button class="secondary-button" data-edit-event="${evt.id}">Edit event</button>
+        <button class="secondary-button danger-button" data-delete-event="${evt.id}">Delete event</button>
       </div>
     </div>
   `;
 }
 
-function renderTimeTrackerTable() {
-  const tableBody = document.getElementById("time-tracker-table");
-  const summary = document.getElementById("time-tracker-summary");
+function renderEventTable() {
+  const tableBody = document.getElementById("event-table");
+  const summary = document.getElementById("event-summary");
   if (!tableBody || !summary) return;
 
-  const filteredProjects = getFilteredTimeTrackerProjects();
+  const filteredEvents = getFilteredEvents()
+    .slice()
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   tableBody.innerHTML = "";
 
-  if (filteredProjects.length === 0) {
-    tableBody.innerHTML = projects.length === 0
-      ? `<tr><td colspan="4" class="empty-table">No projects yet — add one from the Projects page, then come back here to log time against it.</td></tr>`
-      : `<tr><td colspan="4" class="empty-table">No projects match your search.</td></tr>`;
+  if (filteredEvents.length === 0) {
+    tableBody.innerHTML = events.length === 0
+      ? `<tr><td colspan="6" class="empty-table">No events yet — click "+ New Event" above to log or schedule your first one.</td></tr>`
+      : `<tr><td colspan="6" class="empty-table">No events match your search.</td></tr>`;
   } else {
-    filteredProjects.forEach((project) => {
+    filteredEvents.forEach((evt) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${escapeHtml(project.name)}</strong></td>
-        <td>${escapeHtml(project.customer)}</td>
-        <td>${getProjectTimeCellMarkup(project)}</td>
-        <td><button class="secondary-button compact" data-time-tracker-project-id="${project.id}">View</button></td>
+        <td><strong>${escapeHtml(evt.title)}</strong><span class="table-subtext">${escapeHtml(evt.customerName)}</span></td>
+        <td>${escapeHtml(evt.type)}</td>
+        <td>${escapeHtml(evt.projectName || "—")}</td>
+        <td>${escapeHtml(formatBookingDateDisplay(evt.date))}</td>
+        <td><span class="status ${getStatusClass(evt.status)}">${escapeHtml(evt.status)}</span></td>
+        <td><button class="secondary-button compact" data-event-id="${evt.id}">View</button></td>
       `;
       tableBody.appendChild(row);
 
-      if (selectedTimeTrackerProjectId === project.id) {
+      if (selectedEventId === evt.id) {
         const detailRow = document.createElement("tr");
         detailRow.className = "inline-detail-row";
-        detailRow.innerHTML = `<td colspan="4">${getTimeSessionHistoryMarkup(project)}</td>`;
+        detailRow.innerHTML = `<td colspan="6">${getEventDetailMarkup(evt)}</td>`;
         tableBody.appendChild(detailRow);
       }
     });
   }
 
-  summary.textContent = `Showing ${filteredProjects.length} of ${projects.length} projects`;
+  summary.textContent = `Showing ${filteredEvents.length} of ${events.length} events`;
 
-  document.querySelectorAll("[data-time-tracker-project-id]").forEach((button) => {
+  document.querySelectorAll("[data-event-id]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedTimeTrackerProjectId = selectedTimeTrackerProjectId === button.dataset.timeTrackerProjectId ? null : button.dataset.timeTrackerProjectId;
-      renderTimeTrackerTable();
+      selectedEventId = selectedEventId === button.dataset.eventId ? null : button.dataset.eventId;
+      renderEventTable();
     });
   });
 
-  document.querySelectorAll("[data-close-time-tracker-detail]").forEach((button) => {
+  document.querySelectorAll("[data-close-event-detail]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedTimeTrackerProjectId = null;
-      renderTimeTrackerTable();
+      selectedEventId = null;
+      renderEventTable();
     });
   });
 
-  document.querySelectorAll("[data-edit-time-session]").forEach((button) => {
+  document.querySelectorAll("[data-edit-event]").forEach((button) => {
     button.addEventListener("click", () => {
-      const session = timeSessions.find((item) => item.id === button.dataset.editTimeSession);
-      if (session) openTimeSessionDialogForEdit(session);
+      const evt = events.find((item) => item.id === button.dataset.editEvent);
+      if (evt) openEventDialogForEdit(evt);
     });
   });
 
-  document.querySelectorAll("[data-delete-time-session]").forEach((button) => {
+  document.querySelectorAll("[data-delete-event]").forEach((button) => {
     button.addEventListener("click", () => {
-      const session = timeSessions.find((item) => item.id === button.dataset.deleteTimeSession);
-      if (session) deleteTimeSession(session);
+      const evt = events.find((item) => item.id === button.dataset.deleteEvent);
+      if (evt) deleteEvent(evt);
     });
+  });
+}
+
+function setupEventControls() {
+  const searchInput = document.getElementById("event-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+      currentEventSearch = event.target.value;
+      renderEventTable();
+    });
+  }
+
+  document.querySelectorAll(".event-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentEventFilter = button.dataset.eventFilter;
+      document.querySelectorAll(".event-filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderEventTable();
+    });
+  });
+
+  document.getElementById("event-customer")?.addEventListener("change", (event) => {
+    populateEventProjectOptions(event.target.value);
   });
 }
 
@@ -3270,6 +3341,7 @@ function renderCustomerTable() {
     button.addEventListener("click", () => {
       selectedCustomerId = selectedCustomerId === button.dataset.customerId ? null : button.dataset.customerId;
       expandedLibraryAccessCustomerId = null;
+      expandedCustomerEventsId = null;
       renderCustomerTable();
     });
   });
@@ -3315,6 +3387,27 @@ function renderCustomerTable() {
     });
   });
 
+  document.querySelectorAll("[data-toggle-customer-events]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customerId = button.dataset.toggleCustomerEvents;
+      expandedCustomerEventsId = expandedCustomerEventsId === customerId ? null : customerId;
+      renderCustomerTable();
+    });
+  });
+
+  document.querySelectorAll("[data-view-customer-event]").forEach((button) => {
+    button.addEventListener("click", () => {
+      showPage("events");
+      currentEventSearch = "";
+      const searchInput = document.getElementById("event-search");
+      if (searchInput) searchInput.value = "";
+      currentEventFilter = "all";
+      document.querySelectorAll(".event-filter-button").forEach((item) => item.classList.toggle("active", item.dataset.eventFilter === "all"));
+      selectedEventId = button.dataset.viewCustomerEvent;
+      renderEventTable();
+    });
+  });
+
   document.querySelectorAll("[data-save-welcome-message]").forEach((button) => {
     button.addEventListener("click", () => {
       saveCustomerMessage(button.dataset.saveWelcomeMessage);
@@ -3325,6 +3418,7 @@ function renderCustomerTable() {
     button.addEventListener("click", () => {
       selectedCustomerId = null;
       expandedLibraryAccessCustomerId = null;
+      expandedCustomerEventsId = null;
       renderCustomerTable();
     });
   });
@@ -3571,6 +3665,9 @@ function getAccessibleLibraryItems(customer) {
 
 function getCustomerDetailMarkup(customer) {
   const accessibleItems = getAccessibleLibraryItems(customer);
+  const customerEvents = events
+    .filter((evt) => evt.customerId === customer.id)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   return `
     <div class="detail-panel inline-detail-panel" aria-live="polite">
       <div class="detail-header">
@@ -3624,6 +3721,21 @@ function getCustomerDetailMarkup(customer) {
             : `<div><strong>No published library items shared with them yet</strong></div>`}
         </div>
       ` : `<p class="muted">${accessibleItems.length ? `Click "Show library" to see all ${accessibleItems.length} item${accessibleItems.length === 1 ? "" : "s"}.` : "No published library items shared with them yet."}</p>`}
+      <div class="detail-subheading">
+        <p class="eyebrow">Events (${customerEvents.length})</p>
+        ${customerEvents.length ? `<button class="secondary-button compact" data-toggle-customer-events="${customer.id}">${expandedCustomerEventsId === customer.id ? "Hide events" : "Show events"}</button>` : ""}
+      </div>
+      ${expandedCustomerEventsId === customer.id ? `
+        <div class="settings-list compact-list scrollable-list">
+          ${customerEvents.map((evt) => `
+            <div>
+              <strong>${escapeHtml(evt.title)}</strong>
+              <span>${escapeHtml(formatBookingDateDisplay(evt.date))} · ${escapeHtml(evt.type)} · <span class="status ${getStatusClass(evt.status)}">${escapeHtml(evt.status)}</span></span>
+              <button class="secondary-button compact" data-view-customer-event="${evt.id}">View</button>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<p class="muted">${customerEvents.length ? `Click "Show events" to see all ${customerEvents.length} event${customerEvents.length === 1 ? "" : "s"}.` : "No events logged for them yet."}</p>`}
       <div class="detail-actions">
         <button class="secondary-button" data-edit-customer="${customer.id}">Edit customer</button>
         <button class="secondary-button" data-page-link="projects">Open projects</button>
@@ -3973,25 +4085,12 @@ function initialiseApp() {
   document.getElementById("cancel-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
   document.getElementById("close-booking-dialog-button")?.addEventListener("click", resetBookingDialogToCreateMode);
   document.getElementById("booking-form")?.addEventListener("submit", createBooking);
-  setupDialog("time-session-dialog", "new-time-session-button", "close-time-session-dialog-button", "cancel-time-session-dialog-button");
-  document.getElementById("new-time-session-button")?.addEventListener("click", resetTimeSessionDialog);
-  document.getElementById("cancel-time-session-dialog-button")?.addEventListener("click", resetTimeSessionDialog);
-  document.getElementById("close-time-session-dialog-button")?.addEventListener("click", resetTimeSessionDialog);
-  document.getElementById("time-session-form")?.addEventListener("submit", createTimeSession);
-  document.getElementById("time-session-customer")?.addEventListener("change", (event) => {
-    populateTimeSessionProjectOptions(event.target.value);
-    document.getElementById("time-session-number").value = "";
-  });
-  document.getElementById("time-session-project")?.addEventListener("change", (event) => {
-    document.getElementById("time-session-number").value = event.target.value ? nextSessionNumber(event.target.value) : "";
-  });
-  const timeTrackerSearchInput = document.getElementById("time-tracker-search");
-  if (timeTrackerSearchInput) {
-    timeTrackerSearchInput.addEventListener("input", (event) => {
-      currentTimeTrackerSearch = event.target.value;
-      renderTimeTrackerTable();
-    });
-  }
+  setupDialog("event-dialog", "new-event-button", "close-event-dialog-button", "cancel-event-dialog-button");
+  document.getElementById("new-event-button")?.addEventListener("click", resetEventDialogToCreateMode);
+  document.getElementById("cancel-event-dialog-button")?.addEventListener("click", resetEventDialogToCreateMode);
+  document.getElementById("close-event-dialog-button")?.addEventListener("click", resetEventDialogToCreateMode);
+  document.getElementById("event-form")?.addEventListener("submit", createEvent);
+  setupEventControls();
   document.getElementById("time-tracker-settings-form")?.addEventListener("submit", saveTimeTrackerSettings);
   const hoursPerDayInput = document.getElementById("hours-per-day-input");
   if (hoursPerDayInput) hoursPerDayInput.value = hoursPerDay;
@@ -3999,7 +4098,7 @@ function initialiseApp() {
   renderProjectTable();
   renderLibraryTable();
   renderBookingTable();
-  renderTimeTrackerTable();
+  renderEventTable();
   renderLeadsTable();
   updateLeadCustomerMode();
   updateDashboardMetrics();
@@ -4015,6 +4114,7 @@ document.addEventListener("ba:admin-authorised", () => {
   loadLiveBookings();
   loadLiveTimeSessions();
   loadTimeTrackerSettings();
+  loadLiveEvents();
   loadLiveLeads();
   loadLiveAdmins();
   loadLiveMarketingOpportunities();

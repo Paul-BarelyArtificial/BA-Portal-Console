@@ -79,10 +79,10 @@ Your live list of real customer organisations.
 Live projects, each belonging to one customer.
 
 - **New Project**: name, customer, status (Planning/Active/Completed/Archived), type, and an optional **budgeted hours** figure — leave blank if you don't know it yet.
-- **Time column**: shows hours logged so far (in hours and billable days — see Time Tracker), and either "X remaining" or "X over budget" if a budget is set, or "No budget set" if not.
+- **Time column**: shows hours logged so far (in hours and billable days — see Events), and either "X remaining" or "X over budget" if a budget is set, or "No budget set" if not.
 - **Editing**: the customer a project belongs to is locked once created — to move a project to a different customer, archive the old one and create a new one against the right customer.
 - **Archiving**: soft delete, same reasoning as Customers — nothing is removed, just marked Archived. Has no effect on Library, since Library items are never tied to projects.
-- **Deleting a project**: permanent — use it to clean up test/demo projects rather than real ones. Blocked with a clear message if the project still has any logged Time Sessions — delete those first. Correctly updates the parent customer's project count.
+- **Deleting a project**: permanent — use it to clean up test/demo projects rather than real ones. Blocked with a clear message if the project still has any logged Time Sessions or linked Events — deal with those first. Correctly updates the parent customer's project count.
 
 ## Library
 
@@ -107,14 +107,17 @@ A manual log of sessions arranged in Calendly (or however else) — logging a bo
 - **Customer's notes**: if the customer has added their own note on a booking (from the Portal's "Your Bookings" page), it shows in the detail panel alongside your own notes.
 - **Deleting**: permanent.
 
-## Time Tracker
+## Events
 
-Log how much time you (or your colleague) spend on each customer's projects, and see logged/budgeted/remaining time at a glance.
+A record of every meeting, call or session with a customer — catch-ups, technical sessions, account reviews, scoping calls, training, anything. Replaces the old Time Tracker: time spent is now just one field on an Event, rather than its own separate log.
 
-- **Log Session**: pick a Customer, then a Project (only that customer's own projects are offered), a session number (auto-fills to the next number for that project, but you can override it), a date, time spent in hours, and a reason/description.
-- **Project overview**: every project with its logged time (in hours and billable days), and either remaining time, over-budget, or "no budget set" — the same figures also show on the Projects page, since both read the same underlying data.
-- **Session history**: click "View" on a project to see every session logged against it, with Edit and Delete per session. Editing a session locks the Customer/Project (only the session number, date, hours and reason can change) — delete and re-log if you got the project wrong.
-- **Billing day length**: a small setting at the top of the Time Tracker page — change "Hours per billing day" (defaults to 8) to control how hours convert into the "billable days" figure shown everywhere.
+- **New Event**: title, customer, project (optional — not every event is tied to one), type (Catch-up/Technical/Account/Scoping/Training/Other), format (Video call/In person/Phone call/Other), date, status (Scheduled/Logged), attendees (free text), time spent in hours (optional), key items, actions, and an "Internal only" checkbox.
+- **Schedule now, fill in later**: create an event as a Scheduled placeholder with just a title, customer and date before it happens, then edit it afterwards to add key items, actions and time spent, and change its status to Logged. The customer detail's Edit button always keeps the customer locked; the project can still be changed on edit.
+- **Internal only**: tick this to keep an event off the customer's Portal entirely — useful for internal prep or account-team-only notes. Unticked (the default) means the customer sees it in their "Your Events" page.
+- **Search and filters**: search across title, customer, project, type, attendees, key items and actions; filter by All/Scheduled/Logged.
+- **Project time totals**: hours logged against a project (shown on the Projects page and project detail panel) now come from both this new Events collection (Logged events with an hours figure) and any pre-existing Time Tracker sessions — nothing already logged is lost.
+- **On a customer's detail panel**: a collapsible "Events" list shows every event for that customer (including internal-only ones, since you're an admin), each with a "View" link straight into the Events page detail.
+- **Billing day length**: a small setting on the Events page ("Time & Billing") — change "Hours per billing day" (defaults to 8) to control how hours convert into the "billable days" figure shown everywhere.
 
 ## Reports
 
@@ -167,4 +170,4 @@ The exported data lands in that Cloud Storage bucket as a set of files — it is
 
 ## A note on Firestore rules
 
-Several features (Customer uploads, My Meetings notes, Leads, Time Tracker) rely on Firestore/Storage security rules that live in `docs/firestore.rules.txt` and `docs/storage.rules.txt` in this repo. These are **not automatically applied** — they must be manually pasted into Firebase Console → Firestore/Storage → Rules → Publish whenever they change. If a feature suddenly stops working with a permissions error, check whether the rules file in the repo has changed since you last published it.
+Several features (Customer uploads, My Meetings notes, Leads, Events) rely on Firestore/Storage security rules that live in `docs/firestore.rules.txt` and `docs/storage.rules.txt` in this repo. These are **not automatically applied** — they must be manually pasted into Firebase Console → Firestore/Storage → Rules → Publish whenever they change. If a feature suddenly stops working with a permissions error, check whether the rules file in the repo has changed since you last published it.

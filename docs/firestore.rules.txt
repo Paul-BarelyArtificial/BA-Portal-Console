@@ -104,6 +104,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /events/{eventId} {
+      allow write: if isAdmin();
+      allow read: if isAdmin() || (
+        isSignedIn()
+        && resource.data.get("internalOnly", false) == false
+        && resource.data.customerId == callerCustomerId()
+      );
+    }
+
     match /customerMessages/{customerId} {
       allow read: if isAdmin() || (isSignedIn() && customerId == callerCustomerId());
       allow write: if isAdmin();

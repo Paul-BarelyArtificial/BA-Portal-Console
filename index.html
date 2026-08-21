@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barely Artificial Console</title>
-  <link rel="stylesheet" href="css/styles.css?v=0.8.0" />
+  <link rel="stylesheet" href="css/styles.css?v=0.9.0" />
 </head>
 <body class="auth-checking">
   <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
@@ -54,13 +54,13 @@
         <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
         <button class="nav-item" data-page="library"><span>▤</span>Library</button>
         <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
-        <button class="nav-item" data-page="timeTracker"><span>◔</span>Time Tracker</button>
+        <button class="nav-item" data-page="events"><span>◔</span>Events</button>
         <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
         <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.8.0 – Social Media Planning</div>
+        <div id="version-label">v0.9.0 – Events & Time Tracking</div>
       </div>
     </aside>
 
@@ -460,47 +460,43 @@
         </div>
       </section>
 
-      <section id="timeTracker" class="page">
+      <section id="events" class="page">
         <div class="console-header">
           <div>
-            <p class="eyebrow">Time Tracker</p>
-            <h2>Log time</h2>
-            <p>Log time spent per customer and project, and see totals, budget and remaining time at a glance. Click a project for its full session history.</p>
+            <p class="eyebrow">Events</p>
+            <h2>Customer events</h2>
+            <p>Every meeting, call or session with a customer — catch-ups, technical sessions, account reviews, scoping, training. Schedule a placeholder ahead of time, then come back and fill it in once it's happened.</p>
           </div>
-          <button class="primary-button" id="new-time-session-button">+ Log Session</button>
+          <button class="primary-button" id="new-event-button">+ New Event</button>
         </div>
-
-        <section class="panel time-tracker-settings-panel">
-          <div class="panel-heading">
-            <h3>Billing day length</h3>
-          </div>
-          <form id="time-tracker-settings-form" class="inline-settings-form">
-            <label>Hours per billing day<input id="hours-per-day-input" name="hoursPerDay" type="number" min="0.5" step="0.5" required /></label>
-            <button class="secondary-button compact" type="submit">Save</button>
-            <span id="time-tracker-settings-message" class="muted"></span>
-          </form>
-        </section>
 
         <div class="toolbar">
-          <label class="search-box" for="time-tracker-search">
+          <label class="search-box" for="event-search">
             <span>Search</span>
-            <input id="time-tracker-search" type="search" placeholder="Search projects or customers..." autocomplete="off" />
+            <input id="event-search" type="search" placeholder="Search events, customers, attendees..." autocomplete="off" />
           </label>
+          <div class="filter-group" aria-label="Event status filters">
+            <button class="event-filter-button filter-button active" data-event-filter="all">All</button>
+            <button class="event-filter-button filter-button" data-event-filter="Scheduled">Scheduled</button>
+            <button class="event-filter-button filter-button" data-event-filter="Logged">Logged</button>
+          </div>
         </div>
 
-        <div class="summary-row" id="time-tracker-summary">Loading projects…</div>
+        <div class="summary-row" id="event-summary">Loading events…</div>
 
         <div class="table-card">
           <table>
             <thead>
               <tr>
+                <th>Event</th>
+                <th>Type</th>
                 <th>Project</th>
-                <th>Customer</th>
-                <th>Time</th>
+                <th>Date</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="time-tracker-table"></tbody>
+            <tbody id="event-table"></tbody>
           </table>
         </div>
       </section>
@@ -614,6 +610,18 @@
 
           <section class="settings-panel">
             <div class="panel-heading">
+              <h3>Time &amp; Billing</h3>
+              <span class="badge status active">Live</span>
+            </div>
+            <form id="time-tracker-settings-form" class="settings-form">
+              <label>Hours per billing day<input id="hours-per-day-input" name="hoursPerDay" type="number" min="0.5" step="0.5" required /></label>
+              <button class="secondary-button compact" type="submit">Save</button>
+              <span id="time-tracker-settings-message" class="muted"></span>
+            </form>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
               <h3>Data Backup</h3>
               <span class="badge">Manual</span>
             </div>
@@ -628,7 +636,7 @@
               <span class="badge">v0.1.6</span>
             </div>
             <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.8.0 – Social Media Planning</span></div>
+              <div><strong>Console version</strong><span>v0.9.0 – Events & Time Tracking</span></div>
               <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
               <div><strong>Build type</strong><span>Firebase-backed application</span></div>
             </div>
@@ -886,25 +894,31 @@
     </form>
   </dialog>
 
-  <dialog id="time-session-dialog" class="modal">
-    <form id="time-session-form">
+  <dialog id="event-dialog" class="modal">
+    <form id="event-form">
       <div class="modal-header">
-        <h3 id="time-session-dialog-title">Log Session</h3>
-        <button class="icon-button" id="close-time-session-dialog-button" type="button" aria-label="Close dialog">×</button>
+        <h3 id="event-dialog-title">New Event</h3>
+        <button class="icon-button" id="close-event-dialog-button" type="button" aria-label="Close dialog">×</button>
       </div>
-      <p>Log time spent on a customer's project.</p>
+      <p>Any meeting, call or session with a customer. Schedule it ahead as a placeholder, or log it straight away if it's already happened.</p>
       <div class="form-preview">
-        <label>Customer<select id="time-session-customer" name="customerId" required><option value="">Select a customer</option></select></label>
-        <label>Project<select id="time-session-project" name="projectId" required disabled><option value="">Select a customer first</option></select></label>
-        <label>Session number<input id="time-session-number" name="sessionNumber" type="number" min="1" step="1" required /></label>
+        <label class="full-width">Title<input name="title" type="text" required placeholder="e.g. Quarterly account review" /></label>
+        <label>Customer<select id="event-customer" name="customerId" required><option value="">Select a customer</option></select></label>
+        <label>Project (optional)<select id="event-project" name="projectId" disabled><option value="">Select a customer first</option></select></label>
+        <label>Type<select name="type"><option>Catch-up</option><option>Technical</option><option>Account</option><option>Scoping</option><option>Training</option><option>Other</option></select></label>
+        <label>Format<select name="format"><option>Video call</option><option>In person</option><option>Phone call</option><option>Other</option></select></label>
         <label>Date<input name="date" type="date" required /></label>
-        <label>Time spent (hours)<input name="hours" type="number" min="0" step="0.25" placeholder="e.g. 1.5" required /></label>
-        <label class="full-width">Reason<textarea name="reason" rows="3" placeholder="What did you work on?" required></textarea></label>
+        <label>Status<select id="event-status" name="status"><option>Scheduled</option><option>Logged</option></select></label>
+        <label>Attendees<input name="attendees" type="text" placeholder="Who was there" /></label>
+        <label>Time spent (hours, optional)<input name="duration" type="number" min="0" step="0.25" placeholder="e.g. 1.5" /></label>
+        <label class="full-width">Key items<textarea name="keyItems" rows="3" placeholder="What was discussed or decided"></textarea></label>
+        <label class="full-width">Actions<textarea name="actions" rows="3" placeholder="What happens next, and who's doing it"></textarea></label>
+        <label class="full-width checkbox-label"><input name="internalOnly" type="checkbox" /> Internal only (don't show this event to the customer)</label>
       </div>
-      <p id="time-session-form-message" class="form-message" aria-live="polite"></p>
+      <p id="event-form-message" class="form-message" aria-live="polite"></p>
       <div class="modal-actions">
-        <button class="secondary-button" id="cancel-time-session-dialog-button" type="button">Cancel</button>
-        <button class="primary-button" id="save-time-session-button" type="submit">Save Session</button>
+        <button class="secondary-button" id="cancel-event-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-event-button" type="submit">Create Event</button>
       </div>
     </form>
   </dialog>
@@ -913,8 +927,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
-  <script src="js/firebase-config.js?v=0.8.0"></script>
-  <script src="js/app.js?v=0.8.0"></script>
-  <script src="js/auth.js?v=0.8.0"></script>
+  <script src="js/firebase-config.js?v=0.9.0"></script>
+  <script src="js/app.js?v=0.9.0"></script>
+  <script src="js/auth.js?v=0.9.0"></script>
 </body>
 </html>

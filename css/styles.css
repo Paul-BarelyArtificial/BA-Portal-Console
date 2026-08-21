@@ -544,6 +544,9 @@ select:disabled {
 .status.upcoming { color: #9ed4ff; background: rgba(158, 212, 255, 0.10); }
 .status.cancelled { color: var(--danger); background: rgba(255, 180, 168, 0.10); }
 
+.status.scheduled { color: #9ed4ff; background: rgba(158, 212, 255, 0.10); }
+.status.logged { color: var(--accent); background: var(--accent-soft); }
+
 
 .settings-grid {
   display: grid;
