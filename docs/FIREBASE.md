@@ -48,6 +48,20 @@ Customer-submitted uploads (`source: "Customer"`) are always created with `statu
 - Storage path: `customerUploads/{customerId}/{libraryItemId}/{fileName}`, separate from the admin-managed `library/{libraryItemId}/{fileName}` path.
 - See `docs/firestore.rules.txt` and `docs/storage.rules.txt` for the exact rules.
 
+## Company Dashboard collection
+
+Collection: `companyLinks`
+
+| Field | Type | Purpose |
+|---|---|---|
+| `name` | string | Link display name |
+| `url` | string | Destination URL (opens in a new tab) |
+| `category` | string | Free-text grouping (e.g. Apps, Finance, Scheduling) — autocomplete suggestions come from categories already in use, same pattern as Library's `collection` field |
+| `createdAt` | timestamp | Creation time |
+| `updatedAt` | timestamp | Last update time |
+
+Admin-only, like every other internal-management collection — no customer-facing read path. Each link's favicon is fetched client-side from Google's favicon service based on the URL's hostname; nothing is stored for it.
+
 ## Legacy Resources
 
 v0.2.3 stored records in `resources` and required `customerId` and `projectId`. v0.2.4 does not delete or silently migrate those records. Migration should be reviewed because the new visibility decision cannot always be inferred safely from the old data.

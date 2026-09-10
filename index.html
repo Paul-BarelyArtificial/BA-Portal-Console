@@ -46,33 +46,47 @@
       </div>
 
       <nav id="nav-menu" class="nav-menu" aria-label="Console navigation">
-        <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
-        <button class="nav-item" data-page="leads"><span>◎</span>Leads</button>
-        <button class="nav-item" data-page="marketing"><span>▲</span>Marketing</button>
-        <button class="nav-item" data-page="social"><span>◆</span>Social Media</button>
-        <button class="nav-item" data-page="customers"><span>◫</span>Customers</button>
-        <button class="nav-item" data-page="projects"><span>▣</span>Projects</button>
-        <button class="nav-item" data-page="library"><span>▤</span>Library</button>
-        <button class="nav-item" data-page="bookings"><span>◷</span>Bookings</button>
-        <button class="nav-item" data-page="events"><span>◔</span>Events</button>
-        <button class="nav-item" data-page="reports"><span>▥</span>Reports</button>
-        <button class="nav-item" data-page="settings"><span>⚙</span>Settings</button>
+        <button class="nav-item active" data-page="dashboard">Dashboard</button>
+        <button class="nav-item" data-page="customers">Customers</button>
+        <button class="nav-item" data-page="leads">Leads</button>
+        <button class="nav-item" data-page="opportunities">Opportunities</button>
+        <button class="nav-item" data-page="marketing">Marketing</button>
+        <button class="nav-item" data-page="social">Social Media</button>
+        <button class="nav-item" data-page="projects">Projects</button>
+        <button class="nav-item" data-page="library">Library</button>
+        <button class="nav-item" data-page="events">Events</button>
+        <button class="nav-item" data-page="calendar">Calendar</button>
+        <button class="nav-item" data-page="reports">Reports</button>
+        <button class="nav-item" data-page="company">Company</button>
+        <button class="nav-item" data-page="settings">Settings</button>
       </nav>
 
       <div class="sidebar-footer">
-        <div id="version-label">v0.9.1 – Quick-Add Event</div>
+        <div class="theme-toggle" role="group" aria-label="Colour theme">
+          <button type="button" data-theme-choice="light" aria-label="Light theme">☀</button>
+          <button type="button" data-theme-choice="dark" aria-label="Dark theme">☾</button>
+          <button type="button" data-theme-choice="auto" aria-label="Match system">◐</button>
+        </div>
       </div>
     </aside>
 
     <main class="main-content">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Barely Artificial Console</p>
+        <nav class="breadcrumb-bar" aria-label="Breadcrumb">
+          <span>Barely Artificial</span>
+          <span class="breadcrumb-sep">/</span>
+          <span>Console</span>
+        </nav>
+        <div class="topbar-row">
           <h1 id="page-title">Dashboard</h1>
-        </div>
-        <div class="topbar-actions">
-          <div class="profile-pill" id="admin-profile">Administrator</div>
-          <button class="secondary-button compact" id="admin-signout-button" type="button">Sign Out</button>
+          <div class="global-search">
+            <input type="search" id="global-search-input" placeholder="Search everything..." autocomplete="off" />
+            <div class="global-search-results" id="global-search-results" hidden></div>
+          </div>
+          <div class="topbar-actions">
+            <div class="profile-pill" id="admin-profile">Administrator</div>
+            <button class="secondary-button compact" id="admin-signout-button" type="button">Sign Out</button>
+          </div>
         </div>
       </header>
 
@@ -81,17 +95,60 @@
           <div>
             <p class="eyebrow">Overview</p>
             <h2>Welcome back, Paul</h2>
-            <p>Your customer portal management area. This is where customers, projects, library items and bookings will be managed as the product grows.</p>
+            <p>Your customer portal management area. This is where customers, projects, library items and events will be managed as the product grows.</p>
           </div>
           <button class="primary-button" data-page-link="customers">View customers</button>
         </div>
 
-        <div class="metric-grid">
-          <article class="metric-card"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Live data</small></article>
-          <article class="metric-card"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Live data</small></article>
-          <article class="metric-card"><span class="metric-label">Library items</span><strong id="metric-library">0</strong><small>Live data</small></article>
-          <article class="metric-card"><span class="metric-label">Bookings</span><strong id="metric-bookings">0</strong><small id="metric-bookings-note">Live data</small></article>
+        <div class="metric-grid metric-grid-compact">
+          <article class="metric-card compact"><span class="metric-label">Customers</span><strong id="metric-customers">0</strong><small id="metric-customers-note">Live data</small></article>
+          <article class="metric-card compact"><span class="metric-label">Leads</span><strong id="metric-leads">0</strong><small id="metric-leads-note">Live data</small></article>
+          <article class="metric-card compact"><span class="metric-label">Opportunities</span><strong id="metric-opportunities">0</strong><small id="metric-opportunities-note">Live data</small></article>
+          <article class="metric-card compact"><span class="metric-label">Projects</span><strong id="metric-projects">0</strong><small>Live data</small></article>
+          <article class="metric-card compact"><span class="metric-label">Events</span><strong id="metric-events">0</strong><small id="metric-events-note">Live data</small></article>
+          <article class="metric-card compact"><span class="metric-label">Library items</span><strong id="metric-library">0</strong><small>Live data</small></article>
         </div>
+
+        <section class="panel upcoming-panel">
+          <div class="panel-heading">
+            <h3>What I should do today</h3>
+            <span class="badge status active">Live</span>
+          </div>
+          <ul class="activity-list" id="daily-digest-list">
+            <li><span class="skeleton-line"></span></li>
+          </ul>
+        </section>
+
+        <section class="panel upcoming-panel">
+          <div class="panel-heading">
+            <h3>Pipeline value</h3>
+            <span class="badge status active">Live</span>
+          </div>
+          <div class="detail-grid">
+            <div><span>Open pipeline</span><strong id="pipeline-value-open">£0</strong></div>
+            <div><span>Weighted forecast</span><strong id="pipeline-value-weighted">£0</strong></div>
+          </div>
+        </section>
+
+        <section class="panel upcoming-panel">
+          <div class="panel-heading">
+            <h3>Open actions</h3>
+            <span class="badge status active">Live</span>
+          </div>
+          <ul class="activity-list" id="dashboard-actions-list">
+            <li><span class="skeleton-line"></span></li>
+          </ul>
+        </section>
+
+        <section class="panel upcoming-panel">
+          <div class="panel-heading">
+            <h3>Recently viewed</h3>
+            <span class="badge status active">Live</span>
+          </div>
+          <ul class="activity-list" id="recently-viewed-list">
+            <li><span class="muted">Nothing viewed yet</span></li>
+          </ul>
+        </section>
 
         <section class="panel upcoming-panel">
           <div class="panel-heading">
@@ -99,7 +156,7 @@
             <span class="badge status active">Live</span>
           </div>
           <ul class="activity-list" id="dashboard-social-list">
-            <li><span>Loading…</span></li>
+            <li><span class="skeleton-line"></span></li>
           </ul>
         </section>
 
@@ -117,7 +174,7 @@
             </form>
             <p id="coming-soon-message" class="form-message" aria-live="polite"></p>
             <ul class="activity-list" id="coming-soon-list">
-              <li><span>Loading…</span></li>
+              <li><span class="skeleton-line"></span></li>
             </ul>
           </section>
 
@@ -128,7 +185,7 @@
             </div>
             <p class="muted">Feature requests customers submit from their Portal Dashboard appear here.</p>
             <ul class="activity-list" id="feature-requests-list">
-              <li><span>Loading…</span></li>
+              <li><span class="skeleton-line"></span></li>
             </ul>
           </section>
         </div>
@@ -138,39 +195,58 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Leads</p>
-            <h2>Lead pipeline</h2>
-            <p>Track prospects through Cold, Warm and Hot, then promote a Won lead into a real Customer and Project.</p>
+            <h2>Lead Pipeline</h2>
+            <p>Track unqualified prospects. Once a lead is confirmed as a genuine opportunity — budget, need and authority known — mark it Qualified and promote it to an Opportunity.</p>
           </div>
-          <button class="primary-button" id="new-lead-button">+ New Lead</button>
+          <div class="console-header-actions">
+            <button class="secondary-button" id="import-leads-csv-button">+ Import CSV</button>
+            <input type="file" id="import-leads-csv-input" accept=".csv" hidden />
+            <button class="secondary-button" id="export-leads-csv-button">Export CSV</button>
+            <button class="primary-button" id="new-lead-button">+ New Lead</button>
+          </div>
         </div>
+        <p id="import-leads-csv-status" class="muted"></p>
 
         <div class="toolbar">
           <label class="search-box" for="lead-search">
             <span>Search</span>
             <input id="lead-search" type="search" placeholder="Search leads..." autocomplete="off" />
           </label>
+          <label class="search-box customer-filter-box" for="lead-customer-filter">
+            <span>Customer</span>
+            <select id="lead-customer-filter"><option value="">All customers</option></select>
+          </label>
           <div class="filter-group" aria-label="Lead status filters">
             <button class="lead-filter-button filter-button active" data-lead-filter="all">All</button>
-            <button class="lead-filter-button filter-button" data-lead-filter="Cold">Cold</button>
-            <button class="lead-filter-button filter-button" data-lead-filter="Warm">Warm</button>
-            <button class="lead-filter-button filter-button" data-lead-filter="Hot">Hot</button>
-            <button class="lead-filter-button filter-button" data-lead-filter="Won">Won</button>
-            <button class="lead-filter-button filter-button" data-lead-filter="Lost">Lost</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Open">Open</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Qualified">Qualified</button>
+            <button class="lead-filter-button filter-button" data-lead-filter="Disqualified">Disqualified</button>
           </div>
+          <label class="checkbox-inline" for="lead-my-records">
+            <input type="checkbox" id="lead-my-records" />
+            <span>My records</span>
+          </label>
         </div>
 
         <div class="summary-row" id="lead-summary">Loading leads…</div>
+
+        <div class="bulk-action-bar" id="lead-bulk-bar" hidden>
+          <span id="lead-bulk-count">0 selected</span>
+          <button class="secondary-button compact" id="lead-bulk-export">Export selected</button>
+          <button class="secondary-button compact danger-button" id="lead-bulk-delete">Delete selected</button>
+          <button class="secondary-button compact" id="lead-bulk-clear">Clear selection</button>
+        </div>
 
         <div class="table-card">
           <table>
             <thead>
               <tr>
+                <th class="checkbox-col"><input type="checkbox" id="lead-select-all" aria-label="Select all leads" /></th>
                 <th>Lead</th>
                 <th>Customer</th>
                 <th>Project</th>
                 <th>Status</th>
                 <th>Projected income</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="leads-table"></tbody>
@@ -178,11 +254,72 @@
         </div>
       </section>
 
+      <section id="opportunities" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Opportunities</p>
+            <h2>Sales Pipeline</h2>
+            <p>Genuine, qualified deals with a defined value, close date and stage — promote to a real Project once Won.</p>
+          </div>
+          <div class="console-header-actions">
+            <button class="secondary-button" id="export-opportunities-csv-button">Export CSV</button>
+            <button class="primary-button" id="new-deal-button">+ New Opportunity</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="opportunity-search">
+            <span>Search</span>
+            <input id="opportunity-search" type="search" placeholder="Search opportunities..." autocomplete="off" />
+          </label>
+          <label class="search-box customer-filter-box" for="opportunity-customer-filter">
+            <span>Customer</span>
+            <select id="opportunity-customer-filter"><option value="">All customers</option></select>
+          </label>
+          <div class="filter-group" id="opportunity-stage-filters" aria-label="Opportunity sales stage filters">
+            <button class="opportunity-filter-button filter-button active" data-opportunity-filter="all">All</button>
+          </div>
+          <label class="checkbox-inline" for="opportunity-my-records">
+            <input type="checkbox" id="opportunity-my-records" />
+            <span>My records</span>
+          </label>
+          <label class="checkbox-inline" for="opportunity-show-archived">
+            <input type="checkbox" id="opportunity-show-archived" />
+            <span>Show archived</span>
+          </label>
+          <div class="filter-group" aria-label="Opportunity view">
+            <button class="opportunity-view-button filter-button active" data-opportunity-view="table">Table</button>
+            <button class="opportunity-view-button filter-button" data-opportunity-view="kanban">Kanban</button>
+          </div>
+        </div>
+
+        <div class="summary-row" id="opportunity-summary">Loading opportunities…</div>
+
+        <div class="table-card" id="opportunity-table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Opportunity</th>
+                <th>Customer</th>
+                <th>Sales stage</th>
+                <th>Forecast category</th>
+                <th>Status</th>
+                <th>Deal value</th>
+                <th>Expected close</th>
+              </tr>
+            </thead>
+            <tbody id="opportunities-table"></tbody>
+          </table>
+        </div>
+
+        <div class="kanban-board" id="opportunity-kanban" hidden></div>
+      </section>
+
       <section id="marketing" class="page">
         <div class="console-header">
           <div>
             <p class="eyebrow">Marketing</p>
-            <h2>Marketing opportunities</h2>
+            <h2>Marketing Opportunities</h2>
             <p>Track recurring places to promote Barely Artificial — Facebook groups, networking breakfasts, meetups — so you never miss a posting window.</p>
           </div>
           <button class="primary-button" id="new-marketing-button">+ New Opportunity</button>
@@ -193,7 +330,7 @@
             <h3>Coming up in the next 14 days</h3>
           </div>
           <ul class="activity-list" id="marketing-upcoming-list">
-            <li><span>Loading…</span></li>
+            <li><span class="skeleton-line"></span></li>
           </ul>
         </section>
 
@@ -219,7 +356,8 @@
                 <th>Type</th>
                 <th>Recurrence</th>
                 <th>Next occurrence</th>
-                <th>Action</th>
+                <th>Rating</th>
+                <th>Cost</th>
               </tr>
             </thead>
             <tbody id="marketing-table"></tbody>
@@ -231,7 +369,7 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Social Media</p>
-            <h2>Campaigns &amp; posts</h2>
+            <h2>Campaigns &amp; Posts</h2>
             <p>Plan, create and track social posts across every platform, from first idea through to how it performed.</p>
           </div>
           <button class="primary-button" id="new-social-post-button">+ New Post</button>
@@ -242,7 +380,7 @@
             <h3>Needs attention in the next 14 days</h3>
           </div>
           <ul class="activity-list" id="social-upcoming-list">
-            <li><span>Loading…</span></li>
+            <li><span class="skeleton-line"></span></li>
           </ul>
         </section>
 
@@ -272,7 +410,6 @@
                 <th>Status</th>
                 <th>Post date</th>
                 <th>Creation window</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="social-table"></tbody>
@@ -284,10 +421,13 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Customers</p>
-            <h2>Customer management</h2>
+            <h2>Customer Management</h2>
             <p>Manage live customer organisations, access status and contact information stored in Firestore.</p>
           </div>
-          <button class="primary-button" id="new-customer-button">+ New Customer</button>
+          <div class="console-header-actions">
+            <button class="secondary-button" id="export-customers-csv-button">Export CSV</button>
+            <button class="primary-button" id="new-customer-button">+ New Customer</button>
+          </div>
         </div>
 
         <div class="toolbar">
@@ -302,14 +442,26 @@
             <button class="filter-button" data-filter="Paused">Paused</button>
             <button class="filter-button" data-filter="Archived">Archived</button>
           </div>
+          <label class="checkbox-inline" for="customer-my-records">
+            <input type="checkbox" id="customer-my-records" />
+            <span>My records</span>
+          </label>
         </div>
 
         <div class="summary-row" id="customer-summary">Loading customers…</div>
+
+        <div class="bulk-action-bar" id="customer-bulk-bar" hidden>
+          <span id="customer-bulk-count">0 selected</span>
+          <button class="secondary-button compact" id="customer-bulk-archive">Archive selected</button>
+          <button class="secondary-button compact" id="customer-bulk-export">Export selected</button>
+          <button class="secondary-button compact" id="customer-bulk-clear">Clear selection</button>
+        </div>
 
         <div class="table-card">
           <table>
             <thead>
               <tr>
+                <th class="checkbox-col"><input type="checkbox" id="customer-select-all" aria-label="Select all customers" /></th>
                 <th>Company</th>
                 <th>Status</th>
                 <th>Projects</th>
@@ -328,7 +480,7 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Projects</p>
-            <h2>Project management</h2>
+            <h2>Project Management</h2>
             <p>Track customer projects, status, ownership and customer projects using live Firestore data. Library access is managed separately.</p>
           </div>
           <button class="primary-button" id="new-project-button">+ New Project</button>
@@ -338,6 +490,10 @@
           <label class="search-box" for="project-search">
             <span>Search</span>
             <input id="project-search" type="search" placeholder="Search projects..." autocomplete="off" />
+          </label>
+          <label class="search-box customer-filter-box" for="project-customer-filter">
+            <span>Customer</span>
+            <select id="project-customer-filter"><option value="">All customers</option></select>
           </label>
           <div class="filter-group" aria-label="Project status filters">
             <button class="project-filter-button filter-button active" data-project-filter="all">All</button>
@@ -361,7 +517,6 @@
                 <th>Library items</th>
                 <th>Time</th>
                 <th>Last updated</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="projects-table"></tbody>
@@ -373,7 +528,7 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Library</p>
-            <h2>Library management</h2>
+            <h2>Library Management</h2>
             <p>Upload a file or add a useful link once, then control whether it is internal, available to every customer, or shared with selected customers.</p>
           </div>
           <div class="console-header-actions">
@@ -409,53 +564,9 @@
                 <th>Visibility</th>
                 <th>Status</th>
                 <th>Last updated</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="library-table"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="bookings" class="page">
-        <div class="console-header">
-          <div>
-            <p class="eyebrow">Bookings</p>
-            <h2>Booking management</h2>
-            <p>Review training sessions, AI advice calls and project meetings. Add a booking here once it's arranged in Calendly (or another way) to keep a record.</p>
-          </div>
-          <button class="primary-button" id="new-booking-button">+ New Booking</button>
-        </div>
-
-        <div class="toolbar">
-          <label class="search-box" for="booking-search">
-            <span>Search</span>
-            <input id="booking-search" type="search" placeholder="Search bookings..." autocomplete="off" />
-          </label>
-          <div class="filter-group" aria-label="Booking status filters">
-            <button class="booking-filter-button filter-button active" data-booking-filter="all">All</button>
-            <button class="booking-filter-button filter-button" data-booking-filter="Upcoming">Upcoming</button>
-            <button class="booking-filter-button filter-button" data-booking-filter="Completed">Completed</button>
-            <button class="booking-filter-button filter-button" data-booking-filter="Cancelled">Cancelled</button>
-          </div>
-        </div>
-
-        <div class="summary-row" id="booking-summary">Loading bookings…</div>
-
-        <div class="table-card">
-          <table>
-            <thead>
-              <tr>
-                <th>Booking</th>
-                <th>Customer</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="bookings-table"></tbody>
           </table>
         </div>
       </section>
@@ -464,8 +575,8 @@
         <div class="console-header">
           <div>
             <p class="eyebrow">Events</p>
-            <h2>Customer events</h2>
-            <p>Every meeting, call or session with a customer — catch-ups, technical sessions, account reviews, scoping, training. Schedule a placeholder ahead of time, then come back and fill it in once it's happened.</p>
+            <h2>Customer Events</h2>
+            <p>Every meeting, call or session with a customer — catch-ups, technical sessions, account reviews, scoping, training, bookings arranged via Calendly or elsewhere. Schedule a placeholder ahead of time, then come back and fill it in once it's happened.</p>
           </div>
           <button class="primary-button" id="new-event-button">+ New Event</button>
         </div>
@@ -475,10 +586,15 @@
             <span>Search</span>
             <input id="event-search" type="search" placeholder="Search events, customers, attendees..." autocomplete="off" />
           </label>
+          <label class="search-box customer-filter-box" for="event-customer-filter">
+            <span>Customer</span>
+            <select id="event-customer-filter"><option value="">All customers</option></select>
+          </label>
           <div class="filter-group" aria-label="Event status filters">
             <button class="event-filter-button filter-button active" data-event-filter="all">All</button>
             <button class="event-filter-button filter-button" data-event-filter="Scheduled">Scheduled</button>
             <button class="event-filter-button filter-button" data-event-filter="Logged">Logged</button>
+            <button class="event-filter-button filter-button" data-event-filter="Cancelled">Cancelled</button>
           </div>
         </div>
 
@@ -493,12 +609,32 @@
                 <th>Project</th>
                 <th>Date</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="event-table"></tbody>
           </table>
         </div>
+      </section>
+
+      <section id="calendar" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Calendar</p>
+            <h2>Events</h2>
+            <p>Every event in one month view.</p>
+          </div>
+        </div>
+
+        <div class="calendar-toolbar">
+          <div class="calendar-nav">
+            <button class="secondary-button compact" id="calendar-prev-month">←</button>
+            <h3 id="calendar-month-label">Month</h3>
+            <button class="secondary-button compact" id="calendar-next-month">→</button>
+          </div>
+          <button class="secondary-button compact" id="calendar-today-button">Today</button>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid"></div>
       </section>
 
       <section id="reports" class="page">
@@ -520,127 +656,278 @@
 <p class="muted">Reporting uses sample data in this release.</p>
 </section></div></section>
 
+      <section id="company" class="page">
+        <div class="console-header">
+          <div>
+            <p class="eyebrow">Company</p>
+            <h2>Company Dashboard</h2>
+            <p>Every company tool and service in one place — apps, booking, finance, and anything else you'd otherwise have to go digging for.</p>
+          </div>
+          <button class="primary-button" id="new-company-link-button">+ Add Link</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="company-link-search">
+            <span>Search</span>
+            <input id="company-link-search" type="search" placeholder="Search links..." autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="summary-row" id="company-link-summary">Loading company links…</div>
+
+        <div id="company-link-groups"></div>
+      </section>
+
       <section id="settings" class="page">
         <div class="console-header">
           <div>
             <p class="eyebrow">Settings</p>
-            <h2>Console settings</h2>
+            <h2>Console Settings</h2>
             <p>Control the basic configuration for the Console and Customer Portal. These settings are placeholders for now and will be connected to Firebase later.</p>
           </div>
           <button class="primary-button" id="save-settings-button">Save Settings</button>
         </div>
 
-        <div class="settings-grid">
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Your account</h3>
-              <span class="badge">Internal</span>
-            </div>
-            <div class="settings-form">
-              <label>Name<input type="text" value="Paul O’Brien" disabled /></label>
-              <label>Email<input type="email" value="pob@thepob.net" disabled /></label>
-              <label>Company<input type="text" value="Barely Artificial" disabled /></label>
-            </div>
-          </section>
+        <div class="settings-layout">
+          <nav class="settings-subnav" aria-label="Settings sections">
+            <button class="settings-subnav-item active" data-settings-section="about">About</button>
+            <button class="settings-subnav-item" data-settings-section="activity">Activity Log</button>
+            <button class="settings-subnav-item" data-settings-section="booking">Booking</button>
+            <button class="settings-subnav-item" data-settings-section="roadmap">Coming Soon</button>
+            <button class="settings-subnav-item" data-settings-section="backup">Data Backup</button>
+            <button class="settings-subnav-item" data-settings-section="datasafety">Data Safety</button>
+            <button class="settings-subnav-item" data-settings-section="features">Enabled Features</button>
+            <button class="settings-subnav-item" data-settings-section="firebase">Firebase</button>
+            <button class="settings-subnav-item" data-settings-section="notifications">Notifications</button>
+            <button class="settings-subnav-item" data-settings-section="branding">Portal branding</button>
+            <button class="settings-subnav-item" data-settings-section="pipeline">Sales Pipeline</button>
+            <button class="settings-subnav-item" data-settings-section="admin">Team</button>
+            <button class="settings-subnav-item" data-settings-section="billing">Time &amp; Billing</button>
+            <button class="settings-subnav-item" data-settings-section="account">Your Accounts</button>
+          </nav>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Portal branding</h3>
-              <span class="badge">Placeholder</span>
-            </div>
-            <div class="settings-form">
-              <label>Portal name<input type="text" value="Barely Artificial Portal" disabled /></label>
-              <label>Primary colour<input type="text" value="#b7ff3c" disabled /></label>
-              <label>Welcome message<input type="text" value="Everything you need for your project, all in one place." disabled /></label>
-            </div>
-          </section>
+          <div class="settings-content">
+            <section class="settings-panel active" data-settings-panel="about">
+              <div class="panel-heading">
+                <h3>About</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <div class="settings-list compact-list">
+                <div><strong>Console version</strong><span id="about-console-version">v1.2.0 – Marketing Cost & Rating</span></div>
+                <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
+                <div><strong>Build type</strong><span>Firebase-backed application</span></div>
+              </div>
+            </section>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Booking</h3>
-              <span class="badge">Calendly</span>
-            </div>
-            <div class="settings-form">
-              <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/meet-with-barely-artificial" disabled /></label>
-              <label>Default session length<input type="text" value="30 minutes" disabled /></label>
-              <label>Time zone<input type="text" value="Europe/London" disabled /></label>
-            </div>
-          </section>
+            <section class="settings-panel" data-settings-panel="activity">
+              <div class="panel-heading">
+                <h3>Activity Log</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <p class="muted">Who created, edited, archived, deleted or promoted a record, and when. Covers Customers, Projects, Leads and Events.</p>
+              <div class="settings-list compact-list scrollable-list" id="audit-log-list">
+                <div><strong>Loading…</strong></div>
+              </div>
+            </section>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Admin access</h3>
-              <span class="badge status active">Live</span>
-            </div>
-            <div class="settings-form">
-              <label class="full-width">New admin's email
-                <input type="email" id="new-admin-email" placeholder="colleague@example.com" autocomplete="off" />
-              </label>
-              <button class="primary-button" id="add-admin-button" type="button">Add Admin</button>
-              <p id="add-admin-status" class="muted"></p>
-            </div>
-            <div class="settings-list compact-list" id="admin-list">
-              <div><strong>Loading…</strong></div>
-            </div>
-          </section>
+            <section class="settings-panel" data-settings-panel="admin">
+              <div class="panel-heading">
+                <h3>Team</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <p class="muted">Everyone who uses this Console. Also the source list for the Owner field on Leads, Opportunities and Customers.</p>
+              <div class="settings-form">
+                <label class="full-width">Name
+                  <input type="text" id="new-admin-name" placeholder="Jane Smith" autocomplete="off" />
+                </label>
+                <label class="full-width">Role
+                  <input type="text" id="new-admin-role" placeholder="e.g. Sales Rep" autocomplete="off" />
+                </label>
+                <label class="full-width">Email
+                  <input type="email" id="new-admin-email" placeholder="colleague@example.com" autocomplete="off" />
+                </label>
+                <button class="primary-button" id="add-admin-button" type="button">Add to Team</button>
+                <p id="add-admin-status" class="muted"></p>
+              </div>
+              <div class="settings-list compact-list" id="admin-list">
+                <div><strong>Loading…</strong></div>
+              </div>
+            </section>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Firebase</h3>
-              <span class="badge status active">Connected</span>
-            </div>
-            <div class="settings-list compact-list">
-              <div><strong>Authentication</strong><span>Connected</span></div>
-              <div><strong>Firestore</strong><span>Connected</span></div>
-              <div><strong>Storage</strong><span>Connected</span></div>
-            </div>
-          </section>
+            <section class="settings-panel" data-settings-panel="booking">
+              <div class="panel-heading">
+                <h3>Booking</h3>
+                <span class="badge">Calendly</span>
+              </div>
+              <div class="settings-form">
+                <label>Booking URL<input type="url" value="https://calendly.com/paul-barelyartificial/meet-with-barely-artificial" disabled /></label>
+                <label>Default session length<input type="text" value="30 minutes" disabled /></label>
+                <label>Time zone<input type="text" value="Europe/London" disabled /></label>
+              </div>
+            </section>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Notifications</h3>
-              <span class="badge">Future</span>
-            </div>
-            <div class="settings-list compact-list">
-              <div><strong>Email alerts</strong><span>Off</span></div>
-              <div><strong>Booking confirmations</strong><span>Handled by Calendly</span></div>
-              <div><strong>Customer updates</strong><span>Not connected yet</span></div>
-            </div>
-          </section>
+            <section class="settings-panel" data-settings-panel="roadmap">
+              <div class="panel-heading">
+                <h3>Coming Soon</h3>
+                <span class="badge">Product roadmap</span>
+              </div>
+              <p class="muted">What's already live, and what's on the way — this is the product roadmap, kept current as features ship. (Distinct from the "Coming Soon" widget customers see on their own Portal Dashboard, which is for your announcements to them.)</p>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Time &amp; Billing</h3>
-              <span class="badge status active">Live</span>
-            </div>
-            <form id="time-tracker-settings-form" class="settings-form">
-              <label>Hours per billing day<input id="hours-per-day-input" name="hoursPerDay" type="number" min="0.5" step="0.5" required /></label>
-              <button class="secondary-button compact" type="submit">Save</button>
-              <span id="time-tracker-settings-message" class="muted"></span>
-            </form>
-          </section>
+              <div class="panel-heading">
+                <h4>Coming soon</h4>
+              </div>
+              <ul class="activity-list roadmap-list">
+                <li><span>Email integration — sync your inbox, log emails against the right record automatically</span></li>
+                <li><span>Role-based permissions for your team</span></li>
+                <li><span>Restore-from-backup safety net</span></li>
+                <li><span>Configurable workspace — turn off the features you don't use</span></li>
+                <li><span>Standalone CRM mode — use it with or without the customer portal</span></li>
+              </ul>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>Data Backup</h3>
-              <span class="badge">Manual</span>
-            </div>
-            <p class="muted">Download a full snapshot of your live data (Customers, Projects, Leads, Marketing Opportunities, Bookings, Library, Time Sessions, Admins and Settings) as a JSON file, for safekeeping outside Firebase.</p>
-            <button class="primary-button" id="export-data-button" type="button">Export Data</button>
-            <p id="export-data-status" class="muted"></p>
-          </section>
+              <div class="panel-heading">
+                <h4>AI Features</h4>
+              </div>
+              <ul class="activity-list roadmap-list">
+                <li><span>Customer briefing before a call — a one-click summary of where things stand, pulled from history, notes and past activity</span></li>
+                <li><span>Follow-up email drafting — a personalised draft ready for you to review and send</span></li>
+                <li><span>Meeting &amp; call note cleanup — turn raw notes into a structured update</span></li>
+                <li><span>Quick-add from unstructured text — paste a business card or email signature and get structured contact fields</span></li>
+                <li><span>Deal risk flagging in plain English — a qualitative read on deals that need attention</span></li>
+                <li><span>A daily "Morning Brief" summarising what needs your attention today</span></li>
+                <li><span>Plain-English history for any record — see its whole story at a glance</span></li>
+              </ul>
+            </section>
 
-          <section class="settings-panel">
-            <div class="panel-heading">
-              <h3>About</h3>
-              <span class="badge">v0.1.6</span>
-            </div>
-            <div class="settings-list compact-list">
-              <div><strong>Console version</strong><span>v0.9.1 – Quick-Add Event</span></div>
-              <div><strong>Customer Portal version</strong><span>v0.2.1 – Firebase Authentication</span></div>
-              <div><strong>Build type</strong><span>Firebase-backed application</span></div>
-            </div>
-          </section>
+            <section class="settings-panel" data-settings-panel="backup">
+              <div class="panel-heading">
+                <h3>Data Backup</h3>
+                <span class="badge">Manual</span>
+              </div>
+              <p class="muted">Download a full snapshot of your live data (Customers, Projects, Leads, Marketing Opportunities, Bookings, Library, Time Sessions, Admins and Settings) as a JSON file, for safekeeping outside Firebase.</p>
+              <button class="primary-button" id="export-data-button" type="button">Export Data</button>
+              <p id="export-data-status" class="muted"></p>
+              <p class="eyebrow" style="margin-top:20px;">Restore from JSON</p>
+              <p class="muted">Restore records from a previously exported backup file. Each record in the file overwrites its matching record by ID — records not present in the file are left untouched, nothing is deleted. The Activity Log is never restored (it's append-only by design).</p>
+              <input type="file" id="restore-data-input" accept="application/json" hidden />
+              <button class="secondary-button" id="restore-data-button" type="button">Choose Backup File…</button>
+              <p id="restore-data-status" class="muted"></p>
+              <p class="eyebrow" style="margin-top:20px;">Migrate Bookings to Events</p>
+              <p class="muted">Bookings has been merged into Events — this copies every existing Booking record into Events (nothing is deleted from the original Bookings data). Safe to run more than once; already-migrated records are skipped.</p>
+              <button class="secondary-button" id="migrate-bookings-button" type="button">Migrate Bookings Now</button>
+              <p id="migrate-bookings-status" class="muted"></p>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="datasafety">
+              <div class="panel-heading">
+                <h3>Data Safety</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <p class="muted">We take the security of your data seriously, and this area is under continuous review as the platform grows. Here's what's true today:</p>
+              <div class="settings-list compact-list">
+                <div><strong>Dedicated project per client</strong><span>Your data lives in its own Firebase project, not a shared multi-tenant database — it never sits alongside another customer's data.</span></div>
+                <div><strong>Encrypted storage &amp; transit</strong><span>Hosted on Google Cloud infrastructure (Firestore), encrypted at rest and in transit by Google's own platform defaults.</span></div>
+                <div><strong>Access control</strong><span>Enforced by Firestore Security Rules — customers can only read or write their own records via their Portal login; admin actions are separately gated.</span></div>
+                <div><strong>Tamper-evident audit trail</strong><span>Every admin create, update, delete and promote action is logged in an append-only Activity Log that cannot be edited or deleted afterwards, even by an admin.</span></div>
+                <div><strong>No exposed backend server</strong><span>The app talks directly to Firebase with no custom API server in between, which keeps the attack surface small.</span></div>
+              </div>
+              <p class="muted">What we don't claim: this platform has not yet been through an independent security audit, penetration test, or formal certification (e.g. SOC 2, ISO 27001). We'd rather be upfront about that than overstate it.</p>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="features">
+              <div class="panel-heading">
+                <h3>Enabled Features</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <p class="muted">Turn off whole sections this deployment doesn't need. Applies to this Console and its nav — Customers, Projects, Library and Events are always on.</p>
+              <form id="feature-flags-form" class="settings-form">
+                <label class="full-width checkbox-label"><input type="checkbox" name="socialMedia" checked /> Social Media</label>
+                <label class="full-width checkbox-label"><input type="checkbox" name="marketing" checked /> Marketing</label>
+                <label class="full-width checkbox-label"><input type="checkbox" name="reports" checked /> Reports</label>
+                <button class="secondary-button compact" type="submit">Save</button>
+                <span id="feature-flags-message" class="muted"></span>
+              </form>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="firebase">
+              <div class="panel-heading">
+                <h3>Firebase</h3>
+                <span class="badge status active">Connected</span>
+              </div>
+              <div class="settings-list compact-list">
+                <div><strong>Authentication</strong><span>Connected</span></div>
+                <div><strong>Firestore</strong><span>Connected</span></div>
+                <div><strong>Storage</strong><span>Connected</span></div>
+              </div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="notifications">
+              <div class="panel-heading">
+                <h3>Notifications</h3>
+                <span class="badge">Future</span>
+              </div>
+              <div class="settings-list compact-list">
+                <div><strong>Email alerts</strong><span>Off</span></div>
+                <div><strong>Booking confirmations</strong><span>Handled by Calendly</span></div>
+                <div><strong>Customer updates</strong><span>Not connected yet</span></div>
+              </div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="branding">
+              <div class="panel-heading">
+                <h3>Portal branding</h3>
+                <span class="badge">Placeholder</span>
+              </div>
+              <div class="settings-form">
+                <label>Portal name<input type="text" value="Barely Artificial Portal" disabled /></label>
+                <label>Primary colour<input type="text" value="#b7ff3c" disabled /></label>
+                <label>Welcome message<input type="text" value="Everything you need for your project, all in one place." disabled /></label>
+              </div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="pipeline">
+              <div class="panel-heading">
+                <h3>Sales Pipeline</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <p class="muted">Define your own Sales Stage and Forecast Category terminology for Opportunities — add, remove, reorder, and rename to match how your team already talks about deals.</p>
+              <form id="pipeline-config-form" class="settings-form">
+                <label class="full-width"><strong>Sales Stages</strong> (in order)</label>
+                <div id="sales-stage-list" class="pipeline-config-list"></div>
+                <button class="secondary-button compact" id="add-sales-stage-button" type="button">+ Add stage</button>
+
+                <label class="full-width"><strong>Forecast Categories</strong> (in order)</label>
+                <div id="forecast-category-list" class="pipeline-config-list"></div>
+                <button class="secondary-button compact" id="add-forecast-category-button" type="button">+ Add category</button>
+
+                <button class="primary-button" type="submit">Save Pipeline Settings</button>
+                <span id="pipeline-config-message" class="muted"></span>
+              </form>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="billing">
+              <div class="panel-heading">
+                <h3>Time &amp; Billing</h3>
+                <span class="badge status active">Live</span>
+              </div>
+              <form id="time-tracker-settings-form" class="settings-form">
+                <label>Hours per billing day<input id="hours-per-day-input" name="hoursPerDay" type="number" min="0.5" step="0.5" required /></label>
+                <button class="secondary-button compact" type="submit">Save</button>
+                <span id="time-tracker-settings-message" class="muted"></span>
+              </form>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="account">
+              <div class="panel-heading">
+                <h3>Your Accounts</h3>
+                <span class="badge">Internal</span>
+              </div>
+              <div class="settings-form">
+                <label>Name<input type="text" value="Paul O’Brien" disabled /></label>
+                <label>Email<input type="email" value="pob@thepob.net" disabled /></label>
+                <label>Company<input type="text" value="Barely Artificial" disabled /></label>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
     </main>
@@ -652,7 +939,7 @@
         <h3 id="lead-dialog-title">New Lead</h3>
         <button class="icon-button" id="close-lead-dialog-button" type="button" aria-label="Close dialog">×</button>
       </div>
-      <p>Track a prospect. You can link it to an existing Customer/Project, or describe a new one — either can be promoted to the real thing once the lead is Won.</p>
+      <p>Track a prospect. You can link it to an existing Customer/Project, or describe a new one — mark the lead Qualified once it's a genuine deal, then promote it to an Opportunity.</p>
       <div class="form-preview">
         <label class="full-width">Lead name<input name="name" type="text" required placeholder="e.g. Acme Corp — Website Rebuild" /></label>
 
@@ -664,14 +951,35 @@
         <label id="lead-project-existing-group">Select project<select id="lead-existing-project" name="existingProjectId"><option value="">Select a customer first</option></select></label>
         <label id="lead-project-new-group" class="full-width" hidden>New project name<input id="lead-new-project-name" name="newProjectName" type="text" placeholder="Prospective project name" /></label>
 
-        <label>Status<select name="status"><option>Cold</option><option>Warm</option><option>Hot</option><option>Won</option><option>Lost</option></select></label>
+        <label>Status<select name="status"><option>Open</option><option>Qualified</option><option>Disqualified</option></select></label>
         <label>Projected income (£)<input name="projectedIncome" type="number" min="0" step="1" placeholder="e.g. 5000" /></label>
+        <label>Source<select name="source"><option>Referral</option><option>Website</option><option>Event</option><option>Cold outreach</option><option>Other</option></select></label>
+        <label>Owner<select id="lead-owner" name="owner"></select></label>
         <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Context, next steps, anything useful"></textarea></label>
+        <div class="full-width" id="lead-dialog-actions-section" hidden></div>
       </div>
       <p id="lead-form-message" class="form-message" aria-live="polite"></p>
       <div class="modal-actions">
         <button class="secondary-button" id="cancel-lead-dialog-button" type="button">Cancel</button>
         <button class="primary-button" id="save-lead-button" type="submit">Create Lead</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="promote-lead-dialog" class="modal">
+    <form id="promote-lead-form">
+      <div class="modal-header">
+        <h3>Promote to Opportunity</h3>
+        <button class="icon-button" id="close-promote-lead-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>This creates a real Customer record where needed. An Opportunity needs an expected close date.</p>
+      <div class="form-preview">
+        <label class="full-width">Expected close date<input id="promote-lead-close-date" name="expectedCloseDate" type="date" required /></label>
+      </div>
+      <p id="promote-lead-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-promote-lead-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Promote</button>
       </div>
     </form>
   </dialog>
@@ -693,6 +1001,19 @@
         <label id="marketing-once-date-group" hidden>Date<input name="date" type="date" /></label>
 
         <label class="full-width">Link (optional)<input name="url" type="url" placeholder="https://facebook.com/groups/..." /></label>
+
+        <label>Cost (optional)<input name="cost" type="number" min="0" step="0.01" placeholder="e.g. 25" /></label>
+        <label>Cost frequency<select name="costFrequency"><option value="once">One-off</option><option value="month" selected>Per month</option><option value="year">Per year</option></select></label>
+
+        <label>Usefulness rating<select name="rating">
+          <option value="">Not rated</option>
+          <option value="1">1 — Won't be much use</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5 — Will be really useful</option>
+        </select></label>
+
         <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="What to post, group rules, anything useful to remember"></textarea></label>
       </div>
       <p id="marketing-form-message" class="form-message" aria-live="polite"></p>
@@ -702,6 +1023,27 @@
       </div>
     </form>
   </dialog>
+
+  <dialog id="company-link-dialog" class="modal">
+    <form id="company-link-form">
+      <div class="modal-header">
+        <h3 id="company-link-dialog-title">Add Link</h3>
+        <button class="icon-button" id="close-company-link-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <div class="form-preview">
+        <label class="full-width">Name<input name="name" type="text" required placeholder="e.g. QuickBooks" /></label>
+        <label class="full-width">URL<input name="url" type="url" required placeholder="https://..." /></label>
+        <label class="full-width">Category<input name="category" type="text" required list="company-link-category-options" placeholder="e.g. Finance" /></label>
+      </div>
+      <p id="company-link-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-company-link-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-company-link-button" type="submit">Add Link</button>
+      </div>
+    </form>
+  </dialog>
+
+  <datalist id="company-link-category-options"></datalist>
 
   <datalist id="social-campaign-options"></datalist>
 
@@ -752,6 +1094,58 @@
     </form>
   </dialog>
 
+  <dialog id="deal-dialog" class="modal">
+    <form id="deal-form">
+      <div class="modal-header">
+        <h3 id="deal-dialog-title">New Opportunity</h3>
+        <button class="icon-button" id="close-deal-dialog-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p>A genuine, qualified deal — needs a value, an expected close date and a stage. You can link it to an existing Customer/Project, or describe a new one; no originating Lead required.</p>
+      <div class="form-preview">
+        <label class="full-width">Opportunity name<input name="name" type="text" required placeholder="e.g. Acme Corp — Website Rebuild" /></label>
+
+        <label>Customer<select id="deal-customer-mode" name="customerMode"><option value="existing">Existing customer</option><option value="new">New (prospective) customer</option></select></label>
+        <label id="deal-customer-existing-group">Select customer<select id="deal-existing-customer" name="existingCustomerId"><option value="">Select a customer</option></select></label>
+        <label id="deal-customer-new-group" class="full-width" hidden>New customer name<input id="deal-new-customer-name" name="newCustomerName" type="text" placeholder="Prospective company name" /></label>
+
+        <label>Project/Deal<select id="deal-project-mode" name="projectMode"><option value="existing">Existing project</option><option value="new">New (prospective) project</option></select></label>
+        <label id="deal-project-existing-group">Select project<select id="deal-existing-project" name="existingProjectId"><option value="">Select a customer first</option></select></label>
+        <label id="deal-project-new-group" class="full-width" hidden>New project/deal name<input id="deal-new-project-name" name="newProjectName" type="text" placeholder="Prospective project name" /></label>
+
+        <label>Deal value (£)<input name="dealValue" type="number" min="0" step="1" required placeholder="e.g. 15000" /></label>
+        <label>Expected close date<input name="expectedCloseDate" type="date" required /></label>
+        <label id="deal-source-group">Source<select name="source"><option>Referral</option><option>Website</option><option>Event</option><option>Cold outreach</option><option>Other</option></select></label>
+        <label>Sales stage<select id="deal-sales-stage" name="salesStage"></select></label>
+        <label>Forecast category<select id="deal-forecast-category" name="forecastCategory"></select></label>
+        <label>Owner<select id="deal-owner" name="owner"></select></label>
+        <label>Status<select id="deal-status" name="status"><option>Open</option><option>Won</option><option>Lost</option></select></label>
+        <div id="deal-winloss-reason-group" class="full-width" hidden>
+          <span>Reason(s) — select all that apply</span>
+          <div id="deal-winloss-reason-options" class="checkbox-grid"></div>
+        </div>
+        <label id="deal-winloss-notes-group" class="full-width" hidden>Reason notes (optional)<input name="winLossReasonNotes" type="text" placeholder="Any extra detail" /></label>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Context, next steps, anything useful"></textarea></label>
+      </div>
+      <p class="eyebrow">Attachments</p>
+      <div class="attachment-form">
+        <input type="text" class="full-width" id="deal-attachment-label-input" placeholder="Label (optional)" />
+        <input type="url" class="full-width" id="deal-attachment-url-input" placeholder="https://..." />
+        <button class="secondary-button compact" type="button" id="deal-add-attachment-link">Add link</button>
+        <label class="secondary-button compact attachment-upload-label">
+          Upload file
+          <input type="file" hidden id="deal-attachment-file-input" />
+        </label>
+      </div>
+      <div class="attachment-list" id="deal-attachments-list"></div>
+      <div id="deal-dialog-actions-section" hidden></div>
+      <p id="deal-form-message" class="form-message" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancel-deal-dialog-button" type="button">Cancel</button>
+        <button class="primary-button" id="save-deal-button" type="submit">Create Opportunity</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="customer-dialog" class="modal">
     <form id="customer-form">
       <div class="modal-header">
@@ -761,15 +1155,20 @@
       <p>Add the customer organisation now. Projects and users can be connected later. Library access is managed separately.</p>
       <div class="form-preview">
         <label>Company name<input name="company" type="text" placeholder="Example Ltd" required /></label>
-        <label>Status<select name="status"><option>Trial</option><option>Active</option><option>Paused</option><option>Archived</option></select></label>
-        <label class="full-width"><strong>Contacts</strong> — up to 3 people can each have their own Portal login.</label>
-        <label>Contact 1 name<input name="contactName1" type="text" placeholder="Contact name" /></label>
-        <label>Contact 1 email<input name="contactEmail1" type="email" placeholder="name@example.com" /></label>
-        <label>Contact 2 name<input name="contactName2" type="text" placeholder="Contact name (optional)" /></label>
-        <label>Contact 2 email<input name="contactEmail2" type="email" placeholder="name@example.com" /></label>
-        <label>Contact 3 name<input name="contactName3" type="text" placeholder="Contact name (optional)" /></label>
-        <label>Contact 3 email<input name="contactEmail3" type="email" placeholder="name@example.com" /></label>
-        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="What are we helping this customer with?"></textarea></label>
+        <label>Status<select name="status"><option>Trial</option><option>Active</option><option>Paused</option><option>Archived</option><option>Potential</option></select></label>
+        <label>Owner<select id="customer-owner" name="owner"></select></label>
+        <label>Website<input name="website" type="text" placeholder="e.g. example.com or https://example.com" /></label>
+        <label>Main phone<input name="phone" type="tel" placeholder="Phone number" /></label>
+        <label>Industry<select name="industry"><option value="">Not set</option><option>Technology</option><option>Retail</option><option>Healthcare</option><option>Finance</option><option>Education</option><option>Hospitality</option><option>Manufacturing</option><option>Professional Services</option><option>Non-profit</option><option>Other</option></select></label>
+        <label>Company size<select name="companySize"><option value="">Not set</option><option>1-10</option><option>11-50</option><option>51-200</option><option>201-500</option><option>500+</option></select></label>
+        <label class="full-width">Address<textarea name="address" rows="2" placeholder="Street, city, postcode"></textarea></label>
+        <label class="full-width">Tags<input name="tags" type="text" placeholder="e.g. Fitness, Enterprise (comma separated)" /></label>
+        <label class="full-width">Customer Memory<textarea name="customerMemory" rows="2" placeholder="Soft, practical things to remember — e.g. only uses email, never answers the phone"></textarea></label>
+        <label class="full-width"><strong>Contacts</strong></label>
+        <div class="full-width" id="customer-contacts-fields"></div>
+        <button class="secondary-button compact full-width" type="button" id="add-contact-row-button">+ Add another contact</button>
+        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Tell me about the customer"></textarea></label>
+        <p class="full-width muted">Relationship History is now a comments log — add entries from the customer's detail panel after saving.</p>
         <label class="full-width checkbox-label"><input name="internalPreview" type="checkbox" /> Internal preview (not a real customer — e.g. your own test account)</label>
       </div>
       <p id="customer-form-message" class="form-message" aria-live="polite"></p>
@@ -801,6 +1200,15 @@
         <button class="primary-button" id="save-project-button" type="submit">Create Project</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="constellation-dialog" class="modal constellation-modal">
+    <div class="modal-header">
+      <h3 id="constellation-dialog-title">Constellation</h3>
+      <button class="icon-button" id="close-constellation-dialog-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <p class="muted">Everyone connected to this customer — contacts, Leads, Opportunities and Projects. Click a node to open it.</p>
+    <div id="constellation-svg-container" class="constellation-svg-container"></div>
   </dialog>
 
   <datalist id="collection-options"></datalist>
@@ -869,31 +1277,6 @@
     </form>
   </dialog>
 
-  <dialog id="booking-dialog" class="modal">
-    <form id="booking-form">
-      <div class="modal-header">
-        <h3 id="booking-dialog-title">New Booking</h3>
-        <button class="icon-button" id="close-booking-dialog-button" type="button" aria-label="Close dialog">×</button>
-      </div>
-      <p>Log a booking after it's arranged in Calendly (or another way). This does not create a Calendly event.</p>
-      <div class="form-preview">
-        <label>Booking title<input name="title" type="text" placeholder="Training Session" required /></label>
-        <label>Customer<select id="booking-customer" name="customerId" required><option value="">Select a customer</option></select></label>
-        <label>Type<select name="type"><option>Training</option><option>AI Advice</option><option>Project</option><option>Strategy</option></select></label>
-        <label>Status<select name="status"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></label>
-        <label>Date<input name="date" type="date" required /></label>
-        <label>Time<input name="time" type="time" /></label>
-        <label>Duration<input name="duration" type="text" placeholder="e.g. 30 minutes" /></label>
-        <label class="full-width">Notes<textarea name="notes" rows="3" placeholder="Internal notes about this booking"></textarea></label>
-      </div>
-      <p id="booking-form-message" class="form-message" aria-live="polite"></p>
-      <div class="modal-actions">
-        <button class="secondary-button" id="cancel-booking-dialog-button" type="button">Cancel</button>
-        <button class="primary-button" id="save-booking-button" type="submit">Create Booking</button>
-      </div>
-    </form>
-  </dialog>
-
   <dialog id="event-dialog" class="modal">
     <form id="event-form">
       <div class="modal-header">
@@ -905,15 +1288,15 @@
         <label class="full-width">Title<input name="title" type="text" required placeholder="e.g. Quarterly account review" /></label>
         <label>Customer<select id="event-customer" name="customerId" required><option value="">Select a customer</option></select></label>
         <label>Project (optional)<select id="event-project" name="projectId" disabled><option value="">Select a customer first</option></select></label>
-        <label>Type<select name="type"><option>Catch-up</option><option>Technical</option><option>Account</option><option>Scoping</option><option>Training</option><option>Other</option></select></label>
+        <label>Type<select name="type"><option>Catch-up</option><option>Technical</option><option>Account</option><option>Scoping</option><option>Training</option><option>AI Advice</option><option>Project</option><option>Strategy</option><option>Other</option></select></label>
         <label>Format<select name="format"><option>Video call</option><option>In person</option><option>Phone call</option><option>Other</option></select></label>
         <label>Date<input name="date" type="date" required /></label>
         <label>Start time (optional)<input name="startTime" type="time" /></label>
-        <label>Status<select id="event-status" name="status"><option>Scheduled</option><option>Logged</option></select></label>
+        <label>Status<select id="event-status" name="status"><option>Scheduled</option><option>Logged</option><option>Cancelled</option></select></label>
         <label>Attendees<input name="attendees" type="text" placeholder="Who was there" /></label>
         <label>Time spent (hours, optional)<input name="duration" type="number" min="0" step="0.25" placeholder="e.g. 1.5" /></label>
         <label class="full-width">Key items<textarea name="keyItems" rows="3" placeholder="What was discussed or decided"></textarea></label>
-        <label class="full-width">Actions<textarea name="actions" rows="3" placeholder="What happens next, and who's doing it"></textarea></label>
+        <label class="full-width">Actions (one per line — becomes a checklist)<textarea name="actions" rows="3" placeholder="What happens next, and who's doing it — one action per line"></textarea></label>
         <label class="full-width checkbox-label"><input name="internalOnly" type="checkbox" /> Internal only (don't show this event to the customer)</label>
       </div>
       <p id="event-form-message" class="form-message" aria-live="polite"></p>

@@ -2,7 +2,7 @@
 
 Internal management application for the Barely Artificial Customer Portal.
 
-**Current version:** v0.8.0 – Social Media Planning
+**Current version:** v1.2.0 – Marketing Cost & Rating
 
 ## Current features
 
@@ -20,6 +20,7 @@ Internal management application for the Barely Artificial Customer Portal.
 - Live Bookings — an admin-maintained log (create/edit/delete) of sessions arranged in Calendly or another way; not yet auto-synced from Calendly itself
 - Time Tracker — log time per customer/project with auto-incrementing session numbers, see logged/budgeted/remaining time in both hours and billable days, full session history with edit/delete, and a configurable hours-per-billing-day setting
 - Customer document uploads — customers submit files from the Portal (20 MB/file, 500 MB/customer, enforced in Firestore and Storage rules); they land as Draft/Internal Library items for review, and each customer's usage is shown on their detail panel. Deleting an upload frees their quota back
+- Company Dashboard — a quick-access page of company-wide bookmark links (apps, Calendly, QuickBooks, etc.), grouped into categories you define as you add links, each shown with its site favicon
 - Placeholder Reports and Settings
 
 ## Technology

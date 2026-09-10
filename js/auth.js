@@ -49,7 +49,13 @@ function unlockConsole(user, adminData = {}) {
   authScreen.hidden = true;
   consoleShell.setAttribute("aria-hidden", "false");
   const displayName = adminData.name || user.displayName || user.email || "Administrator";
-  adminProfile.textContent = displayName;
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join("") || "A";
+  adminProfile.innerHTML = `<span class="profile-avatar">${initials}</span><span>${displayName}</span>`;
   document.dispatchEvent(new CustomEvent("ba:admin-authorised", { detail: { user, adminData } }));
 }
 
