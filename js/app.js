@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.2.0 – Marketing Cost & Rating";
+const APP_VERSION = "v1.2.1 – Portal Users Fix";
 
 const THEME_STORAGE_KEY = "ba-console-theme";
 
@@ -347,12 +347,13 @@ function normaliseCustomerContacts(data) {
 
 function normaliseCustomer(document) {
   const data = document.data() || {};
+  const contacts = normaliseCustomerContacts(data);
   return {
     id: document.id,
     company: data.company || "Unnamed customer",
     status: data.status || "Trial",
     projects: Number(data.projects || 0),
-    users: Number(data.users || 0),
+    users: contacts.filter((contact) => contact.portalAccountCreated).length,
     owner: data.owner || "Paul O’Brien",
     lastUpdated: formatFirestoreDate(data.updatedAt || data.createdAt),
     notes: data.notes || "No notes added.",
@@ -363,7 +364,7 @@ function normaliseCustomer(document) {
     industry: data.industry || "",
     companySize: data.companySize || "",
     address: data.address || "",
-    contacts: normaliseCustomerContacts(data),
+    contacts,
     uploadStorageUsedBytes: Number(data.uploadStorageUsedBytes || 0),
     internalPreview: Boolean(data.internalPreview),
     tags: Array.isArray(data.tags) ? data.tags : []
@@ -2099,7 +2100,6 @@ async function createCustomer(event) {
       const customerRef = await firebase.firestore().collection("customers").add({
         ...record,
         projects: 0,
-        users: 0,
         uploadStorageUsedBytes: 0,
         createdAt: now
       });
@@ -4169,7 +4169,6 @@ async function confirmPromoteLeadToOpportunity(event) {
         notes: `Promoted from lead: ${lead.name}`,
         owner: getCurrentAdminName(),
         projects: 0,
-        users: 0,
         uploadStorageUsedBytes: 0,
         createdAt: now,
         updatedAt: now
@@ -5269,7 +5268,6 @@ async function createOpportunity(event) {
           notes: `Created from opportunity: ${name}`,
           owner,
           projects: 0,
-          users: 0,
           uploadStorageUsedBytes: 0,
           createdAt: now,
           updatedAt: now
@@ -6825,7 +6823,7 @@ function getCustomerDetailMarkup(customer) {
           <strong>View map</strong>
         </button>
         <div><span>Projects</span><strong>${customer.projects}</strong></div>
-        <div><span>Users</span><strong>${customer.users}</strong></div>
+        <div><span>Portal users</span><strong>${customer.users}</strong></div>
         <div><span>Owner</span><strong>${escapeHtml(customer.owner)}</strong></div>
         <div><span>Last updated</span><strong>${escapeHtml(customer.lastUpdated)}</strong></div>
         <div><span>Uploads used</span><strong>${formatBytes(customer.uploadStorageUsedBytes)} of ${formatBytes(UPLOAD_QUOTA_BYTES)}</strong></div>
